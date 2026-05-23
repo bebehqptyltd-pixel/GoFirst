@@ -87,7 +87,8 @@ const TUTORIAL_STEPS = [
 function CardBack() {
   return (
     <div style={{ width:"100%", height:"100%", borderRadius:18, overflow:"hidden", boxShadow:"0 8px 40px rgba(74,40,16,0.22)" }}>
-      <img src="/GF.png" alt="" draggable="false" style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }} />
+      <img src="https://raw.githubusercontent.com/bebehqptyltd-pixel/GoFirst/main/GF.png"
+alt="" draggable="false" style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }} />
     </div>
   );
 }
