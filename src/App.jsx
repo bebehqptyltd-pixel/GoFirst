@@ -1,54 +1,49 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 
-// Sound system — mixes with existing audio, never interrupts Spotify etc
+// ── Audio system — mixes with Spotify, never interrupts ──
 function createAudio() {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: "interactive" });
-    
-    function playTone(frequency, duration, gain, type = "sine", fadeOut = true) {
-      const osc = ctx.createOscillator();
-      const gainNode = ctx.createGain();
-      osc.connect(gainNode);
-      gainNode.connect(ctx.destination);
-      osc.type = type;
-      osc.frequency.setValueAtTime(frequency, ctx.currentTime);
-      gainNode.gain.setValueAtTime(0, ctx.currentTime);
-      gainNode.gain.linearRampToValueAtTime(gain, ctx.currentTime + 0.01);
-      if (fadeOut) gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + duration);
+    const ctx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint:"interactive" });
+    function playTone(f, d, g, type="sine") {
+      const o = ctx.createOscillator(), gain = ctx.createGain();
+      o.connect(gain); gain.connect(ctx.destination);
+      o.type = type; o.frequency.setValueAtTime(f, ctx.currentTime);
+      gain.gain.setValueAtTime(0, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(g, ctx.currentTime + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + d);
+      o.start(ctx.currentTime); o.stop(ctx.currentTime + d);
     }
-
     return {
       resume: () => { if (ctx.state === "suspended") ctx.resume(); },
-      // Soft card flip — two quick tones like a real card
-      flip: () => {
-        playTone(480, 0.08, 0.06, "sine");
-        setTimeout(() => playTone(380, 0.12, 0.04, "sine"), 60);
-      },
-      // Subtle swipe whoosh
+      flip: () => { playTone(480,0.08,0.06); setTimeout(()=>playTone(380,0.12,0.04),60); },
       swipe: () => {
-        const osc = ctx.createOscillator();
-        const gainNode = ctx.createGain();
-        const filter = ctx.createBiquadFilter();
-        osc.connect(filter); filter.connect(gainNode); gainNode.connect(ctx.destination);
-        osc.type = "sawtooth";
-        filter.type = "bandpass";
-        filter.frequency.setValueAtTime(800, ctx.currentTime);
-        filter.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.15);
-        osc.frequency.setValueAtTime(300, ctx.currentTime);
-        gainNode.gain.setValueAtTime(0.04, ctx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
-        osc.start(ctx.currentTime);
-        osc.stop(ctx.currentTime + 0.15);
+        const o=ctx.createOscillator(), g=ctx.createGain(), f=ctx.createBiquadFilter();
+        o.connect(f); f.connect(g); g.connect(ctx.destination);
+        o.type="sawtooth"; f.type="bandpass";
+        f.frequency.setValueAtTime(800,ctx.currentTime);
+        f.frequency.exponentialRampToValueAtTime(200,ctx.currentTime+0.15);
+        o.frequency.setValueAtTime(300,ctx.currentTime);
+        g.gain.setValueAtTime(0.04,ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.15);
+        o.start(ctx.currentTime); o.stop(ctx.currentTime+0.15);
       },
     };
-  } catch(e) {
-    return { resume: ()=>{}, flip: ()=>{}, swipe: ()=>{} };
-  }
+  } catch(e) { return { resume:()=>{}, flip:()=>{}, swipe:()=>{} }; }
 }
-
 const audio = createAudio();
+
+// ── localStorage memory helpers ──
+const STORAGE_KEY = "gofirst_v1";
+function loadMemory() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return { seen: [], totalPlayed: 0, activeCats: null, hasSeenTutorial: false };
+    return JSON.parse(raw);
+  } catch { return { seen: [], totalPlayed: 0, activeCats: null, hasSeenTutorial: false }; }
+}
+function saveMemory(mem) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(mem)); } catch {}
+}
 
 const FREE_QUESTIONS = [
   "What did you assume about me that turned out to be completely wrong?",
@@ -87,20 +82,18 @@ const TUTORIAL_STEPS = [
 function CardBack() {
   return (
     <div style={{ width:"100%", height:"100%", borderRadius:18, overflow:"hidden", boxShadow:"0 8px 40px rgba(74,40,16,0.22)" }}>
-      <img src="https://raw.githubusercontent.com/bebehqptyltd-pixel/GoFirst/main/GF.png"
-alt="" draggable="false" style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }} />
+      <img src="https://raw.githubusercontent.com/bebehqptyltd-pixel/GoFirst/main/GF.png" alt="" draggable="false" style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }} />
     </div>
   );
 }
 
-
 function TutIcon({ step }) {
-  const props = { stroke:"#7A4A24", strokeWidth:"1.5", strokeLinecap:"round", strokeLinejoin:"round", fill:"none" };
-  if (step === 0) return <svg width="44" height="44" viewBox="0 0 44 44" fill="none"><rect x="6" y="8" width="24" height="30" rx="3" {...props}/><rect x="12" y="4" width="24" height="30" rx="3" {...props}/><line x1="18" y1="17" x2="28" y2="17" {...props}/><line x1="18" y1="22" x2="24" y2="22" {...props}/></svg>;
-  if (step === 1) return <svg width="44" height="44" viewBox="0 0 44 44" fill="none"><rect x="10" y="4" width="24" height="32" rx="3" {...props}/><path d="M22 14 L22 24 M17 20 L22 25 L27 20" {...props}/></svg>;
-  if (step === 2) return <svg width="44" height="44" viewBox="0 0 44 44" fill="none"><path d="M6 10 Q6 6 10 6 L34 6 Q38 6 38 10 L38 24 Q38 28 34 28 L24 28 L16 36 L16 28 L10 28 Q6 28 6 24 Z" {...props}/><line x1="13" y1="15" x2="31" y2="15" {...props}/><line x1="13" y1="20" x2="24" y2="20" {...props}/></svg>;
-  if (step === 3) return <svg width="44" height="44" viewBox="0 0 44 44" fill="none"><rect x="12" y="6" width="20" height="28" rx="3" {...props}/><path d="M8 20 L2 20 M6 16 L2 20 L6 24" {...props}/></svg>;
-  if (step === 4) return <svg width="44" height="44" viewBox="0 0 44 44" fill="none"><rect x="4" y="8" width="16" height="10" rx="5" {...props}/><circle cx="15" cy="13" r="3" {...props}/><rect x="24" y="8" width="16" height="10" rx="5" {...props}/><circle cx="29" cy="13" r="3" {...props}/><rect x="4" y="26" width="16" height="10" rx="5" {...props}/><circle cx="15" cy="31" r="3" {...props}/><rect x="24" y="26" width="16" height="10" rx="5" {...props}/><circle cx="35" cy="31" r="3" {...props}/></svg>;
+  const p = { stroke:"#7A4A24", strokeWidth:"1.5", strokeLinecap:"round", strokeLinejoin:"round", fill:"none" };
+  if (step===0) return <svg width="44" height="44" viewBox="0 0 44 44" fill="none"><rect x="6" y="8" width="24" height="30" rx="3" {...p}/><rect x="12" y="4" width="24" height="30" rx="3" {...p}/><line x1="18" y1="17" x2="28" y2="17" {...p}/><line x1="18" y1="22" x2="24" y2="22" {...p}/></svg>;
+  if (step===1) return <svg width="44" height="44" viewBox="0 0 44 44" fill="none"><rect x="10" y="4" width="24" height="32" rx="3" {...p}/><path d="M22 14 L22 24 M17 20 L22 25 L27 20" {...p}/></svg>;
+  if (step===2) return <svg width="44" height="44" viewBox="0 0 44 44" fill="none"><path d="M6 10 Q6 6 10 6 L34 6 Q38 6 38 10 L38 24 Q38 28 34 28 L24 28 L16 36 L16 28 L10 28 Q6 28 6 24 Z" {...p}/><line x1="13" y1="15" x2="31" y2="15" {...p}/><line x1="13" y1="20" x2="24" y2="20" {...p}/></svg>;
+  if (step===3) return <svg width="44" height="44" viewBox="0 0 44 44" fill="none"><rect x="12" y="6" width="20" height="28" rx="3" {...p}/><path d="M8 20 L2 20 M6 16 L2 20 L6 24" {...p}/></svg>;
+  if (step===4) return <svg width="44" height="44" viewBox="0 0 44 44" fill="none"><rect x="4" y="8" width="16" height="10" rx="5" {...p}/><circle cx="15" cy="13" r="3" {...p}/><rect x="24" y="8" width="16" height="10" rx="5" {...p}/><circle cx="29" cy="13" r="3" {...p}/><rect x="4" y="26" width="16" height="10" rx="5" {...p}/><circle cx="15" cy="31" r="3" {...p}/><rect x="24" y="26" width="16" height="10" rx="5" {...p}/><circle cx="35" cy="31" r="3" {...p}/></svg>;
   return null;
 }
 
@@ -113,18 +106,26 @@ function buildPool(activeCats) {
   return pool;
 }
 
-function pickNext(pool, excludeQ) {
-  const src = pool.filter(q => q.question !== excludeQ);
-  const from = src.length > 0 ? src : pool;
-  if (!from.length) return null;
-  return from[Math.floor(Math.random() * from.length)];
+// Pick next unseen question — never repeats until all seen, then resets
+function pickNextUnseen(pool, seenSet, excludeQ) {
+  const unseen = pool.filter(q => !seenSet.has(q.question) && q.question !== excludeQ);
+  if (unseen.length > 0) {
+    return unseen[Math.floor(Math.random() * unseen.length)];
+  }
+  // All seen — pick any except current
+  const fallback = pool.filter(q => q.question !== excludeQ);
+  return fallback.length > 0 ? fallback[Math.floor(Math.random() * fallback.length)] : pool[0];
 }
 
 export default function App() {
+  const mem = loadMemory();
+
   const [screen, setScreen] = useState("home");
   const [tutStep, setTutStep] = useState(0);
-  const [hasSeenTutorial, setHasSeenTutorial] = useState(false);
-  const [activeCats, setActiveCats] = useState([...CATEGORY_ORDER]);
+  const [hasSeenTutorial, setHasSeenTutorial] = useState(mem.hasSeenTutorial || false);
+  const [activeCats, setActiveCats] = useState(mem.activeCats || [...CATEGORY_ORDER]);
+  const [seenQuestions, setSeenQuestions] = useState(new Set(mem.seen || []));
+  const [totalPlayed, setTotalPlayed] = useState(mem.totalPlayed || 0);
   const [flipped, setFlipped] = useState(false);
   const [current, setCurrent] = useState(null);
   const [nextCard, setNextCard] = useState(null);
@@ -132,42 +133,88 @@ export default function App() {
   const [dragX, setDragX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [gone, setGone] = useState(false);
+  const [deckExhausted, setDeckExhausted] = useState(false);
+  const [showReset, setShowReset] = useState(false);
   const dragStartX = useRef(null);
   const hasDragged = useRef(false);
 
+  // Persist memory whenever key state changes
+  useEffect(() => {
+    saveMemory({
+      seen: [...seenQuestions],
+      totalPlayed,
+      activeCats,
+      hasSeenTutorial,
+    });
+  }, [seenQuestions, totalPlayed, activeCats, hasSeenTutorial]);
+
   const pool = buildPool(activeCats);
   const catData = current ? CATEGORIES[current.category] : null;
-  const accent = catData?.accent || "#3C2410";
-  const cardBg = catData?.cardBg || "#F5EDD9";
-  const cardBorder = catData?.cardBorder || "#D4C4B0";
+  const accent = "#3C2410";
+  const cardBg = catData?.cardBg || "#F5EDE0";
+  const cardBorder = catData?.cardBorder || "#E8DDD0";
+
+  const markSeen = useCallback((question) => {
+    setSeenQuestions(prev => {
+      const next = new Set(prev);
+      next.add(question);
+      return next;
+    });
+    setTotalPlayed(t => t + 1);
+  }, []);
 
   const initPlay = useCallback((cats) => {
     const usedCats = cats || activeCats;
     const p = buildPool(usedCats);
     if (!p.length) return;
-    const first = pickNext(p, "");
-    const second = pickNext(p, first?.question || "");
-    setCurrent(first); setNextCard(second);
+    const first = pickNextUnseen(p, seenQuestions, "");
+    const second = pickNextUnseen(p, seenQuestions, first?.question || "");
+    setCurrent(first);
+    setNextCard(second);
     setFlipped(false); setCount(1);
     setDragX(0); setGone(false); setIsDragging(false);
+    setDeckExhausted(false);
     setScreen("play");
-  }, [activeCats]);
+  }, [activeCats, seenQuestions]);
 
   const advance = useCallback(() => {
-    const p = buildPool(activeCats);
     if (!nextCard) return;
-    const upcoming = pickNext(p, nextCard.question);
-    setCurrent(nextCard); setNextCard(upcoming);
+    // Mark current as seen
+    if (current) markSeen(current.question);
+    const p = buildPool(activeCats);
+    const newSeen = new Set(seenQuestions);
+    if (current) newSeen.add(current.question);
+    // Check if all questions have been seen
+    const allSeen = p.every(q => newSeen.has(q.question));
+    if (allSeen) {
+      setCurrent(nextCard);
+      setNextCard(null);
+      setFlipped(false);
+      setCount(c => c + 1);
+      setDragX(0); setGone(false); setIsDragging(false);
+      hasDragged.current = false;
+      setDeckExhausted(true);
+      return;
+    }
+    const upcoming = pickNextUnseen(p, newSeen, nextCard.question);
+    setCurrent(nextCard);
+    setNextCard(upcoming);
     setFlipped(false); setCount(c => c + 1);
     setDragX(0); setGone(false); setIsDragging(false);
     hasDragged.current = false;
-  }, [nextCard, activeCats]);
+  }, [nextCard, current, activeCats, seenQuestions, markSeen]);
+
+  const handleReset = () => {
+    setSeenQuestions(new Set());
+    setTotalPlayed(0);
+    setShowReset(false);
+    setDeckExhausted(false);
+    initPlay();
+  };
 
   const handleCardTap = () => {
     if (!flipped && !hasDragged.current) {
-      audio.resume();
-      audio.flip();
-      setFlipped(true);
+      audio.resume(); audio.flip(); setFlipped(true);
     }
   };
 
@@ -197,12 +244,7 @@ export default function App() {
     });
   };
 
-  useEffect(() => {
-    if (screen === "play" && current) {
-      const p = buildPool(activeCats);
-      if (p.length > 0) setNextCard(pickNext(p, current.question));
-    }
-  }, [activeCats]);
+  const unseenCount = pool.filter(q => !seenQuestions.has(q.question)).length;
 
   return (
     <div style={{ minHeight:"100vh", background:"#F0EAE0", display:"flex", flexDirection:"column", alignItems:"center" }}>
@@ -216,11 +258,12 @@ export default function App() {
         .btn-primary:hover { background:#7A4A24; }
         .btn-primary:disabled { opacity:0.35; cursor:default; }
         .btn-back { background:none; border:none; cursor:pointer; font-family:'DM Sans',sans-serif; font-size:11px; color:#A08868; letter-spacing:0.1em; text-transform:uppercase; padding:0; }
+        .btn-ghost { background:none; border:1.5px solid #C4A882; color:#8B6445; cursor:pointer; font-family:'DM Sans',sans-serif; font-size:11px; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; padding:12px 32px; border-radius:100px; transition:all 0.2s; }
         .pill { border:1.5px solid; border-radius:100px; padding:6px 13px; cursor:pointer; font-family:'DM Sans',sans-serif; font-size:11px; white-space:nowrap; transition:all 0.2s; background:transparent; display:inline-flex; align-items:center; gap:5px; }
         .tut-dot { height:6px; border-radius:3px; transition:all 0.3s; }
       `}</style>
 
-      {/* HOME */}
+      {/* ── HOME ── */}
       {screen === "home" && (
         <div style={{ display:"flex", flexDirection:"column", alignItems:"center", padding:"0 24px 60px", width:"100%", maxWidth:460 }}>
           <div style={{ textAlign:"center", paddingTop:64, paddingBottom:40 }}>
@@ -237,16 +280,21 @@ export default function App() {
           </div>
           <button className="btn-primary" onClick={() => setScreen("deck")}>Build your deck</button>
           <p style={{ marginTop:14, fontFamily:"'DM Sans',sans-serif", fontSize:11, color:"#C0A888", letterSpacing:"0.06em" }}>Choose your categories, then play</p>
+          {totalPlayed > 0 && (
+            <p style={{ marginTop:10, fontFamily:"'DM Sans',sans-serif", fontSize:10, color:"#C8B8A0", letterSpacing:"0.04em" }}>
+              {totalPlayed} question{totalPlayed !== 1 ? "s" : ""} asked so far
+            </p>
+          )}
         </div>
       )}
 
-      {/* TUTORIAL */}
+      {/* ── TUTORIAL ── */}
       {screen === "tutorial" && (
         <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", minHeight:"100vh", padding:"24px 28px", width:"100%", maxWidth:420 }}>
           <div style={{ background:"#FBF5EC", border:"1.5px solid #DDD0BC", borderRadius:20, padding:"44px 32px", width:"100%", textAlign:"center", boxShadow:"0 8px 40px rgba(74,40,16,0.10)" }}>
             <div style={{ marginBottom:24, display:"flex", justifyContent:"center" }}><TutIcon step={tutStep} /></div>
             <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:24, fontStyle:"italic", color:"#3C2010", marginBottom:14, lineHeight:1.3 }}>{TUTORIAL_STEPS[tutStep].title}</h2>
-            <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:14, color:"#7A5840", lineHeight:1.75, marginBottom: TUTORIAL_STEPS[tutStep].dare ? 16 : 32 }}>{TUTORIAL_STEPS[tutStep].body}</p>
+            <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:14, color:"#7A5840", lineHeight:1.75, marginBottom:TUTORIAL_STEPS[tutStep].dare ? 16 : 32 }}>{TUTORIAL_STEPS[tutStep].body}</p>
             {TUTORIAL_STEPS[tutStep].dare && (
               <p style={{ fontFamily:"'Playfair Display',serif", fontStyle:"italic", fontSize:20, color:"#3C2010", marginBottom:32 }}>{TUTORIAL_STEPS[tutStep].dare}</p>
             )}
@@ -256,16 +304,16 @@ export default function App() {
                 return <div key={i} className="tut-dot" style={{ width:i===tutStep?20:6, background:i<=tutStep?stepColors[i]:"#E8DDD0" }} />;
               })}
             </div>
-            <button className="btn-primary" style={{ width:"100%", background:["#D4C4B0","#C4A882","#B8956A","#8B6445","#3C2410"][tutStep], color:tutStep < 2 ? "#3C2410" : "#F5EDD9" }} onClick={() => {
-              if (tutStep < TUTORIAL_STEPS.length - 1) setTutStep(t => t+1);
+            <button className="btn-primary" style={{ width:"100%", background:["#D4C4B0","#C4A882","#B8956A","#8B6445","#3C2410"][tutStep], color:tutStep<2?"#3C2410":"#F5EDD9" }} onClick={() => {
+              if (tutStep < TUTORIAL_STEPS.length-1) setTutStep(t=>t+1);
               else { setHasSeenTutorial(true); initPlay(); }
-            }}>{tutStep < TUTORIAL_STEPS.length - 1 ? "Next →" : "Begin"}</button>
-            {tutStep > 0 && <button onClick={() => setTutStep(t => t-1)} style={{ background:"none", border:"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, color:"#B8A888", marginTop:14, display:"block", width:"100%" }}>← Back</button>}
+            }}>{tutStep < TUTORIAL_STEPS.length-1 ? "Next →" : "Begin"}</button>
+            {tutStep > 0 && <button onClick={() => setTutStep(t=>t-1)} style={{ background:"none", border:"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, color:"#B8A888", marginTop:14, display:"block", width:"100%" }}>← Back</button>}
           </div>
         </div>
       )}
 
-      {/* DECK BUILDER */}
+      {/* ── DECK BUILDER ── */}
       {screen === "deck" && (
         <div style={{ display:"flex", flexDirection:"column", alignItems:"center", padding:"0 20px 80px", width:"100%", maxWidth:460 }}>
           <div style={{ width:"100%", paddingTop:40, paddingBottom:24, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
@@ -286,23 +334,45 @@ export default function App() {
               );
             })}
           </div>
-          <div style={{ width:"100%", background:"#FBF5EC", border:"1px solid #DDD0BC", borderRadius:16, padding:"18px 22px", marginBottom:28, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+          <div style={{ width:"100%", background:"#FBF5EC", border:"1px solid #DDD0BC", borderRadius:16, padding:"18px 22px", marginBottom:12, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
             <div>
               <p style={{ fontFamily:"'Playfair Display',serif", fontStyle:"italic", fontSize:16, color:"#3C2010", marginBottom:4 }}>Your deck</p>
-              <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"#A08868" }}>{pool.length} questions ready</p>
+              <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"#A08868" }}>
+                {unseenCount} unseen · {pool.length} total
+              </p>
             </div>
             <div style={{ display:"flex" }}>
               {activeCats.slice(0,4).map((cat,i) => <div key={cat} style={{ width:26, height:34, borderRadius:4, background:CATEGORIES[cat]?.pillBg||"#8B6445", border:"2px solid #F0EAE0", marginLeft:i>0?-8:0 }} />)}
               {activeCats.length > 4 && <div style={{ width:26, height:34, borderRadius:4, background:"#C0A888", border:"2px solid #F0EAE0", marginLeft:-8, display:"flex", alignItems:"center", justifyContent:"center" }}><span style={{ fontSize:9, color:"white", fontFamily:"'DM Sans',sans-serif", fontWeight:500 }}>+{activeCats.length-4}</span></div>}
             </div>
           </div>
+          {/* Reset option */}
+          {seenQuestions.size > 0 && (
+            <button className="btn-ghost" style={{ marginBottom:24 }} onClick={() => setShowReset(true)}>
+              Reset progress · {seenQuestions.size} seen
+            </button>
+          )}
           <button className="btn-primary" disabled={pool.length===0} onClick={() => { if (!hasSeenTutorial) { setTutStep(0); setScreen("tutorial"); } else { initPlay(); } }}>
-            Play · {pool.length} questions
+            Play · {unseenCount} new questions
           </button>
         </div>
       )}
 
-      {/* PLAY */}
+      {/* ── RESET CONFIRMATION ── */}
+      {showReset && (
+        <div style={{ position:"fixed", inset:0, background:"rgba(44,35,24,0.6)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:100, padding:24 }}>
+          <div style={{ background:"#FBF5EC", borderRadius:20, padding:"40px 32px", width:"100%", maxWidth:340, textAlign:"center" }}>
+            <p style={{ fontFamily:"'Playfair Display',serif", fontStyle:"italic", fontSize:22, color:"#3C2010", marginBottom:12 }}>Start fresh?</p>
+            <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:13, color:"#7A5840", lineHeight:1.7, marginBottom:28 }}>
+              You've asked {seenQuestions.size} question{seenQuestions.size !== 1 ? "s" : ""}. Reset will let you experience them all again from the beginning.
+            </p>
+            <button className="btn-primary" style={{ width:"100%", marginBottom:12 }} onClick={handleReset}>Yes, start fresh</button>
+            <button className="btn-ghost" style={{ width:"100%" }} onClick={() => setShowReset(false)}>Keep my progress</button>
+          </div>
+        </div>
+      )}
+
+      {/* ── PLAY ── */}
       {screen === "play" && (
         <div style={{ display:"flex", flexDirection:"column", alignItems:"center", padding:"0 12px 40px", width:"100%", maxWidth:460, minHeight:"100vh" }}>
           <div style={{ width:"100%", paddingTop:36, paddingBottom:16, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
@@ -311,6 +381,7 @@ export default function App() {
             <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, color:"#C0A888", letterSpacing:"0.08em", minWidth:40, textAlign:"right" }}>{count}</p>
           </div>
 
+          {/* Category pills */}
           <div style={{ display:"flex", flexWrap:"wrap", gap:7, justifyContent:"center", marginBottom:20, width:"100%" }}>
             {CATEGORY_ORDER.map(cat => {
               const d = CATEGORIES[cat]; if (!d) return null;
@@ -325,12 +396,24 @@ export default function App() {
 
           {/* Card stack */}
           <div style={{ position:"relative", width:"100%", maxWidth:360, height:504, marginBottom:20 }}>
-            {nextCard && (
+            {nextCard && !deckExhausted && (
               <div style={{ position:"absolute", inset:0, transform:"scale(0.95) translateY(10px)", transformOrigin:"bottom center", opacity:1, pointerEvents:"none", zIndex:1 }}>
                 <CardBack />
               </div>
             )}
-            {current && (
+
+            {/* Deck exhausted card */}
+            {deckExhausted && (
+              <div style={{ position:"absolute", inset:0, zIndex:2, background:"#F5EDE0", border:"1.5px solid #E8DDD0", borderRadius:18, padding:"40px 32px", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", textAlign:"center", boxShadow:"0 8px 40px rgba(74,40,16,0.12)" }}>
+                <div style={{ position:"absolute", inset:10, border:"1px solid rgba(180,160,140,0.25)", borderRadius:11, pointerEvents:"none" }} />
+                <p style={{ fontFamily:"'Playfair Display',serif", fontStyle:"italic", fontSize:28, color:"#3C2010", lineHeight:1.4, marginBottom:16 }}>You've asked it all.</p>
+                <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:13, color:"#A08868", lineHeight:1.7, marginBottom:32 }}>Every question in your deck has been asked. The conversations you've had are the ones worth having.</p>
+                <button className="btn-ghost" onClick={() => setShowReset(true)}>Start fresh</button>
+              </div>
+            )}
+
+            {/* Current card */}
+            {current && !deckExhausted && (
               <div
                 key={current.question}
                 style={{ position:"absolute", inset:0, zIndex:2, opacity:1,
@@ -365,8 +448,12 @@ export default function App() {
             )}
           </div>
 
+          {/* Hint + progress */}
           <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, color:"#C0A888", letterSpacing:"0.06em", textAlign:"center", minHeight:18 }}>
-            {!flipped ? "Tap to reveal" : dragX < -40 ? "Let go to discard" : "Swipe left when you're done"}
+            {deckExhausted ? "" : !flipped ? "Tap to reveal" : dragX < -40 ? "Let go to discard" : "Swipe left when you're done"}
+          </p>
+          <p style={{ marginTop:8, fontFamily:"'DM Sans',sans-serif", fontSize:10, color:"#D0C4B4", letterSpacing:"0.06em" }}>
+            {unseenCount} unseen · {totalPlayed} played
           </p>
         </div>
       )}
