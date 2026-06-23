@@ -71,6 +71,68 @@ const CATEGORIES = {
   "Late Night":           { pillBg:"#3C2410", pillText:"#F5EDD9", cardBg:"#F5EDE0", cardBorder:"#E8DDD0", accent:"#3C2410", emoji:"🌙", questions:["What do you think love should feel like?","What part of yourself do you struggle to show people?","What kind of relationship do you never want to repeat?","When do you feel most connected to someone?","What are you still healing from?","What does emotional loyalty mean to you?","What kind of relationship would make life feel softer?","What's something you've never felt fully understood about?","What version of yourself comes out in relationships?","What do you hope love feels like years from now?"] },
 };
 
+// ── Relationship types ──
+const RELATIONSHIP_TYPES = [
+  {
+    id: "friends",
+    label: "Friends",
+    emoji: "👥",
+    description: "Deepen a friendship",
+    cats: ["Starter","Playful & Funny","Story Questions","Honest Impressions","Life & Values"],
+    showToggle: false,
+  },
+  {
+    id: "dating",
+    label: "Getting to Know You",
+    emoji: "💫",
+    description: "Early dating",
+    cats: ["Starter","Playful & Funny","Attraction & Chemistry","Honest Impressions","Story Questions"],
+    showToggle: false,
+  },
+  {
+    id: "together",
+    label: "We're a Thing",
+    emoji: "❤️",
+    description: "In a relationship",
+    cats: ["Attraction & Chemistry","Honest Impressions","Emotional Intimacy","Life & Values","Story Questions"],
+    showToggle: true,
+  },
+  {
+    id: "married",
+    label: "It's Us",
+    emoji: "💍",
+    description: "Long term or married",
+    cats: ["Emotional Intimacy","Life & Values","Late Night","Honest Impressions","Attraction & Chemistry"],
+    showToggle: true,
+  },
+];
+
+// Convert a question from "about me" to "about you" perspective
+function flipQuestion(q) {
+  return q
+    .replace(/do you find/gi, "do I find")
+    .replace(/do you/gi, "do I")
+    .replace(/you find/gi, "I find")
+    .replace(/you feel/gi, "I feel")
+    .replace(/you need/gi, "I need")
+    .replace(/you want/gi, "I want")
+    .replace(/you think/gi, "I think")
+    .replace(/you wish/gi, "I wish")
+    .replace(/you love/gi, "I love")
+    .replace(/you most/gi, "I most")
+    .replace(/you still/gi, "I still")
+    .replace(/you hope/gi, "I hope")
+    .replace(/your/gi, "my")
+    .replace(/Your/g, "My")
+    .replace(/you/gi, "I")
+    .replace(/You/g, "I")
+    // Fix double "I I" artifacts
+    .replace(/I I/g, "I")
+    // Fix question endings
+    .replace(/do I\?/g, "do you?")
+    .trim();
+}
+
 const TUTORIAL_STEPS = [
   { title:"Welcome to Go First", body:"A card game for people brave enough to say the things typically left unsaid.", dare:null },
   { title:"Tap to reveal", body:"Each card starts face down. When you're ready, tap it to flip and reveal the question.", dare:null },
@@ -79,10 +141,11 @@ const TUTORIAL_STEPS = [
   { title:"Change it up", body:"Turn the categories on or off at any time to change the emotional pace or lighten the mood.", dare:"Who will Go First?" },
 ];
 
+const CARD_BACK_SRC = "https://raw.githubusercontent.com/bebehqptyltd-pixel/GoFirst/main/Untitled%20design%20(2).png";
 function CardBack() {
   return (
-    <div style={{ width:"100%", height:"100%", borderRadius:18, overflow:"hidden", boxShadow:"0 8px 40px rgba(74,40,16,0.22)" }}>
-      <img src="https://raw.githubusercontent.com/bebehqptyltd-pixel/GoFirst/main/GF.png" alt="" draggable="false" style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }} />
+    <div style={{ width:"100%", height:"100%", borderRadius:18, overflow:"hidden", boxShadow:"0 8px 40px rgba(74,40,16,0.25)" }}>
+      <img src={{CARD_BACK_SRC}} alt="" draggable="false" style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"center", display:"block" }} />
     </div>
   );
 }
@@ -124,6 +187,8 @@ export default function App() {
   const [tutStep, setTutStep] = useState(0);
   const [hasSeenTutorial, setHasSeenTutorial] = useState(mem.hasSeenTutorial || false);
   const [activeCats, setActiveCats] = useState(mem.activeCats || [...CATEGORY_ORDER]);
+  const [relationshipType, setRelationshipType] = useState(null);
+  const [perspectiveFlipped, setPerspectiveFlipped] = useState(false);
   const [seenQuestions, setSeenQuestions] = useState(new Set(mem.seen || []));
   const [totalPlayed, setTotalPlayed] = useState(mem.totalPlayed || 0);
   const [flipped, setFlipped] = useState(false);
@@ -149,6 +214,8 @@ export default function App() {
   }, [seenQuestions, totalPlayed, activeCats, hasSeenTutorial]);
 
   const pool = buildPool(activeCats);
+  const showPerspectiveToggle = relationshipType ? (RELATIONSHIP_TYPES.find(r => r.id === relationshipType)?.showToggle || false) : false;
+  const displayQuestion = current ? (perspectiveFlipped ? flipQuestion(current.question) : current.question) : "";
   const catData = current ? CATEGORIES[current.category] : null;
   const accent = "#3C2410";
   const cardBg = catData?.cardBg || "#F5EDE0";
@@ -202,6 +269,7 @@ export default function App() {
     setFlipped(false); setCount(c => c + 1);
     setDragX(0); setGone(false); setIsDragging(false);
     hasDragged.current = false;
+    setPerspectiveFlipped(false);
   }, [nextCard, current, activeCats, seenQuestions, markSeen]);
 
   const handleReset = () => {
@@ -321,8 +389,36 @@ export default function App() {
             <p style={{ fontFamily:"'Playfair Display',serif", fontStyle:"italic", fontSize:20, color:"#3C2010" }}>Go First</p>
             <div style={{ width:48 }} />
           </div>
-          <p style={{ fontFamily:"'Playfair Display',serif", fontStyle:"italic", fontSize:22, color:"#3C2010", textAlign:"center", marginBottom:10, lineHeight:1.4 }}>What kind of conversation<br/>do you want to have?</p>
-          <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"#A08868", textAlign:"center", marginBottom:32 }}>Tap to toggle · lighter to heavier</p>
+
+          {/* Relationship selector */}
+          <p style={{ fontFamily:"'Playfair Display',serif", fontStyle:"italic", fontSize:22, color:"#3C2010", textAlign:"center", marginBottom:8, lineHeight:1.4 }}>Who are you playing with?</p>
+          <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"#A08868", textAlign:"center", marginBottom:24 }}>We'll suggest the right questions</p>
+          <div style={{ display:"flex", flexWrap:"wrap", gap:10, justifyContent:"center", marginBottom:32, width:"100%" }}>
+            {RELATIONSHIP_TYPES.map(rel => {
+              const isActive = relationshipType === rel.id;
+              return (
+                <button key={rel.id} onClick={() => {
+                  setRelationshipType(rel.id);
+                  setActiveCats(rel.cats);
+                }} style={{
+                  background: isActive ? "#3C2010" : "#FBF5EC",
+                  border: `1.5px solid ${isActive ? "#3C2010" : "#DDD0BC"}`,
+                  borderRadius: 14, padding:"14px 18px", cursor:"pointer",
+                  display:"flex", flexDirection:"column", alignItems:"center", gap:6,
+                  transition:"all 0.2s", minWidth:90,
+                }}>
+                  <span style={{ fontSize:22 }}>{rel.emoji}</span>
+                  <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, color: isActive ? "#F5EDD9" : "#3C2010", letterSpacing:"0.04em" }}>{rel.label}</p>
+                  <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:9, color: isActive ? "#C4A882" : "#A08868", letterSpacing:"0.03em" }}>{rel.description}</p>
+                </button>
+              );
+            })}
+          </div>
+
+          <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, color:"#A08868", textAlign:"center", marginBottom:16, letterSpacing:"0.04em" }}>
+            {relationshipType ? "Fine tune your deck" : "Or choose categories manually"}
+          </p>
+          <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, color:"#C0A888", textAlign:"center", marginBottom:20 }}>Lighter → heavier</p>
           <div style={{ display:"flex", flexWrap:"wrap", gap:10, justifyContent:"center", marginBottom:40 }}>
             {CATEGORY_ORDER.map(cat => {
               const d = CATEGORIES[cat]; if (!d) return null;
@@ -435,12 +531,26 @@ export default function App() {
                   display:"flex", flexDirection:"column", justifyContent:"space-between",
                   boxShadow:"0 8px 40px rgba(74,40,16,0.12)", pointerEvents:flipped?"auto":"none" }}>
                   <div style={{ position:"absolute", inset:10, border:"1px solid rgba(180,160,140,0.25)", borderRadius:11, pointerEvents:"none" }} />
-                  <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                    <div style={{ width:5, height:5, borderRadius:"50%", background:"#3C2410", flexShrink:0 }} />
-                    <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", color:"#3C2410", opacity:0.6 }}>{current.category}</p>
+                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                      <div style={{ width:5, height:5, borderRadius:"50%", background:"#3C2410", flexShrink:0 }} />
+                      <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:9, letterSpacing:"0.18em", textTransform:"uppercase", color:"#3C2410", opacity:0.6 }}>{current.category}</p>
+                    </div>
+                    {showPerspectiveToggle && (
+                      <button onClick={(e) => { e.stopPropagation(); setPerspectiveFlipped(v => !v); }} style={{
+                        background: perspectiveFlipped ? "#3C2410" : "transparent",
+                        border: "1px solid #C4A882",
+                        borderRadius: 100, padding:"3px 10px", cursor:"pointer",
+                        display:"flex", alignItems:"center", gap:5, transition:"all 0.2s",
+                      }}>
+                        <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:9, letterSpacing:"0.08em", color: perspectiveFlipped ? "#F5EDD9" : "#8B6445", fontWeight:500 }}>
+                          {perspectiveFlipped ? "About you" : "About me"}
+                        </span>
+                      </button>
+                    )}
                   </div>
-                  <p style={{ fontFamily:"'Playfair Display',serif", fontSize:current.question.length>90?19:current.question.length>65?22:25, fontWeight:400, lineHeight:1.55, color:"#2C1808", fontStyle:"italic", flex:1, display:"flex", alignItems:"center", paddingTop:14 }}>
-                    {current.question}
+                  <p style={{ fontFamily:"'Playfair Display',serif", fontSize:displayQuestion.length>90?19:displayQuestion.length>65?22:25, fontWeight:400, lineHeight:1.55, color:"#2C1808", fontStyle:"italic", flex:1, display:"flex", alignItems:"center", paddingTop:14 }}>
+                    {displayQuestion}
                   </p>
                   <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:9, color:"#3C2410", opacity:0.3, letterSpacing:"0.1em" }}>— {count}</p>
                 </div>
