@@ -141,10 +141,32 @@ const TUTORIAL_STEPS = [
   { title:"Change it up", body:"Turn the categories on or off at any time to change the emotional pace or lighten the mood.", dare:"Who will Go First?" },
 ];
 
-const CARD_BACK_SRC = "/card-back.png";
 function CardBack() {
   return (
-    <div style={{ width:"100%", height:"100%", borderRadius:18, overflow:"hidden", boxShadow:"0 8px 40px rgba(74,40,16,0.25)" }}>
+    <div style={{ width:"100%", height:"100%", borderRadius:18, background:"#B8A898", overflow:"hidden", position:"relative", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", boxShadow:"0 8px 40px rgba(74,40,16,0.22)" }}>
+      <svg style={{ position:"absolute", top:0, left:0, width:"100%", height:"100%" }} viewBox="0 0 360 504" preserveAspectRatio="xMidYMid slice">
+        <rect width="360" height="504" fill="#C4A882"/>
+        <rect x="0" y="0" width="360" height="504" fill="url(#paper)"/>
+        <defs>
+          <filter id="paper">
+            <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/>
+            <feColorMatrix type="saturate" values="0"/>
+            <feBlend in="SourceGraphic" mode="multiply"/>
+          </filter>
+        </defs>
+        <rect width="360" height="504" fill="#B8A080" opacity="0.6"/>
+        <line x1="0" y1="0" x2="360" y2="0" stroke="rgba(90,55,30,0.15)" strokeWidth="1"/>
+        <line x1="0" y1="503" x2="360" y2="503" stroke="rgba(90,55,30,0.15)" strokeWidth="1"/>
+        <ellipse cx="280" cy="80" rx="180" ry="180" fill="rgba(200,180,150,0.2)"/>
+      </svg>
+      <div style={{ position:"relative", zIndex:1, textAlign:"center", display:"flex", flexDirection:"column", alignItems:"center", gap:16 }}>
+        <p style={{ fontFamily:"'Playfair Display', serif", fontSize:56, fontWeight:400, color:"#4A2010", letterSpacing:"-0.01em", lineHeight:1 }}>Go First</p>
+        <div style={{ width:48, height:1, background:"#9A6830", opacity:0.6 }} />
+        <p style={{ fontFamily:"'DM Sans', sans-serif", fontSize:10, letterSpacing:"0.22em", textTransform:"uppercase", color:"#4A2010", opacity:0.7 }}>Say the things we leave unsaid</p>
+      </div>
+    </div>
+  );
+}>
       <img src={{CARD_BACK_SRC}} alt="" draggable="false" style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"center", display:"block" }} />
     </div>
   );
