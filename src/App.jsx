@@ -166,6 +166,12 @@ function CardBack() {
       </div>
     </div>
   );
+}>
+      <img src={{CARD_BACK_SRC}} alt="" draggable="false" style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"center", display:"block" }} />
+    </div>
+  );
+}
+
 function TutIcon({ step }) {
   const p = { stroke:"#7A4A24", strokeWidth:"1.5", strokeLinecap:"round", strokeLinejoin:"round", fill:"none" };
   if (step===0) return <svg width="44" height="44" viewBox="0 0 44 44" fill="none"><rect x="6" y="8" width="24" height="30" rx="3" {...p}/><rect x="12" y="4" width="24" height="30" rx="3" {...p}/><line x1="18" y1="17" x2="28" y2="17" {...p}/><line x1="18" y1="22" x2="24" y2="22" {...p}/></svg>;
