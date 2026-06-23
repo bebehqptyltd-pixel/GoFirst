@@ -175,11 +175,11 @@ function TexturePill({cat, isOn, onClick, size="normal"}) {
       borderRadius:100,
       padding: small ? "5px 12px" : "7px 15px",
       cursor:"pointer", display:"inline-flex", alignItems:"center", gap:5,
-      fontFamily:"'DM Sans',sans-serif", fontSize: small ? 10 : 11,
+      fontFamily:"'DM Sans',sans-serif", fontSize: small ? 11 : 12,
       fontWeight:500, letterSpacing:"0.04em", whiteSpace:"nowrap",
-      color: isOn ? d.pillText : "#7A6050",
+      color: isOn ? d.pillText : "#5C4030",
       background: isOn ? d.pillBg : "transparent",
-      opacity: isOn ? 1 : 0.65,
+      opacity: isOn ? 1 : 0.9,
       transition:"all 0.2s",
       boxShadow: isOn
         ? `-1px 3px 8px rgba(54,28,8,0.18), -1px 1px 3px rgba(54,28,8,0.10), inset 0 1px 0 rgba(255,255,255,0.2)`
@@ -240,7 +240,7 @@ function RelTile({rel, isActive, onClick}) {
       position:"relative", overflow:"hidden",
       background: isActive ? "#3C2010" : "#FBF5EC",
       border: `1.5px solid ${isActive ? "#3C2010" : "#DDD0BC"}`,
-      borderRadius:16, padding:"14px 10px",
+      borderRadius:16, padding:"14px 8px",
       cursor:"pointer", display:"flex", flexDirection:"column", alignItems:"center", gap:6,
       transition:"all 0.2s", minWidth:0, flex:1,
       boxShadow: isActive
@@ -257,8 +257,8 @@ function RelTile({rel, isActive, onClick}) {
         </svg>
       )}
       <span style={{position:"relative",display:"flex",alignItems:"center",justifyContent:"center"}}>{REL_ICONS[rel.id] ? REL_ICONS[rel.id](isActive?"#F5EDD9":"#5C3418") : null}</span>
-      <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,fontWeight:500,color:isActive?"#F5EDD9":"#3C2010",letterSpacing:"0.03em",textAlign:"center",lineHeight:1.3,position:"relative"}}>{rel.label}</p>
-      <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:9,color:isActive?"#C4A882":"#A08868",letterSpacing:"0.02em",position:"relative"}}>{rel.description}</p>
+      <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,fontWeight:500,color:isActive?"#F5EDD9":"#3C2010",letterSpacing:"0.02em",textAlign:"center",lineHeight:1.25,position:"relative"}}>{rel.label}</p>
+      <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:10,color:isActive?"#D4B882":"#6B4A30",letterSpacing:"0.01em",position:"relative",fontWeight:400}}>{rel.description}</p>
     </button>
   );
 }
@@ -325,7 +325,7 @@ export default function App() {
         #root{height:100%;overflow-y:auto;overscroll-behavior:none;-webkit-overflow-scrolling:touch;}
         *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;user-select:none;}
         .texture-btn:active{transform:translateY(2px);box-shadow:-1px 2px 4px rgba(54,28,8,0.16),inset 0 1px 0 rgba(255,255,255,0.08)!important;}
-        .btn-back{background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:11px;color:#A08868;letter-spacing:0.1em;text-transform:uppercase;padding:0;}
+        .btn-back{background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;color:#7A5840;letter-spacing:0.08em;text-transform:uppercase;padding:0;}
         .tut-dot{height:6px;border-radius:3px;transition:all 0.3s;}
       `}</style>
 
@@ -378,16 +378,16 @@ export default function App() {
             <div style={{width:48}}/>
           </div>
           <p style={{...GF_TITLE,fontSize:22,color:"#3C2010",textAlign:"center",marginBottom:8,lineHeight:1.4}}>Who are you playing with?</p>
-          <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#A08868",textAlign:"center",marginBottom:24}}>We'll suggest the right questions</p>
+          <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#7A5840",textAlign:"center",marginBottom:24}}>We'll suggest the right questions</p>
           <div style={{display:"flex",gap:10,width:"100%",marginBottom:32}}>
             {RELATIONSHIP_TYPES.map(rel=>(
               <RelTile key={rel.id} rel={rel} isActive={relationshipType===rel.id} onClick={()=>{setRelationshipType(rel.id);setActiveCats(rel.cats);}}/>
             ))}
           </div>
-          <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#A08868",textAlign:"center",marginBottom:12,letterSpacing:"0.04em"}}>
+          <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#6B4A30",textAlign:"center",marginBottom:16,letterSpacing:"0.02em"}}>
             {relationshipType?"Fine tune your deck":"Or choose categories manually"}
           </p>
-          <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:10,color:"#C0A888",textAlign:"center",marginBottom:16}}>Lighter → heavier</p>
+
           <div style={{display:"flex",flexWrap:"wrap",gap:8,justifyContent:"center",marginBottom:32}}>
             {CATEGORY_ORDER.map(cat=>(
               <TexturePill key={cat} cat={cat} isOn={activeCats.includes(cat)} onClick={()=>toggleCat(cat)}/>
@@ -395,8 +395,8 @@ export default function App() {
           </div>
           <div style={{width:"100%",background:"#FBF5EC",border:"1px solid #DDD0BC",borderRadius:16,padding:"18px 22px",marginBottom:12,display:"flex",alignItems:"center",justifyContent:"space-between",boxShadow:"inset 0 1px 4px rgba(54,28,8,0.08), -1px 2px 8px rgba(54,28,8,0.06)"}}>
             <div>
-              <p style={{...GF_TITLE,fontSize:18,color:"#3C2010",marginBottom:4}}>Your deck</p>
-              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#A08868"}}>{unseenCount} unseen · {pool.length} total</p>
+              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:15,fontWeight:500,color:"#3C2010",marginBottom:4,letterSpacing:"0.02em"}}>Your deck</p>
+              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#7A5840"}}>{unseenCount} unseen · {pool.length} total</p>
             </div>
             <div style={{display:"flex"}}>
               {activeCats.slice(0,4).map((cat,i)=><div key={cat} style={{width:26,height:34,borderRadius:4,background:CATEGORIES[cat]?.pillBg||"#8B6445",border:"2px solid #F0EAE0",marginLeft:i>0?-8:0,boxShadow:"-1px 2px 6px rgba(54,28,8,0.18)"}}/>)}
@@ -432,7 +432,7 @@ export default function App() {
           <div style={{width:"100%",paddingTop:36,paddingBottom:16,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
             <button className="btn-back" onClick={()=>setScreen("deck")}>← Decks</button>
             <p style={{...GF_TITLE,fontSize:18,color:"#3C2010"}}>Go First</p>
-            <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:10,color:"#C0A888",letterSpacing:"0.08em",minWidth:40,textAlign:"right"}}>{count}</p>
+            <div style={{width:40}}/>
           </div>
           <div style={{display:"flex",flexWrap:"wrap",gap:7,justifyContent:"center",marginBottom:20,width:"100%"}}>
             {CATEGORY_ORDER.map(cat=>(
@@ -491,15 +491,15 @@ export default function App() {
                   <p style={{...GF_TITLE,fontSize:displayQuestion.length>90?19:displayQuestion.length>65?22:25,lineHeight:1.55,color:"#2C1808",flex:1,display:"flex",alignItems:"center",paddingTop:14}}>
                     {displayQuestion}
                   </p>
-                  <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:9,color:"#3C2410",opacity:0.3,letterSpacing:"0.1em"}}>— {count}</p>
+
                 </div>
               </div>
             )}
           </div>
-          <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#C0A888",letterSpacing:"0.06em",textAlign:"center",minHeight:18}}>
+          <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#A08868",letterSpacing:"0.03em",textAlign:"center",minHeight:20}}>
             {deckExhausted?"":!flipped?"Tap to reveal":Math.abs(dragX)>40?"Let go to discard":"Swipe left or right when you're done"}
           </p>
-          <p style={{marginTop:8,fontFamily:"'DM Sans',sans-serif",fontSize:10,color:"#D0C4B4",letterSpacing:"0.06em"}}>{unseenCount} unseen · {totalPlayed} played</p>
+          <p style={{marginTop:8,fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#B0A090",letterSpacing:"0.03em"}}>{unseenCount} unseen · {totalPlayed} played</p>
         </div>
       )}
     </div>
