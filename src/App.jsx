@@ -22,7 +22,7 @@ function saveMemory(m){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(m));}
 // ── Card back ────────────────────────────────────────────────
 function CardBack() {
   return (
-    <div style={{width:"100%",height:"100%",borderRadius:20,overflow:"hidden",boxShadow:"0 12px 48px rgba(74,40,16,0.28),0 2px 8px rgba(74,40,16,0.12)"}}>
+    <div style={{width:"100%",height:"100%",borderRadius:20,overflow:"hidden",boxShadow:"-4px 12px 40px rgba(54,28,8,0.22), -2px 6px 16px rgba(54,28,8,0.14), -1px 2px 4px rgba(54,28,8,0.08)"}}>
       <img src="https://i.imgur.com/RFAJysA.png" alt="" draggable="false" style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} />
     </div>
   );
@@ -182,7 +182,7 @@ function TexturePill({cat, isOn, onClick, size="normal"}) {
       opacity: isOn ? 1 : 0.65,
       transition:"all 0.2s",
       boxShadow: isOn
-        ? `0 2px 0 rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -1px 0 rgba(0,0,0,0.1)`
+        ? `-1px 3px 8px rgba(54,28,8,0.18), -1px 1px 3px rgba(54,28,8,0.10), inset 0 1px 0 rgba(255,255,255,0.2)`
         : "none",
     }}>
       {isOn && (
@@ -215,7 +215,7 @@ function TextureButton({onClick, disabled, children, style={}, variant="dark"}) 
       letterSpacing:"0.14em", textTransform:"uppercase",
       cursor: disabled ? "default" : "pointer",
       opacity: disabled ? 0.35 : 1,
-      boxShadow: variant === "ghost" ? "none" : `0 3px 0 rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.15), inset 0 -1px 0 rgba(0,0,0,0.15)`,
+      boxShadow: variant === "ghost" ? "none" : `-2px 4px 12px rgba(54,28,8,0.28), -1px 2px 4px rgba(54,28,8,0.16), inset 0 1px 0 rgba(255,255,255,0.12)`,
       transition:"all 0.15s",
       ...style,
     }}>
@@ -244,8 +244,8 @@ function RelTile({rel, isActive, onClick}) {
       cursor:"pointer", display:"flex", flexDirection:"column", alignItems:"center", gap:6,
       transition:"all 0.2s", minWidth:0, flex:1,
       boxShadow: isActive
-        ? `0 4px 0 rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.2)`
-        : `0 2px 0 rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.8)`,
+        ? `-3px 8px 24px rgba(54,28,8,0.30), -1px 3px 6px rgba(54,28,8,0.18), inset 0 1px 0 rgba(255,255,255,0.08)`
+        : `-1px 3px 8px rgba(54,28,8,0.10), inset 0 1px 0 rgba(255,255,255,0.7)`,
     }}>
       {isActive && (
         <svg style={{position:"absolute",inset:0,width:"100%",height:"100%",opacity:0.1,pointerEvents:"none"}} viewBox="0 0 160 90" preserveAspectRatio="xMidYMid slice">
@@ -314,17 +314,17 @@ export default function App() {
   const toggleCat=(cat)=>{setActiveCats(prev=>{if(prev.includes(cat)){if(prev.length<=1)return prev;return prev.filter(c=>c!==cat);}return[...prev,cat];});};
 
   // ── Go First serif style matching card face
-  const GF_TITLE = {fontFamily:"'Playfair Display',serif",fontWeight:400,fontStyle:"italic"};
+  const GF_TITLE = {fontFamily:"'Cormorant Garamond',serif",fontWeight:400,fontStyle:"normal"};
 
   return (
     <div style={{minHeight:"100vh",background:"#F0EAE0",display:"flex",flexDirection:"column",alignItems:"center"}}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@300;400;500&display=swap');
         html,body{overscroll-behavior:none;overflow:hidden;height:100%;background:#F0EAE0;-webkit-text-size-adjust:100%;}
         body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);}
         #root{height:100%;overflow-y:auto;overscroll-behavior:none;-webkit-overflow-scrolling:touch;}
         *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;user-select:none;}
-        .texture-btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,0.25),inset 0 1px 0 rgba(255,255,255,0.1)!important;}
+        .texture-btn:active{transform:translateY(2px);box-shadow:-1px 2px 4px rgba(54,28,8,0.16),inset 0 1px 0 rgba(255,255,255,0.08)!important;}
         .btn-back{background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:11px;color:#A08868;letter-spacing:0.1em;text-transform:uppercase;padding:0;}
         .tut-dot{height:6px;border-radius:3px;transition:all 0.3s;}
       `}</style>
@@ -354,7 +354,7 @@ export default function App() {
       {/* ── TUTORIAL ── */}
       {screen==="tutorial"&&(
         <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:"100vh",padding:"24px 28px",width:"100%",maxWidth:420}}>
-          <div style={{background:"#FBF5EC",border:"1.5px solid #DDD0BC",borderRadius:20,padding:"44px 32px",width:"100%",textAlign:"center",boxShadow:"0 8px 40px rgba(74,40,16,0.10)"}}>
+          <div style={{background:"#FBF5EC",border:"1.5px solid #DDD0BC",borderRadius:20,padding:"44px 32px",width:"100%",textAlign:"center",boxShadow:"-3px 10px 36px rgba(54,28,8,0.12), -1px 3px 8px rgba(54,28,8,0.08)"}}>
             <div style={{marginBottom:24,display:"flex",justifyContent:"center"}}><TutIcon step={tutStep}/></div>
             <h2 style={{...GF_TITLE,fontSize:24,color:"#3C2010",marginBottom:14,lineHeight:1.3}}>{TUTORIAL_STEPS[tutStep].title}</h2>
             <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:14,color:"#7A5840",lineHeight:1.75,marginBottom:TUTORIAL_STEPS[tutStep].dare?16:32}}>{TUTORIAL_STEPS[tutStep].body}</p>
@@ -393,14 +393,14 @@ export default function App() {
               <TexturePill key={cat} cat={cat} isOn={activeCats.includes(cat)} onClick={()=>toggleCat(cat)}/>
             ))}
           </div>
-          <div style={{width:"100%",background:"#FBF5EC",border:"1px solid #DDD0BC",borderRadius:16,padding:"18px 22px",marginBottom:12,display:"flex",alignItems:"center",justifyContent:"space-between",boxShadow:"inset 0 1px 3px rgba(0,0,0,0.06)"}}>
+          <div style={{width:"100%",background:"#FBF5EC",border:"1px solid #DDD0BC",borderRadius:16,padding:"18px 22px",marginBottom:12,display:"flex",alignItems:"center",justifyContent:"space-between",boxShadow:"inset 0 1px 4px rgba(54,28,8,0.08), -1px 2px 8px rgba(54,28,8,0.06)"}}>
             <div>
               <p style={{...GF_TITLE,fontSize:18,color:"#3C2010",marginBottom:4}}>Your deck</p>
               <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#A08868"}}>{unseenCount} unseen · {pool.length} total</p>
             </div>
             <div style={{display:"flex"}}>
-              {activeCats.slice(0,4).map((cat,i)=><div key={cat} style={{width:26,height:34,borderRadius:4,background:CATEGORIES[cat]?.pillBg||"#8B6445",border:"2px solid #F0EAE0",marginLeft:i>0?-8:0,boxShadow:"0 2px 4px rgba(0,0,0,0.15)"}}/>)}
-              {activeCats.length>4&&<div style={{width:26,height:34,borderRadius:4,background:"#C0A888",border:"2px solid #F0EAE0",marginLeft:-8,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 2px 4px rgba(0,0,0,0.15)"}}><span style={{fontSize:9,color:"white",fontFamily:"'DM Sans',sans-serif",fontWeight:500}}>+{activeCats.length-4}</span></div>}
+              {activeCats.slice(0,4).map((cat,i)=><div key={cat} style={{width:26,height:34,borderRadius:4,background:CATEGORIES[cat]?.pillBg||"#8B6445",border:"2px solid #F0EAE0",marginLeft:i>0?-8:0,boxShadow:"-1px 2px 6px rgba(54,28,8,0.18)"}}/>)}
+              {activeCats.length>4&&<div style={{width:26,height:34,borderRadius:4,background:"#C0A888",border:"2px solid #F0EAE0",marginLeft:-8,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"-1px 2px 6px rgba(54,28,8,0.18)"}}><span style={{fontSize:9,color:"white",fontFamily:"'DM Sans',sans-serif",fontWeight:500}}>+{activeCats.length-4}</span></div>}
             </div>
           </div>
           {seenQuestions.size>0&&(
@@ -447,7 +447,7 @@ export default function App() {
               </div>
             )}
             {deckExhausted&&(
-              <div style={{position:"absolute",inset:0,zIndex:2,background:"#F5EDE0",border:`1.5px solid #E8DDD0`,borderRadius:20,padding:"40px 32px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",boxShadow:"0 8px 40px rgba(74,40,16,0.12)"}}>
+              <div style={{position:"absolute",inset:0,zIndex:2,background:"#F5EDE0",border:`1.5px solid #E8DDD0`,borderRadius:20,padding:"40px 32px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",boxShadow:"-4px 12px 40px rgba(54,28,8,0.16), -2px 4px 12px rgba(54,28,8,0.10)"}}>
                 <div style={{position:"absolute",inset:10,border:"1px solid rgba(180,160,140,0.25)",borderRadius:12,pointerEvents:"none"}}/>
                 <p style={{...GF_TITLE,fontSize:28,color:"#3C2010",lineHeight:1.4,marginBottom:16}}>You've asked it all.</p>
                 <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#A08868",lineHeight:1.7,marginBottom:32}}>Every question in your deck has been asked. The conversations you've had are the ones worth having.</p>
@@ -475,7 +475,7 @@ export default function App() {
                   transition:isDragging?"none":"opacity 0.22s ease 0.08s, transform 0.22s ease 0.08s",
                   background:cardBg,border:`1.5px solid ${cardBorder}`,borderRadius:20,padding:"34px 28px",
                   display:"flex",flexDirection:"column",justifyContent:"space-between",
-                  boxShadow:"0 8px 40px rgba(74,40,16,0.12)",pointerEvents:flipped?"auto":"none"}}>
+                  boxShadow:"-4px 12px 40px rgba(54,28,8,0.16), -2px 4px 12px rgba(54,28,8,0.10)",pointerEvents:flipped?"auto":"none"}}>
                   <div style={{position:"absolute",inset:10,border:"1px solid rgba(180,160,140,0.25)",borderRadius:12,pointerEvents:"none"}}/>
                   <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
                     <div style={{display:"flex",alignItems:"center",gap:8}}>
@@ -488,7 +488,7 @@ export default function App() {
                       </button>
                     )}
                   </div>
-                  <p style={{...GF_TITLE,fontStyle:"italic",fontSize:displayQuestion.length>90?19:displayQuestion.length>65?22:25,lineHeight:1.55,color:"#2C1808",flex:1,display:"flex",alignItems:"center",paddingTop:14}}>
+                  <p style={{...GF_TITLE,fontSize:displayQuestion.length>90?19:displayQuestion.length>65?22:25,lineHeight:1.55,color:"#2C1808",flex:1,display:"flex",alignItems:"center",paddingTop:14}}>
                     {displayQuestion}
                   </p>
                   <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:9,color:"#3C2410",opacity:0.3,letterSpacing:"0.1em"}}>— {count}</p>
