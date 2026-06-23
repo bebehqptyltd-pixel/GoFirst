@@ -141,7 +141,7 @@ const TUTORIAL_STEPS = [
   { title:"Change it up", body:"Turn the categories on or off at any time to change the emotional pace or lighten the mood.", dare:"Who will Go First?" },
 ];
 
-const CARD_BACK_SRC = "/Untitled%20design%20(2).png";
+const CARD_BACK_SRC = "/card-back.png";
 function CardBack() {
   return (
     <div style={{ width:"100%", height:"100%", borderRadius:18, overflow:"hidden", boxShadow:"0 8px 40px rgba(74,40,16,0.25)" }}>
