@@ -59,22 +59,94 @@ const FREE_QUESTIONS = [
 
 const CATEGORY_ORDER = ["Starter","Playful & Funny","Story Questions","Attraction & Chemistry","Honest Impressions","Life & Values","Emotional Intimacy","Late Night"];
 
+// ── Category SVG icons (stroke style, consistent with tutorial) ──
+const CAT_ICONS = {
+  "Starter": (col) => (
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={col} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/>
+    </svg>
+  ),
+  "Playful & Funny": (col) => (
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={col} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="10" x2="9.01" y2="10"/><line x1="15" y1="10" x2="15.01" y2="10"/>
+    </svg>
+  ),
+  "Story Questions": (col) => (
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={col} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+    </svg>
+  ),
+  "Attraction & Chemistry": (col) => (
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={col} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 3a3 3 0 0 0-3 3l3 5 3-5a3 3 0 0 0-3-3z"/><path d="M6 3a3 3 0 0 0-3 3l3 5 3-5a3 3 0 0 0-3-3z"/><path d="M6 11c0 7 6 10 6 10s6-3 6-10"/>
+    </svg>
+  ),
+  "Honest Impressions": (col) => (
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={col} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="8" r="4"/><path d="M12 12v9"/><path d="M9 18l3 3 3-3"/>
+    </svg>
+  ),
+  "Life & Values": (col) => (
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={col} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9"/><polygon points="12 2 12 12 17 7"/>
+      <line x1="12" y1="3" x2="12" y2="12"/><line x1="12" y1="12" x2="17.5" y2="6.5"/>
+    </svg>
+  ),
+  "Emotional Intimacy": (col) => (
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={col} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+    </svg>
+  ),
+  "Late Night": (col) => (
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={col} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+    </svg>
+  ),
+};
+
 const CATEGORIES = {
-  "Starter":               {pillBg:"#D4C4B0",pillText:"#3C2410",cardBg:"#F5EDE0",cardBorder:"#E8DDD0",emoji:"🎯",questions:FREE_QUESTIONS},
-  "Playful & Funny":       {pillBg:"#C4A882",pillText:"#3C2410",cardBg:"#F5EDE0",cardBorder:"#E8DDD0",emoji:"😄",questions:["What's the dumbest injury you've ever had?","What's your most irrational fear?","What's something you were convinced of as a kid that was completely wrong?","What's your most useless talent?","What's your weirdest habit when nobody is watching?","What's a hill you'll die on for absolutely no reason?","If your life had a warning label, what would it say?","What's a film or show you're embarrassed to admit you love?","What's the worst advice you've ever confidently given someone?","What's a phrase or word you say too much?","What's the most chaotic decision you've ever made on a whim?","What's something you owned as a kid that you'd be mortified by now?","What's a completely unhinged rule you have for yourself?","If your pet had to describe you to a stranger, what would they say?","What's a completely made-up skill you've pretended to have?","What's the most ridiculous thing you've ever argued about?","What's the pettiest thing you've ever done and felt zero guilt about?","What's something you're weirdly competitive about?"]},
-  "Story Questions":        {pillBg:"#B8956A",pillText:"#3C2410",cardBg:"#F5EDE0",cardBorder:"#E8DDD0",emoji:"📖",questions:["Tell me about one of the best days of your life.","Tell me about a moment you laughed so hard you couldn't breathe.","What's a memory you wish you could relive for one hour?","Tell me about a time everything went spectacularly wrong.","What's a random memory you think about more than you should?","What's a tiny childhood memory you still remember vividly?","Tell me about a time you felt deeply proud of yourself.","What's a memory that still makes you emotional?","Tell me about a moment you felt truly free.","Tell me about a stranger who made a surprising impact on you.","What's a decision you made that turned out way better than expected?","Tell me about a time you surprised yourself.","What's a moment where you realised you'd changed?","Tell me about the last time you were genuinely moved by something.","What's a mistake you'd actually make again?","Tell me about a friendship that shaped who you are.","What's something you did that took more courage than people realised?"]},
-  "Attraction & Chemistry": {pillBg:"#A67D55",pillText:"#F5EDD9",cardBg:"#F5EDE0",cardBorder:"#E8DDD0",emoji:"✨",questions:["What's something non-sexual you find incredibly attractive?","When did you first realise you were attracted to me?","What kind of touch comes naturally to you?","What kind of affection makes you melt?","What's your ideal slow Sunday together?","What kind of moments make you want to kiss someone?","What creates chemistry for you beyond physical attraction?","What's something subtle someone can do that drives you wild?","What kind of intimacy matters most to you?","What's something about how someone carries themselves that draws you in?","What's a quality in someone that sneaks up on you over time?","What do you notice about someone before you notice anything else?","What makes you feel truly seen by another person?","What kind of conversation gives you that electric feeling?","What does flirting look like to you when it's done well?","What makes you feel genuinely confident around someone?","What's something you find attractive that you've never really told anyone?"]},
-  "Honest Impressions":    {pillBg:"#8B6445",pillText:"#F5EDD9",cardBg:"#F5EDE0",cardBorder:"#E8DDD0",emoji:"🪞",questions:["What did you assume about me that turned out to be completely wrong?","What did you think I was like before you actually knew me?","What's something about me you still haven't figured out?","What do you think I need more of in my life?","What's something you've noticed about me that I probably don't see in myself?","What's something you think we have in common that might surprise me?","What's something you want me to know about you that I might have wrong?","What's the version of you that most people don't get to see?","What do people assume about you based on how you look or come across?","What's something you do that people misread?","What's something about me you were initially unsure about?","What's a question you've wanted to ask me but haven't yet?","What's your honest first impression of me, now that it's safe to say?","What's something you think I'm better at than I give myself credit for?","What do you think I'm like when things get hard?"]},
-  "Life & Values":         {pillBg:"#52371E",pillText:"#F5EDD9",cardBg:"#F5EDE0",cardBorder:"#E8DDD0",emoji:"🧭",questions:["What matters most to you in life now?","What kind of life are you trying to build?","What does commitment mean to you?","What kind of partner do you want to be?","What does a really good ordinary life look like to you?","What are your non-negotiables in relationships?","What kind of home environment makes you happiest?","What do you think makes relationships last?","What scares you most about relationships?","What kind of future feels exciting to you?","What's something you used to want that you no longer care about?","What's a value you hold that most people in your life don't share?","What does success look like to you right now, honestly?","What would you do differently if you weren't worried about what people thought?","What chapter of your life are you in right now?","What's something you hope you never compromise on?","Who has shaped your idea of what love should look like?","What kind of person do you want to have become in ten years?"]},
-  "Emotional Intimacy":    {pillBg:"#6B4A30",pillText:"#F5EDD9",cardBg:"#F5EDE0",cardBorder:"#E8DDD0",emoji:"🌿",questions:["When do you feel most emotionally safe?","What makes somewhere feel like home to you?","What helps you feel calm when life is overwhelming?","What makes you shut down emotionally?","What kind of people make you feel safe?","What's something you wish more people understood about you?","What do you need most when you're stressed?","What makes you feel deeply loved?","What kind of relationship dynamic feels healthiest to you?","What's something you protect fiercely in your life?","What do you do when you need to process something hard?","How do you know when you actually trust someone?","What does it look like when you're at your worst, and what do you need then?","What's something you've had to unlearn about how to love people?","What's a boundary you've set that changed your life?","What's something you've forgiven someone for that took a long time?","What do you wish you were better at emotionally?","What's a version of yourself you've had to leave behind?"]},
-  "Late Night":            {pillBg:"#3C2410",pillText:"#F5EDD9",cardBg:"#F5EDE0",cardBorder:"#E8DDD0",emoji:"🌙",questions:["What do you think love should feel like?","What part of yourself do you struggle to show people?","What kind of relationship do you never want to repeat?","When do you feel most connected to someone?","What are you still healing from?","What does emotional loyalty mean to you?","What kind of relationship would make life feel softer?","What do you hope love feels like years from now?","What do you think about when you can't sleep?","What's the difference between being happy and being at peace?","What do you think love asks of us that we're not always ready for?","What's something you hope someone thinks about when they think about you?","What do you think is the hardest part of being human?","What's something beautiful you've found in something painful?"]},
+  "Starter":               {pillBg:"#D4C4B0",pillText:"#3C2410",cardBg:"#F5EDE0",cardBorder:"#E8DDD0",questions:FREE_QUESTIONS},
+  "Playful & Funny":       {pillBg:"#C4A882",pillText:"#3C2410",cardBg:"#F5EDE0",cardBorder:"#E8DDD0",questions:["What's the dumbest injury you've ever had?","What's your most irrational fear?","What's something you were convinced of as a kid that was completely wrong?","What's your most useless talent?","What's your weirdest habit when nobody is watching?","What's a hill you'll die on for absolutely no reason?","If your life had a warning label, what would it say?","What's a film or show you're embarrassed to admit you love?","What's the worst advice you've ever confidently given someone?","What's a phrase or word you say too much?","What's the most chaotic decision you've ever made on a whim?","What's something you owned as a kid that you'd be mortified by now?","What's a completely unhinged rule you have for yourself?","If your pet had to describe you to a stranger, what would they say?","What's a completely made-up skill you've pretended to have?","What's the most ridiculous thing you've ever argued about?","What's the pettiest thing you've ever done and felt zero guilt about?","What's something you're weirdly competitive about?"]},
+  "Story Questions":        {pillBg:"#B8956A",pillText:"#3C2410",cardBg:"#F5EDE0",cardBorder:"#E8DDD0",questions:["Tell me about one of the best days of your life.","Tell me about a moment you laughed so hard you couldn't breathe.","What's a memory you wish you could relive for one hour?","Tell me about a time everything went spectacularly wrong.","What's a random memory you think about more than you should?","What's a tiny childhood memory you still remember vividly?","Tell me about a time you felt deeply proud of yourself.","What's a memory that still makes you emotional?","Tell me about a moment you felt truly free.","Tell me about a stranger who made a surprising impact on you.","What's a decision you made that turned out way better than expected?","Tell me about a time you surprised yourself.","What's a moment where you realised you'd changed?","Tell me about the last time you were genuinely moved by something.","What's a mistake you'd actually make again?","Tell me about a friendship that shaped who you are.","What's something you did that took more courage than people realised?"]},
+  "Attraction & Chemistry": {pillBg:"#A67D55",pillText:"#F5EDD9",cardBg:"#F5EDE0",cardBorder:"#E8DDD0",questions:["What's something non-sexual you find incredibly attractive?","When did you first realise you were attracted to me?","What kind of touch comes naturally to you?","What kind of affection makes you melt?","What's your ideal slow Sunday together?","What kind of moments make you want to kiss someone?","What creates chemistry for you beyond physical attraction?","What's something subtle someone can do that drives you wild?","What kind of intimacy matters most to you?","What's something about how someone carries themselves that draws you in?","What's a quality in someone that sneaks up on you over time?","What do you notice about someone before you notice anything else?","What makes you feel truly seen by another person?","What kind of conversation gives you that electric feeling?","What does flirting look like to you when it's done well?","What makes you feel genuinely confident around someone?","What's something you find attractive that you've never really told anyone?"]},
+  "Honest Impressions":    {pillBg:"#8B6445",pillText:"#F5EDD9",cardBg:"#F5EDE0",cardBorder:"#E8DDD0",questions:["What did you assume about me that turned out to be completely wrong?","What did you think I was like before you actually knew me?","What's something about me you still haven't figured out?","What do you think I need more of in my life?","What's something you've noticed about me that I probably don't see in myself?","What's something you think we have in common that might surprise me?","What's something you want me to know about you that I might have wrong?","What's the version of you that most people don't get to see?","What do people assume about you based on how you look or come across?","What's something you do that people misread?","What's something about me you were initially unsure about?","What's a question you've wanted to ask me but haven't yet?","What's your honest first impression of me, now that it's safe to say?","What's something you think I'm better at than I give myself credit for?","What do you think I'm like when things get hard?"]},
+  "Life & Values":         {pillBg:"#52371E",pillText:"#F5EDD9",cardBg:"#F5EDE0",cardBorder:"#E8DDD0",questions:["What matters most to you in life now?","What kind of life are you trying to build?","What does commitment mean to you?","What kind of partner do you want to be?","What does a really good ordinary life look like to you?","What are your non-negotiables in relationships?","What kind of home environment makes you happiest?","What do you think makes relationships last?","What scares you most about relationships?","What kind of future feels exciting to you?","What's something you used to want that you no longer care about?","What's a value you hold that most people in your life don't share?","What does success look like to you right now, honestly?","What would you do differently if you weren't worried about what people thought?","What chapter of your life are you in right now?","What's something you hope you never compromise on?","Who has shaped your idea of what love should look like?","What kind of person do you want to have become in ten years?"]},
+  "Emotional Intimacy":    {pillBg:"#6B4A30",pillText:"#F5EDD9",cardBg:"#F5EDE0",cardBorder:"#E8DDD0",questions:["When do you feel most emotionally safe?","What makes somewhere feel like home to you?","What helps you feel calm when life is overwhelming?","What makes you shut down emotionally?","What kind of people make you feel safe?","What's something you wish more people understood about you?","What do you need most when you're stressed?","What makes you feel deeply loved?","What kind of relationship dynamic feels healthiest to you?","What's something you protect fiercely in your life?","What do you do when you need to process something hard?","How do you know when you actually trust someone?","What does it look like when you're at your worst, and what do you need then?","What's something you've had to unlearn about how to love people?","What's a boundary you've set that changed your life?","What's something you've forgiven someone for that took a long time?","What do you wish you were better at emotionally?","What's a version of yourself you've had to leave behind?"]},
+  "Late Night":            {pillBg:"#3C2410",pillText:"#F5EDD9",cardBg:"#F5EDE0",cardBorder:"#E8DDD0",questions:["What do you think love should feel like?","What part of yourself do you struggle to show people?","What kind of relationship do you never want to repeat?","When do you feel most connected to someone?","What are you still healing from?","What does emotional loyalty mean to you?","What kind of relationship would make life feel softer?","What do you hope love feels like years from now?","What do you think about when you can't sleep?","What's the difference between being happy and being at peace?","What do you think love asks of us that we're not always ready for?","What's something you hope someone thinks about when they think about you?","What do you think is the hardest part of being human?","What's something beautiful you've found in something painful?"]},
+};
+
+const REL_ICONS = {
+  friends: (col) => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={col} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="9" cy="7" r="3"/><circle cx="16" cy="7" r="3"/>
+      <path d="M3 20c0-3.3 2.7-6 6-6h1"/><path d="M10 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/>
+    </svg>
+  ),
+  dating: (col) => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={col} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/>
+    </svg>
+  ),
+  together: (col) => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={col} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+      <path d="M8 12a4 4 0 0 1 8 0" strokeDasharray="2 2"/>
+    </svg>
+  ),
+  married: (col) => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={col} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8 12c0-2.2 1.8-4 4-4s4 1.8 4 4-1.8 4-4 4"/>
+      <path d="M12 8V4M8 12H4M12 16v4M16 12h4"/>
+      <circle cx="12" cy="12" r="9"/>
+    </svg>
+  ),
 };
 
 const RELATIONSHIP_TYPES = [
-  {id:"friends",label:"Friends",emoji:"👥",description:"Deepen a friendship",cats:["Starter","Playful & Funny","Story Questions","Honest Impressions","Life & Values"],showToggle:false},
-  {id:"dating",label:"Getting to Know You",emoji:"💫",description:"Early dating",cats:["Starter","Playful & Funny","Attraction & Chemistry","Honest Impressions","Story Questions"],showToggle:false},
-  {id:"together",label:"We're a Thing",emoji:"❤️",description:"In a relationship",cats:["Attraction & Chemistry","Honest Impressions","Emotional Intimacy","Life & Values","Story Questions"],showToggle:true},
-  {id:"married",label:"It's Us",emoji:"💍",description:"Long term or married",cats:["Emotional Intimacy","Life & Values","Late Night","Honest Impressions","Attraction & Chemistry"],showToggle:true},
+  {id:"friends",label:"Friends",description:"Deepen a friendship",cats:["Starter","Playful & Funny","Story Questions","Honest Impressions","Life & Values"],showToggle:false},
+  {id:"dating",label:"Getting to Know You",description:"Early dating",cats:["Starter","Playful & Funny","Attraction & Chemistry","Honest Impressions","Story Questions"],showToggle:false},
+  {id:"together",label:"We're a Thing",description:"In a relationship",cats:["Attraction & Chemistry","Honest Impressions","Emotional Intimacy","Life & Values","Story Questions"],showToggle:true},
+  {id:"married",label:"It's Us",description:"Long term or married",cats:["Emotional Intimacy","Life & Values","Late Night","Honest Impressions","Attraction & Chemistry"],showToggle:true},
 ];
 
 const TUTORIAL_STEPS = [
@@ -122,7 +194,7 @@ function TexturePill({cat, isOn, onClick, size="normal"}) {
           <rect width="200" height="40" filter={`url(#pf-${cat.replace(/\s/g,"")})`} fill="white"/>
         </svg>
       )}
-      <span style={{position:"relative"}}>{d.emoji}</span>
+      <span style={{position:"relative",display:"flex",alignItems:"center"}}>{CAT_ICONS[cat] ? CAT_ICONS[cat](isOn ? d.pillText : "#7A6050") : null}</span>
       <span style={{position:"relative"}}>{cat}</span>
     </button>
   );
@@ -184,7 +256,7 @@ function RelTile({rel, isActive, onClick}) {
           <rect width="160" height="90" filter="url(#pf-rel)" fill="white"/>
         </svg>
       )}
-      <span style={{fontSize:22,position:"relative"}}>{rel.emoji}</span>
+      <span style={{position:"relative",display:"flex",alignItems:"center",justifyContent:"center"}}>{REL_ICONS[rel.id] ? REL_ICONS[rel.id](isActive?"#F5EDD9":"#5C3418") : null}</span>
       <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,fontWeight:500,color:isActive?"#F5EDD9":"#3C2010",letterSpacing:"0.03em",textAlign:"center",lineHeight:1.3,position:"relative"}}>{rel.label}</p>
       <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:9,color:isActive?"#C4A882":"#A08868",letterSpacing:"0.02em",position:"relative"}}>{rel.description}</p>
     </button>
