@@ -166,10 +166,6 @@ function CardBack() {
       </div>
     </div>
   );
-}>
-      <img src={{CARD_BACK_SRC}} alt="" draggable="false" style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"center", display:"block" }} />
-    </div>
-  );
 }
 
 function TutIcon({ step }) {
