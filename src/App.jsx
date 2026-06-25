@@ -32,7 +32,7 @@ function CardBack() {
 function FlameIcon({ size=13, color="#B84A1A" }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 22c4 0 7-2.5 7-7 0-3-1.5-5-3.5-6.5 0 2-1 3.5-2.5 4.5C13 11 11.5 8.5 12 5c-4 2-6 5-6 8 0 2.5 1.5 4.5 3 5.5-.5-1-.5-2.5.5-3.5C10.5 19.5 12 22 12 22z"/>
+      <path d="M12 21c3.5 0 6-2.2 6-5.5 0-2.5-1.5-4-3-5 .2 1.5-.5 3-1.8 3.8C13.5 12 13 9.5 14 7c-2.5 1-5 3.5-5 6.5 0 1 .3 2 .8 2.7C9.3 15.5 9 14.5 9.5 13.5 10 15.5 10.5 21 12 21z"/>
     </svg>
   );
 }
@@ -783,9 +783,11 @@ function flipQuestion(q){
 
 const STAGE_ORDER = ['friends','just_together','were_a_thing','committed'];
 function buildPool(activeCats, stageId, spicyLevel) {
-  const stageIdx = STAGE_ORDER.indexOf(stageId);
   return ALL_QUESTIONS.filter(q => {
     if (!activeCats.includes(q.category)) return false;
+    // If no stage selected, include all non-spicy questions matching categories
+    if (!stageId || stageId === null) return q.spicy === 0;
+    const stageIdx = STAGE_ORDER.indexOf(stageId);
     const minIdx = STAGE_ORDER.indexOf(q.stageMin);
     const maxIdx = q.stageMax ? STAGE_ORDER.indexOf(q.stageMax) : 3;
     if (stageIdx < minIdx || stageIdx > maxIdx) return false;
@@ -818,7 +820,6 @@ function TexturePill({cat, isOn, onClick, size="normal", disabled=false}) {
       background: disabled ? "transparent" : isOn ? d.pillBg : "transparent",
       opacity: disabled ? 0.5 : isOn ? 1 : 0.9, transition:"background 0.2s, color 0.2s",
       boxShadow: isOn && !disabled ? `-1px 3px 8px rgba(54,28,8,0.18), inset 0 1px 0 rgba(255,255,255,0.2)` : "none",
-      width:"100%",
     }}>
       {isOn && !disabled && (
         <svg style={{position:"absolute",inset:0,width:"100%",height:"100%",opacity:0.18,pointerEvents:"none"}} viewBox="0 0 200 40" preserveAspectRatio="xMidYMid slice">
@@ -889,9 +890,9 @@ function RelTile({rel, isActive, onClick}) {
 function SpicyToggle({ level, onCycle, stageId }) {
   const stage = RELATIONSHIP_TYPES.find(r=>r.id===stageId);
   if (!stage || stage.spicyMax === 0) return null;
-  const LABELS = {0:"Turn up the heat", 1:"🔥 Mild", 2:"🔥🔥 Medium", 3:"🔥🔥🔥 Hot"};
-  const FLAME_COLORS = {0:"#8B6445", 1:"#C4783A", 2:"#B85A20", 3:"#8B2800"};
+  const LABELS = {0:"Turn up the heat", 1:"Mild", 2:"Medium", 3:"Hot"};
   const isOn = level > 0;
+  const flameColor = isOn ? "#FFFFFF" : "#8B6445";
   return (
     <button onClick={onCycle} style={{
       display:"flex", alignItems:"center", gap:8,
@@ -900,7 +901,11 @@ function SpicyToggle({ level, onCycle, stageId }) {
       borderRadius:100, padding:"8px 18px", cursor:"pointer", transition:"all 0.2s",
       boxShadow: isOn ? `-1px 3px 8px rgba(54,28,8,0.20)` : "none",
     }}>
-      <FlameIcon size={13} color={FLAME_COLORS[level]}/>
+      <div style={{display:"flex",gap:2}}>
+        {Array.from({length: Math.max(level,1)}).map((_,i)=>(
+          <FlameIcon key={i} size={13} color={i < level ? flameColor : "#C4A882"}/>
+        ))}
+      </div>
       <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,fontWeight:500,letterSpacing:"0.06em",color:isOn?"#F5EDD9":"#7A5840"}}>
         {LABELS[level]}
       </span>
@@ -1169,7 +1174,7 @@ export default function App() {
             </button>
           </div>
           {/* Category pills — lowered 5mm, 2mm extra row gap */}
-          <div style={{display:"flex",flexWrap:"wrap",gap:5,rowGap:13,justifyContent:"center",marginTop:19,width:"100%",flexShrink:0}}>
+          <div style={{display:"flex",flexWrap:"wrap",gap:6,justifyContent:"center",width:"100%",flexShrink:0}}>
             {CATEGORY_ORDER.map(cat=>(
               <TexturePill key={cat} cat={cat} isOn={activeCats.includes(cat)} onClick={()=>toggleCat(cat)}/>
             ))}
