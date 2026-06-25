@@ -528,7 +528,7 @@ export default function App() {
             <p style={{...GF_TITLE,marginTop:8,fontSize:11,letterSpacing:"0.2em",textTransform:"uppercase",color:"#A08868"}}>Say the things we leave unsaid</p>
           </div>
           {/* Card fan — grows to fill remaining space between tagline and button */}
-          <div style={{flex:1,width:"100%",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden"}}>
+          <div style={{flex:1,width:"100%",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",marginTop:94,marginBottom:75}}>
             <div style={{position:"relative",width:260,height:260}}>
               {[
                 {rot:"-7deg", top:20,  left:-6, op:0.3, w:234, h:328},
@@ -631,8 +631,8 @@ export default function App() {
               </svg>
             </button>
           </div>
-          {/* Category pills */}
-          <div style={{display:"flex",flexWrap:"wrap",gap:5,justifyContent:"center",marginBottom:8,width:"100%",flexShrink:0}}>
+          {/* Category pills — lowered 5mm, 2mm extra row gap */}
+          <div style={{display:"flex",flexWrap:"wrap",gap:5,rowGap:13,justifyContent:"center",marginTop:19,marginBottom:94,width:"100%",flexShrink:0}}>
             {CATEGORY_ORDER.map(cat=>(
               <TexturePill key={cat} cat={cat} isOn={activeCats.includes(cat)} onClick={()=>toggleCat(cat)} size="small"/>
             ))}
