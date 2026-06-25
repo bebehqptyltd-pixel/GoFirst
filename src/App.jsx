@@ -528,7 +528,7 @@ export default function App() {
             <p style={{...GF_TITLE,marginTop:8,fontSize:11,letterSpacing:"0.2em",textTransform:"uppercase",color:"#A08868",lineHeight:1.4}}>Say the things we leave unsaid</p>
           </div>
           {/* Card fan — vh-based so it scales to any screen */}
-          <div style={{position:"relative",width:"70vw",maxWidth:280,height:"38vh",maxHeight:320,flexShrink:0,margin:"20px auto"}}>
+          <div style={{position:"relative",width:"70vw",maxWidth:280,height:"38vh",maxHeight:320,flexShrink:0,margin:"8px auto"}}>
             {[
               {rot:"-7deg", top:"8%",  left:"-4%", op:0.3, w:"88%", h:"90%"},
               {rot:"4deg",  top:"4%",  left:"1%",  op:0.6, w:"92%", h:"94%"},
