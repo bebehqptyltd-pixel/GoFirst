@@ -521,14 +521,14 @@ export default function App() {
 
       {/* ── HOME ── */}
       {screen==="home"&&(
-        <div style={{display:"flex",flexDirection:"column",alignItems:"center",width:"100%",maxWidth:460,boxSizing:"border-box",paddingLeft:24,paddingRight:24,paddingTop:"calc(env(safe-area-inset-top) + 16px)",paddingBottom:"calc(env(safe-area-inset-bottom) + 24px)"}}>
+        <div style={{display:"flex",flexDirection:"column",alignItems:"center",width:"100%",maxWidth:460,boxSizing:"border-box",paddingLeft:24,paddingRight:24,paddingTop:"calc(env(safe-area-inset-top) + 52px)",paddingBottom:"calc(env(safe-area-inset-bottom) + 24px)"}}>
           {/* Title + tagline */}
           <div style={{textAlign:"center"}}>
             <h1 style={{...GF_TITLE,fontSize:54,color:"#3C2010",lineHeight:1}}>Go First</h1>
             <p style={{...GF_TITLE,marginTop:8,fontSize:11,letterSpacing:"0.2em",textTransform:"uppercase",color:"#A08868"}}>Say the things we leave unsaid</p>
           </div>
-          {/* 25mm gap = 94px */}
-          <div style={{height:94}}/>
+          {/* 60px gap tagline to card */}
+          <div style={{height:60}}/>
           {/* Card fan */}
           <div style={{position:"relative",width:260,height:353,alignSelf:"center"}}>
             {[
@@ -541,8 +541,8 @@ export default function App() {
               </div>
             ))}
           </div>
-          {/* 20mm gap = 75px */}
-          <div style={{height:75}}/>
+          {/* 60px gap card to button */}
+          <div style={{height:60}}/>
           {/* CTA */}
           <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8}}>
             <TextureButton onClick={()=>setScreen("deck")}>Build your deck</TextureButton>
@@ -639,8 +639,8 @@ export default function App() {
               <TexturePill key={cat} cat={cat} isOn={activeCats.includes(cat)} onClick={()=>toggleCat(cat)} size="small"/>
             ))}
           </div>
-          {/* 25mm gap pills to card */}
-          <div style={{height:94,flexShrink:0}}/>
+          {/* 50px gap pills to card */}
+          <div style={{height:50,flexShrink:0}}/>
           {/* Card — fixed vh height so it never pushes stats off screen */}
           <div style={{position:"relative",width:"100%",maxWidth:340,height:"55vh",maxHeight:460,flexShrink:0,marginBottom:8}}>
             {nextCard&&!deckExhausted&&(
@@ -697,7 +697,7 @@ export default function App() {
             )}
           </div>
           {/* Status — always visible */}
-          <div style={{flexShrink:0,textAlign:"center",marginTop:"auto"}}>
+          <div style={{flexShrink:0,textAlign:"center",marginTop:12}}>
             <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#A08868",letterSpacing:"0.03em",minHeight:16}}>
               {deckExhausted?"":!flipped?"Tap to reveal":Math.abs(dragX)>40?"Let go to discard":"Swipe left or right when you're done"}
             </p>
