@@ -521,14 +521,14 @@ export default function App() {
 
       {/* ── HOME ── */}
       {screen==="home"&&(
-        <div style={{display:"flex",flexDirection:"column",alignItems:"center",padding:"0 24px",width:"100%",maxWidth:460,height:"100vh",maxHeight:"100vh",boxSizing:"border-box",justifyContent:"space-between",paddingTop:"calc(env(safe-area-inset-top) + 52px)",paddingBottom:"calc(env(safe-area-inset-bottom) + 36px)"}}>
-          {/* Top: title + tagline */}
-          <div style={{textAlign:"center",flexShrink:0}}>
+        <div style={{display:"flex",flexDirection:"column",alignItems:"center",padding:"0 24px",width:"100%",maxWidth:460,height:"100vh",maxHeight:"100vh",boxSizing:"border-box",paddingTop:"calc(env(safe-area-inset-top) + 52px)",paddingBottom:"calc(env(safe-area-inset-bottom) + 32px)"}}>
+          {/* Title + tagline */}
+          <div style={{textAlign:"center",flexShrink:0,marginBottom:24}}>
             <h1 style={{...GF_TITLE,fontSize:58,color:"#3C2010",lineHeight:1}}>Go First</h1>
             <p style={{...GF_TITLE,marginTop:10,fontSize:12,letterSpacing:"0.2em",textTransform:"uppercase",color:"#A08868",lineHeight:1.5}}>Say the things we leave unsaid</p>
           </div>
-          {/* Middle: card stack — fixed proportions, slightly larger than original */}
-          <div style={{position:"relative",width:280,height:300,flexShrink:0}}>
+          {/* Card stack */}
+          <div style={{position:"relative",width:280,height:300,flexShrink:0,marginBottom:24}}>
             {[
               {rot:"-7deg", top:28, left:-8,  op:0.3, w:252, h:353},
               {rot:"4deg",  top:14, left:4,   op:0.6, w:262, h:367},
@@ -539,7 +539,7 @@ export default function App() {
               </div>
             ))}
           </div>
-          {/* Bottom: CTA */}
+          {/* CTA */}
           <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:10,flexShrink:0}}>
             <TextureButton onClick={()=>setScreen("deck")}>Build your deck</TextureButton>
             {totalPlayed>0&&<p style={{fontFamily:"'DM Sans',sans-serif",fontSize:10,color:"#C8B8A0",letterSpacing:"0.04em"}}>{totalPlayed} question{totalPlayed!==1?"s":""} asked so far</p>}
@@ -620,15 +620,85 @@ export default function App() {
 
       {/* ── PLAY ── */}
       {screen==="play"&&(
-        <div style={{display:"flex",flexDirection:"column",alignItems:"center",padding:"0 12px 40px",width:"100%",maxWidth:460,minHeight:"100vh"}}>
-          {/* Back arrow aligned with persistent ⓘ — no title, no label */}
-          <div style={{width:"100%",paddingTop:14,paddingBottom:16,display:"flex",alignItems:"center",justifyContent:"flex-start"}}>
+        <div style={{display:"flex",flexDirection:"column",alignItems:"center",padding:"0 12px",width:"100%",maxWidth:460,height:"100vh",maxHeight:"100vh",boxSizing:"border-box",paddingTop:"calc(env(safe-area-inset-top) + 8px)",paddingBottom:"calc(env(safe-area-inset-bottom) + 12px)"}}>
+          {/* Back arrow */}
+          <div style={{width:"100%",paddingBottom:8,display:"flex",alignItems:"center",justifyContent:"flex-start",flexShrink:0}}>
             <button className="btn-back-arrow" onClick={()=>setScreen("deck")}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A08868" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M19 12H5M12 5l-7 7 7 7"/>
               </svg>
             </button>
           </div>
+          {/* Category pills */}
+          <div style={{display:"flex",flexWrap:"wrap",gap:6,justifyContent:"center",marginBottom:10,width:"100%",flexShrink:0}}>
+            {CATEGORY_ORDER.map(cat=>(
+              <TexturePill key={cat} cat={cat} isOn={activeCats.includes(cat)} onClick={()=>toggleCat(cat)} size="small"/>
+            ))}
+          </div>
+          {/* Card stack — flex:1 fills remaining space, capped sensibly */}
+          <div style={{position:"relative",width:"100%",maxWidth:340,flex:1,minHeight:0,marginBottom:8}}>
+            {nextCard&&!deckExhausted&&(
+              <div style={{position:"absolute",inset:0,transform:"scale(0.95) translateY(10px)",transformOrigin:"bottom center",opacity:1,pointerEvents:"none",zIndex:1}}>
+                <CardBack/>
+              </div>
+            )}
+            {deckExhausted&&(
+              <div style={{position:"absolute",inset:0,zIndex:2,background:"#F5EDE0",border:"1.5px solid #E8DDD0",borderRadius:20,padding:"40px 32px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",boxShadow:"-4px 12px 40px rgba(54,28,8,0.16)"}}>
+                <div style={{position:"absolute",inset:10,border:"1px solid rgba(180,160,140,0.25)",borderRadius:12,pointerEvents:"none"}}/>
+                <p style={{...GF_TITLE,fontSize:28,color:"#3C2010",lineHeight:1.4,marginBottom:16}}>You've asked it all.</p>
+                <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#A08868",lineHeight:1.7,marginBottom:32}}>Every question in your deck has been asked. The conversations you've had are the ones worth having.</p>
+                <TextureButton variant="ghost" style={{padding:"12px 32px"}} onClick={()=>setShowReset(true)}>Start fresh</TextureButton>
+              </div>
+            )}
+            {current&&!deckExhausted&&(
+              <div key={current.question} style={{position:"absolute",inset:0,zIndex:2,
+                transform:gone?`translateX(${goneDir*110}vw) rotate(${goneDir*18}deg)`:`translateX(${dragX}px) rotate(${dragX*0.025}deg)`,
+                transition:isDragging?"none":gone?"transform 0.28s ease-in":"transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94)",
+                cursor:flipped?"grab":"pointer",touchAction:"pan-y",
+              }}
+                onClick={handleCardTap}
+                onMouseDown={onPointerDown} onMouseMove={onPointerMove} onMouseUp={onPointerUp} onMouseLeave={onPointerUp}
+                onTouchStart={onPointerDown} onTouchMove={onPointerMove} onTouchEnd={onPointerUp}
+              >
+                <div style={{position:"absolute",inset:0,opacity:flipped?0:1,transform:flipped?"scale(0.94)":"scale(1)",transition:isDragging?"none":"opacity 0.22s ease, transform 0.22s ease",pointerEvents:flipped?"none":"auto"}}>
+                  <CardBack/>
+                </div>
+                <div style={{position:"absolute",inset:0,opacity:flipped?1:0,transform:flipped?"scale(1)":"scale(0.94)",
+                  transition:isDragging?"none":"opacity 0.22s ease 0.08s, transform 0.22s ease 0.08s",
+                  background:cardBg,border:`1.5px solid ${cardBorder}`,borderRadius:20,padding:"28px 24px",
+                  display:"flex",flexDirection:"column",justifyContent:"space-between",
+                  boxShadow:"-4px 12px 40px rgba(54,28,8,0.16), -2px 4px 12px rgba(54,28,8,0.10)",pointerEvents:flipped?"auto":"none"}}>
+                  <div style={{position:"absolute",inset:10,border:"1px solid rgba(180,160,140,0.25)",borderRadius:12,pointerEvents:"none"}}/>
+                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                    <div style={{display:"flex",alignItems:"center",gap:8}}>
+                      <div style={{width:5,height:5,borderRadius:"50%",background:"#3C2410",flexShrink:0}}/>
+                      <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:9,letterSpacing:"0.18em",textTransform:"uppercase",color:"#3C2410",opacity:0.6}}>{current.category}</p>
+                    </div>
+                    <SpicyBadge level={current.spicy}/>
+                  </div>
+                  <p style={{...GF_TITLE,fontSize:displayQuestion.length>90?19:displayQuestion.length>65?22:25,lineHeight:1.55,color:"#2C1808",flex:1,display:"flex",alignItems:"center",paddingTop:12}}>
+                    {displayQuestion}
+                  </p>
+                  {showPerspectiveToggle&&(
+                    <div style={{display:"flex",justifyContent:"flex-end",paddingTop:8}}>
+                      <button onClick={(e)=>{e.stopPropagation();setPerspectiveFlipped(v=>!v);}} style={{background:perspectiveFlipped?"#3C2410":"transparent",border:"1px solid #C4A882",borderRadius:100,padding:"3px 10px",cursor:"pointer",display:"flex",alignItems:"center",gap:5,transition:"all 0.2s"}}>
+                        <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:9,letterSpacing:"0.08em",color:perspectiveFlipped?"#F5EDD9":"#8B6445",fontWeight:500}}>{perspectiveFlipped?"About you":"About me"}</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+          {/* Status */}
+          <div style={{flexShrink:0,textAlign:"center"}}>
+            <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#A08868",letterSpacing:"0.03em",minHeight:18}}>
+              {deckExhausted?"":!flipped?"Tap to reveal":Math.abs(dragX)>40?"Let go to discard":"Swipe left or right when you're done"}
+            </p>
+            <p style={{marginTop:4,fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#B0A090",letterSpacing:"0.03em"}}>{unseenCount} unseen · {totalPlayed} played</p>
+          </div>
+        </div>
+      )}
           <div style={{display:"flex",flexWrap:"wrap",gap:7,justifyContent:"center",marginBottom:20,width:"100%"}}>
             {CATEGORY_ORDER.map(cat=>(
               <TexturePill key={cat} cat={cat} isOn={activeCats.includes(cat)} onClick={()=>toggleCat(cat)} size="small"/>
@@ -688,10 +758,6 @@ export default function App() {
               </div>
             )}
           </div>
-          <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#A08868",letterSpacing:"0.03em",textAlign:"center",minHeight:20}}>
-            {deckExhausted?"":!flipped?"Tap to reveal":Math.abs(dragX)>40?"Let go to discard":"Swipe left or right when you're done"}
-          </p>
-          <p style={{marginTop:8,fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#B0A090",letterSpacing:"0.03em"}}>{unseenCount} unseen · {totalPlayed} played</p>
         </div>
       )}
     </div>
