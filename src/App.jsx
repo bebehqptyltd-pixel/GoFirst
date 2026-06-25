@@ -521,28 +521,30 @@ export default function App() {
 
       {/* ── HOME ── */}
       {screen==="home"&&(
-        <div style={{display:"flex",flexDirection:"column",alignItems:"center",width:"100%",maxWidth:460,height:"100vh",boxSizing:"border-box",paddingLeft:24,paddingRight:24,paddingTop:"calc(env(safe-area-inset-top) + 16px)",paddingBottom:"calc(env(safe-area-inset-bottom) + 24px)"}}>
+        <div style={{display:"flex",flexDirection:"column",alignItems:"center",width:"100%",maxWidth:460,boxSizing:"border-box",paddingLeft:24,paddingRight:24,paddingTop:"calc(env(safe-area-inset-top) + 16px)",paddingBottom:"calc(env(safe-area-inset-bottom) + 24px)"}}>
           {/* Title + tagline */}
-          <div style={{textAlign:"center",flexShrink:0}}>
+          <div style={{textAlign:"center"}}>
             <h1 style={{...GF_TITLE,fontSize:54,color:"#3C2010",lineHeight:1}}>Go First</h1>
             <p style={{...GF_TITLE,marginTop:8,fontSize:11,letterSpacing:"0.2em",textTransform:"uppercase",color:"#A08868"}}>Say the things we leave unsaid</p>
           </div>
-          {/* Card fan — grows to fill remaining space between tagline and button */}
-          <div style={{flex:1,width:"100%",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",marginTop:94,marginBottom:75}}>
-            <div style={{position:"relative",width:260,height:260}}>
-              {[
-                {rot:"-7deg", top:20,  left:-6, op:0.3, w:234, h:328},
-                {rot:"4deg",  top:10,  left:2,  op:0.6, w:244, h:342},
-                {rot:"-1deg", top:0,   left:-2, op:1,   w:252, h:353},
-              ].map((c,i)=>(
-                <div key={i} style={{position:"absolute",top:c.top,left:c.left,width:c.w,height:c.h,transform:`rotate(${c.rot})`,transformOrigin:"top center",opacity:c.op}}>
-                  <CardBack/>
-                </div>
-              ))}
-            </div>
+          {/* 25mm gap = 94px */}
+          <div style={{height:94}}/>
+          {/* Card fan */}
+          <div style={{position:"relative",width:260,height:353,alignSelf:"center"}}>
+            {[
+              {rot:"-7deg", top:20,  left:-6, op:0.3, w:234, h:328},
+              {rot:"4deg",  top:10,  left:2,  op:0.6, w:244, h:342},
+              {rot:"-1deg", top:0,   left:-2, op:1,   w:252, h:353},
+            ].map((c,i)=>(
+              <div key={i} style={{position:"absolute",top:c.top,left:c.left,width:c.w,height:c.h,transform:`rotate(${c.rot})`,transformOrigin:"top center",opacity:c.op}}>
+                <CardBack/>
+              </div>
+            ))}
           </div>
+          {/* 20mm gap = 75px */}
+          <div style={{height:75}}/>
           {/* CTA */}
-          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8,flexShrink:0}}>
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8}}>
             <TextureButton onClick={()=>setScreen("deck")}>Build your deck</TextureButton>
             {totalPlayed>0&&<p style={{fontFamily:"'DM Sans',sans-serif",fontSize:10,color:"#C8B8A0",letterSpacing:"0.04em"}}>{totalPlayed} question{totalPlayed!==1?"s":""} asked so far</p>}
           </div>
@@ -632,11 +634,13 @@ export default function App() {
             </button>
           </div>
           {/* Category pills — lowered 5mm, 2mm extra row gap */}
-          <div style={{display:"flex",flexWrap:"wrap",gap:5,rowGap:13,justifyContent:"center",marginTop:19,marginBottom:94,width:"100%",flexShrink:0}}>
+          <div style={{display:"flex",flexWrap:"wrap",gap:5,rowGap:13,justifyContent:"center",marginTop:19,width:"100%",flexShrink:0}}>
             {CATEGORY_ORDER.map(cat=>(
               <TexturePill key={cat} cat={cat} isOn={activeCats.includes(cat)} onClick={()=>toggleCat(cat)} size="small"/>
             ))}
           </div>
+          {/* 25mm gap pills to card */}
+          <div style={{height:94,flexShrink:0}}/>
           {/* Card — fixed vh height so it never pushes stats off screen */}
           <div style={{position:"relative",width:"100%",maxWidth:340,height:"55vh",maxHeight:460,flexShrink:0,marginBottom:8}}>
             {nextCard&&!deckExhausted&&(
