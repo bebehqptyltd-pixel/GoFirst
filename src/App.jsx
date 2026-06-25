@@ -546,7 +546,7 @@ export default function App() {
           {/* CTA */}
           <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8}}>
             <TextureButton onClick={()=>setScreen("deck")}>Build your deck</TextureButton>
-            {totalPlayed>0&&<p style={{fontFamily:"'DM Sans',sans-serif",fontSize:10,color:"#C8B8A0",letterSpacing:"0.04em"}}>{totalPlayed} question{totalPlayed!==1?"s":""} asked so far</p>}
+            {totalPlayed>0&&<p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#C8B8A0",letterSpacing:"0.04em"}}>{totalPlayed} question{totalPlayed!==1?"s":""} asked so far</p>}
           </div>
         </div>
       )}
@@ -636,7 +636,7 @@ export default function App() {
           {/* Category pills — lowered 5mm, 2mm extra row gap */}
           <div style={{display:"flex",flexWrap:"wrap",gap:5,rowGap:13,justifyContent:"center",marginTop:19,width:"100%",flexShrink:0}}>
             {CATEGORY_ORDER.map(cat=>(
-              <TexturePill key={cat} cat={cat} isOn={activeCats.includes(cat)} onClick={()=>toggleCat(cat)} size="small"/>
+              <TexturePill key={cat} cat={cat} isOn={activeCats.includes(cat)} onClick={()=>toggleCat(cat)}/>
             ))}
           </div>
           {/* 50px gap pills to card */}
@@ -698,10 +698,10 @@ export default function App() {
           </div>
           {/* Status — always visible */}
           <div style={{flexShrink:0,textAlign:"center",marginTop:12}}>
-            <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#A08868",letterSpacing:"0.03em",minHeight:16}}>
+            <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:14,color:"#A08868",letterSpacing:"0.03em",minHeight:16}}>
               {deckExhausted?"":!flipped?"Tap to reveal":Math.abs(dragX)>40?"Let go to discard":"Swipe left or right when you're done"}
             </p>
-            <p style={{marginTop:4,fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#B0A090",letterSpacing:"0.03em"}}>{unseenCount} unseen · {totalPlayed} played</p>
+            <p style={{marginTop:4,fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#B0A090",letterSpacing:"0.03em"}}>{unseenCount} unseen · {totalPlayed} played</p>
           </div>
         </div>
       )}
