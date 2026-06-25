@@ -785,12 +785,13 @@ const STAGE_ORDER = ['friends','just_together','were_a_thing','committed'];
 function buildPool(activeCats, stageId, spicyLevel) {
   return ALL_QUESTIONS.filter(q => {
     if (!activeCats.includes(q.category)) return false;
-    // If no stage selected, include all non-spicy questions matching categories
     if (!stageId || stageId === null) return q.spicy === 0;
     const stageIdx = STAGE_ORDER.indexOf(stageId);
     const minIdx = STAGE_ORDER.indexOf(q.stageMin);
     const maxIdx = q.stageMax ? STAGE_ORDER.indexOf(q.stageMax) : 3;
     if (stageIdx < minIdx || stageIdx > maxIdx) return false;
+    // Committed: only show questions that start at were_a_thing or committed
+    if (stageId === 'committed' && minIdx < STAGE_ORDER.indexOf('were_a_thing')) return false;
     if (q.spicy > 0 && q.spicy > spicyLevel) return false;
     return true;
   });
@@ -1130,7 +1131,7 @@ export default function App() {
           </div>
           <div style={{display:"flex",gap:10,width:"100%",marginBottom:32}}>
             {RELATIONSHIP_TYPES.map(rel=>(
-              <RelTile key={rel.id} rel={rel} isActive={relationshipType===rel.id} onClick={()=>{const validCats=CATEGORY_ORDER.filter(cat=>ALL_QUESTIONS.some(q=>{const si=STAGE_ORDER.indexOf(rel.id);const mi=STAGE_ORDER.indexOf(q.stageMin);const mx=q.stageMax?STAGE_ORDER.indexOf(q.stageMax):3;return q.category===cat&&si>=mi&&si<=mx;}));setRelationshipType(rel.id);setActiveCats(validCats);setSpicyLevel(0);}}/>
+              <RelTile key={rel.id} rel={rel} isActive={relationshipType===rel.id} onClick={()=>{if(relationshipType===rel.id){setRelationshipType(null);setActiveCats([...CATEGORY_ORDER]);setSpicyLevel(0);}else{const validCats=CATEGORY_ORDER.filter(cat=>ALL_QUESTIONS.some(q=>{const si=STAGE_ORDER.indexOf(rel.id);const mi=STAGE_ORDER.indexOf(q.stageMin);const mx=q.stageMax?STAGE_ORDER.indexOf(q.stageMax):3;return q.category===cat&&si>=mi&&si<=mx;}));setRelationshipType(rel.id);setActiveCats(validCats);setSpicyLevel(0);}}}/>
             ))}
           </div>
           {relationshipType && (currentStage?.spicyMax||0) > 0 && (
@@ -1141,9 +1142,13 @@ export default function App() {
           <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#6B4A30",textAlign:"center",marginBottom:16,letterSpacing:"0.02em"}}>
             {relationshipType?"Fine tune your deck":"Or choose categories manually"}
           </p>
-          <div style={{display:"flex",flexWrap:"wrap",gap:8,justifyContent:"center",marginBottom:36}}>
-            {CATEGORY_ORDER.map(cat=>(
-              <TexturePill key={cat} cat={cat} isOn={activeCats.includes(cat)} disabled={!availableCats.includes(cat)} onClick={()=>toggleCat(cat)}/>
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8,marginBottom:36}}>
+            {Array.from({length:Math.ceil(CATEGORY_ORDER.length/3)}).map((_,rowIdx)=>(
+              <div key={rowIdx} style={{display:"flex",gap:8,justifyContent:"center"}}>
+                {CATEGORY_ORDER.slice(rowIdx*3,(rowIdx+1)*3).map(cat=>(
+                  <TexturePill key={cat} cat={cat} isOn={activeCats.includes(cat)} disabled={!availableCats.includes(cat)} onClick={()=>toggleCat(cat)}/>
+                ))}
+              </div>
             ))}
           </div>
           <div style={{width:"100%",background:"#FBF5EC",border:"1px solid #DDD0BC",borderRadius:16,padding:"18px 22px",marginBottom:16,display:"flex",alignItems:"center",justifyContent:"space-between",boxShadow:"inset 0 1px 4px rgba(54,28,8,0.08), -1px 2px 8px rgba(54,28,8,0.06)"}}>
