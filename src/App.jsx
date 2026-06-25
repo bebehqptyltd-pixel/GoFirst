@@ -28,7 +28,7 @@ function CardBack() {
   );
 }
 
-// ── Flame icon (SVG stroke style) ────────────────────────────
+// ── Flame icon ───────────────────────────────────────────────
 function FlameIcon({ size=13, color="#B84A1A" }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -38,7 +38,7 @@ function FlameIcon({ size=13, color="#B84A1A" }) {
   );
 }
 
-// ── Spicy indicator for card face ────────────────────────────
+// ── Spicy badge ──────────────────────────────────────────────
 function SpicyBadge({ level }) {
   if (!level || level === 0) return null;
   const colors = { 1:"#C4783A", 2:"#B85A20", 3:"#8B2800" };
@@ -51,31 +51,152 @@ function SpicyBadge({ level }) {
   );
 }
 
-// ── Data ─────────────────────────────────────────────────────
-// Question object shape (ready for xlsx import):
-// { question, perspectiveQ, category, stage, spicy, canFlip }
-// spicy: 0=none, 1=level1, 2=level2, 3=level3
-// canFlip: true/false (whether perspective toggle applies)
-// perspectiveQ: the flipped version of the question (or null)
+// ── Info icon ────────────────────────────────────────────────
+function InfoIcon({ color="#A08868" }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9"/>
+      <line x1="12" y1="16" x2="12" y2="12"/>
+      <line x1="12" y1="8" x2="12.01" y2="8"/>
+    </svg>
+  );
+}
 
-const FREE_QUESTIONS = [
+// ── Question data ────────────────────────────────────────────
+// Shape: { question, perspectiveQ, category, stage, spicy, canFlip }
+const ALL_QUESTIONS = [
+  // ── Starter ──
   {question:"What did you assume about me that turned out to be completely wrong?",perspectiveQ:null,category:"Starter",stage:"friends",spicy:0,canFlip:false},
   {question:"What's a moment that quietly changed you?",perspectiveQ:null,category:"Starter",stage:"friends",spicy:0,canFlip:false},
-  {question:"What do you think my biggest blind spot is?",perspectiveQ:null,category:"Honest Impressions",stage:"friends",spicy:0,canFlip:false},
-  {question:"What's something you've never felt fully understood about?",perspectiveQ:null,category:"Emotional Intimacy",stage:"friends",spicy:0,canFlip:false},
-  {question:"What's your most controversial food opinion?",perspectiveQ:null,category:"Playful & Funny",stage:"friends",spicy:0,canFlip:false},
-  {question:"What do you hope love feels like years from now?",perspectiveQ:null,category:"Life & Values",stage:"friends",spicy:0,canFlip:false},
-  {question:"Tell me about a time you stood up for something and it cost you.",perspectiveQ:null,category:"Story Questions",stage:"friends",spicy:0,canFlip:false},
-  {question:"What version of yourself comes out in relationships?",perspectiveQ:null,category:"Emotional Intimacy",stage:"friends",spicy:0,canFlip:false},
-  {question:"What would your villain origin story be?",perspectiveQ:null,category:"Playful & Funny",stage:"friends",spicy:0,canFlip:false},
-  {question:"What are you still healing from?",perspectiveQ:null,category:"Emotional Intimacy",stage:"friends",spicy:0,canFlip:false},
-  // Just Together placeholder spicy examples
-  {question:"When did you first think about kissing me?",perspectiveQ:"When do you think I first thought about kissing you?",category:"Attraction & Chemistry",stage:"just_together",spicy:1,canFlip:true},
-  {question:"What's something about me that gets better the more you know me?",perspectiveQ:null,category:"Attraction & Chemistry",stage:"just_together",spicy:1,canFlip:false},
-  // We're a Thing placeholder
-  {question:"What does it feel like when we're completely in sync with each other?",perspectiveQ:"What do you think it feels like for me when we're completely in sync?",category:"Emotional Intimacy",stage:"were_a_thing",spicy:2,canFlip:true},
-  // Committed placeholder
-  {question:"What's something you've thought about doing with me that you haven't said out loud yet?",perspectiveQ:"What's something you think I've thought about doing with you that I haven't said out loud?",category:"Late Night",stage:"committed",spicy:3,canFlip:true},
+  {question:"What do you think my biggest blind spot is?",perspectiveQ:null,category:"Starter",stage:"friends",spicy:0,canFlip:false},
+  {question:"What's something you've never felt fully understood about?",perspectiveQ:null,category:"Starter",stage:"friends",spicy:0,canFlip:false},
+  {question:"What's your most controversial food opinion?",perspectiveQ:null,category:"Starter",stage:"friends",spicy:0,canFlip:false},
+  {question:"What do you hope love feels like years from now?",perspectiveQ:null,category:"Starter",stage:"friends",spicy:0,canFlip:false},
+  {question:"Tell me about a time you stood up for something and it cost you.",perspectiveQ:null,category:"Starter",stage:"friends",spicy:0,canFlip:false},
+  {question:"What version of yourself comes out in relationships?",perspectiveQ:null,category:"Starter",stage:"friends",spicy:0,canFlip:false},
+  {question:"What would your villain origin story be?",perspectiveQ:null,category:"Starter",stage:"friends",spicy:0,canFlip:false},
+  {question:"What are you still healing from?",perspectiveQ:null,category:"Starter",stage:"friends",spicy:0,canFlip:false},
+  // ── Playful & Funny ──
+  {question:"What's the dumbest injury you've ever had?",perspectiveQ:null,category:"Playful & Funny",stage:"friends",spicy:0,canFlip:false},
+  {question:"What's your most irrational fear?",perspectiveQ:null,category:"Playful & Funny",stage:"friends",spicy:0,canFlip:false},
+  {question:"What's something you were convinced of as a kid that was completely wrong?",perspectiveQ:null,category:"Playful & Funny",stage:"friends",spicy:0,canFlip:false},
+  {question:"What's your most useless talent?",perspectiveQ:null,category:"Playful & Funny",stage:"friends",spicy:0,canFlip:false},
+  {question:"What's your weirdest habit when nobody is watching?",perspectiveQ:null,category:"Playful & Funny",stage:"friends",spicy:0,canFlip:false},
+  {question:"What's a hill you'll die on for absolutely no reason?",perspectiveQ:null,category:"Playful & Funny",stage:"friends",spicy:0,canFlip:false},
+  {question:"If your life had a warning label, what would it say?",perspectiveQ:null,category:"Playful & Funny",stage:"friends",spicy:0,canFlip:false},
+  {question:"What's a film or show you're embarrassed to admit you love?",perspectiveQ:null,category:"Playful & Funny",stage:"friends",spicy:0,canFlip:false},
+  {question:"What's the worst advice you've ever confidently given someone?",perspectiveQ:null,category:"Playful & Funny",stage:"friends",spicy:0,canFlip:false},
+  {question:"What's a phrase or word you say too much?",perspectiveQ:null,category:"Playful & Funny",stage:"friends",spicy:0,canFlip:false},
+  {question:"What's the most chaotic decision you've ever made on a whim?",perspectiveQ:null,category:"Playful & Funny",stage:"friends",spicy:0,canFlip:false},
+  {question:"What's something you owned as a kid that you'd be mortified by now?",perspectiveQ:null,category:"Playful & Funny",stage:"friends",spicy:0,canFlip:false},
+  {question:"What's a completely unhinged rule you have for yourself?",perspectiveQ:null,category:"Playful & Funny",stage:"friends",spicy:0,canFlip:false},
+  {question:"If your pet had to describe you to a stranger, what would they say?",perspectiveQ:null,category:"Playful & Funny",stage:"friends",spicy:0,canFlip:false},
+  {question:"What's a completely made-up skill you've pretended to have?",perspectiveQ:null,category:"Playful & Funny",stage:"friends",spicy:0,canFlip:false},
+  {question:"What's the most ridiculous thing you've ever argued about?",perspectiveQ:null,category:"Playful & Funny",stage:"friends",spicy:0,canFlip:false},
+  {question:"What's the pettiest thing you've ever done and felt zero guilt about?",perspectiveQ:null,category:"Playful & Funny",stage:"friends",spicy:0,canFlip:false},
+  {question:"What's something you're weirdly competitive about?",perspectiveQ:null,category:"Playful & Funny",stage:"friends",spicy:0,canFlip:false},
+  // ── Story Questions ──
+  {question:"Tell me about one of the best days of your life.",perspectiveQ:null,category:"Story Questions",stage:"friends",spicy:0,canFlip:false},
+  {question:"Tell me about a moment you laughed so hard you couldn't breathe.",perspectiveQ:null,category:"Story Questions",stage:"friends",spicy:0,canFlip:false},
+  {question:"What's a memory you wish you could relive for one hour?",perspectiveQ:null,category:"Story Questions",stage:"friends",spicy:0,canFlip:false},
+  {question:"Tell me about a time everything went spectacularly wrong.",perspectiveQ:null,category:"Story Questions",stage:"friends",spicy:0,canFlip:false},
+  {question:"What's a random memory you think about more than you should?",perspectiveQ:null,category:"Story Questions",stage:"friends",spicy:0,canFlip:false},
+  {question:"What's a tiny childhood memory you still remember vividly?",perspectiveQ:null,category:"Story Questions",stage:"friends",spicy:0,canFlip:false},
+  {question:"Tell me about a time you felt deeply proud of yourself.",perspectiveQ:null,category:"Story Questions",stage:"friends",spicy:0,canFlip:false},
+  {question:"What's a memory that still makes you emotional?",perspectiveQ:null,category:"Story Questions",stage:"friends",spicy:0,canFlip:false},
+  {question:"Tell me about a moment you felt truly free.",perspectiveQ:null,category:"Story Questions",stage:"friends",spicy:0,canFlip:false},
+  {question:"Tell me about a stranger who made a surprising impact on you.",perspectiveQ:null,category:"Story Questions",stage:"friends",spicy:0,canFlip:false},
+  {question:"What's a decision you made that turned out way better than expected?",perspectiveQ:null,category:"Story Questions",stage:"friends",spicy:0,canFlip:false},
+  {question:"Tell me about a time you surprised yourself.",perspectiveQ:null,category:"Story Questions",stage:"friends",spicy:0,canFlip:false},
+  {question:"What's a moment where you realised you'd changed?",perspectiveQ:null,category:"Story Questions",stage:"friends",spicy:0,canFlip:false},
+  {question:"Tell me about the last time you were genuinely moved by something.",perspectiveQ:null,category:"Story Questions",stage:"friends",spicy:0,canFlip:false},
+  {question:"What's a mistake you'd actually make again?",perspectiveQ:null,category:"Story Questions",stage:"friends",spicy:0,canFlip:false},
+  {question:"Tell me about a friendship that shaped who you are.",perspectiveQ:null,category:"Story Questions",stage:"friends",spicy:0,canFlip:false},
+  {question:"What's something you did that took more courage than people realised?",perspectiveQ:null,category:"Story Questions",stage:"friends",spicy:0,canFlip:false},
+  // ── Attraction & Chemistry ──
+  {question:"What's something non-sexual you find incredibly attractive?",perspectiveQ:null,category:"Attraction & Chemistry",stage:"just_together",spicy:0,canFlip:false},
+  {question:"When did you first realise you were attracted to me?",perspectiveQ:"When do you think I first realised I was attracted to you?",category:"Attraction & Chemistry",stage:"just_together",spicy:0,canFlip:true},
+  {question:"What kind of touch comes naturally to you?",perspectiveQ:null,category:"Attraction & Chemistry",stage:"just_together",spicy:0,canFlip:false},
+  {question:"What kind of affection makes you melt?",perspectiveQ:null,category:"Attraction & Chemistry",stage:"just_together",spicy:0,canFlip:false},
+  {question:"What's your ideal slow Sunday together?",perspectiveQ:null,category:"Attraction & Chemistry",stage:"just_together",spicy:0,canFlip:false},
+  {question:"What kind of moments make you want to kiss someone?",perspectiveQ:null,category:"Attraction & Chemistry",stage:"just_together",spicy:0,canFlip:false},
+  {question:"What creates chemistry for you beyond physical attraction?",perspectiveQ:null,category:"Attraction & Chemistry",stage:"just_together",spicy:0,canFlip:false},
+  {question:"What's something subtle someone can do that drives you wild?",perspectiveQ:null,category:"Attraction & Chemistry",stage:"just_together",spicy:0,canFlip:false},
+  {question:"What kind of intimacy matters most to you?",perspectiveQ:null,category:"Attraction & Chemistry",stage:"just_together",spicy:0,canFlip:false},
+  {question:"What's something about how someone carries themselves that draws you in?",perspectiveQ:null,category:"Attraction & Chemistry",stage:"just_together",spicy:0,canFlip:false},
+  {question:"What's a quality in someone that sneaks up on you over time?",perspectiveQ:null,category:"Attraction & Chemistry",stage:"just_together",spicy:0,canFlip:false},
+  {question:"What do you notice about someone before you notice anything else?",perspectiveQ:null,category:"Attraction & Chemistry",stage:"just_together",spicy:0,canFlip:false},
+  {question:"What makes you feel truly seen by another person?",perspectiveQ:null,category:"Attraction & Chemistry",stage:"just_together",spicy:0,canFlip:false},
+  {question:"What kind of conversation gives you that electric feeling?",perspectiveQ:null,category:"Attraction & Chemistry",stage:"just_together",spicy:0,canFlip:false},
+  {question:"What does flirting look like to you when it's done well?",perspectiveQ:null,category:"Attraction & Chemistry",stage:"just_together",spicy:0,canFlip:false},
+  {question:"What makes you feel genuinely confident around someone?",perspectiveQ:null,category:"Attraction & Chemistry",stage:"just_together",spicy:0,canFlip:false},
+  {question:"What's something you find attractive that you've never really told anyone?",perspectiveQ:null,category:"Attraction & Chemistry",stage:"just_together",spicy:0,canFlip:false},
+  // ── Honest Impressions ──
+  {question:"What did you think I was like before you actually knew me?",perspectiveQ:null,category:"Honest Impressions",stage:"friends",spicy:0,canFlip:false},
+  {question:"What's something about me you still haven't figured out?",perspectiveQ:null,category:"Honest Impressions",stage:"friends",spicy:0,canFlip:false},
+  {question:"What do you think I need more of in my life?",perspectiveQ:null,category:"Honest Impressions",stage:"friends",spicy:0,canFlip:false},
+  {question:"What's something you've noticed about me that I probably don't see in myself?",perspectiveQ:null,category:"Honest Impressions",stage:"friends",spicy:0,canFlip:false},
+  {question:"What's something you think we have in common that might surprise me?",perspectiveQ:null,category:"Honest Impressions",stage:"friends",spicy:0,canFlip:false},
+  {question:"What's something you want me to know about you that I might have wrong?",perspectiveQ:null,category:"Honest Impressions",stage:"friends",spicy:0,canFlip:false},
+  {question:"What's the version of you that most people don't get to see?",perspectiveQ:null,category:"Honest Impressions",stage:"friends",spicy:0,canFlip:false},
+  {question:"What do people assume about you based on how you look or come across?",perspectiveQ:null,category:"Honest Impressions",stage:"friends",spicy:0,canFlip:false},
+  {question:"What's something you do that people misread?",perspectiveQ:null,category:"Honest Impressions",stage:"friends",spicy:0,canFlip:false},
+  {question:"What's something about me you were initially unsure about?",perspectiveQ:null,category:"Honest Impressions",stage:"friends",spicy:0,canFlip:false},
+  {question:"What's a question you've wanted to ask me but haven't yet?",perspectiveQ:null,category:"Honest Impressions",stage:"friends",spicy:0,canFlip:false},
+  {question:"What's your honest first impression of me, now that it's safe to say?",perspectiveQ:null,category:"Honest Impressions",stage:"friends",spicy:0,canFlip:false},
+  {question:"What's something you think I'm better at than I give myself credit for?",perspectiveQ:null,category:"Honest Impressions",stage:"friends",spicy:0,canFlip:false},
+  {question:"What do you think I'm like when things get hard?",perspectiveQ:null,category:"Honest Impressions",stage:"friends",spicy:0,canFlip:false},
+  // ── Life & Values ──
+  {question:"What matters most to you in life now?",perspectiveQ:null,category:"Life & Values",stage:"friends",spicy:0,canFlip:false},
+  {question:"What kind of life are you trying to build?",perspectiveQ:null,category:"Life & Values",stage:"friends",spicy:0,canFlip:false},
+  {question:"What does commitment mean to you?",perspectiveQ:null,category:"Life & Values",stage:"friends",spicy:0,canFlip:false},
+  {question:"What kind of partner do you want to be?",perspectiveQ:null,category:"Life & Values",stage:"friends",spicy:0,canFlip:false},
+  {question:"What does a really good ordinary life look like to you?",perspectiveQ:null,category:"Life & Values",stage:"friends",spicy:0,canFlip:false},
+  {question:"What are your non-negotiables in relationships?",perspectiveQ:null,category:"Life & Values",stage:"friends",spicy:0,canFlip:false},
+  {question:"What kind of home environment makes you happiest?",perspectiveQ:null,category:"Life & Values",stage:"friends",spicy:0,canFlip:false},
+  {question:"What do you think makes relationships last?",perspectiveQ:null,category:"Life & Values",stage:"friends",spicy:0,canFlip:false},
+  {question:"What scares you most about relationships?",perspectiveQ:null,category:"Life & Values",stage:"friends",spicy:0,canFlip:false},
+  {question:"What kind of future feels exciting to you?",perspectiveQ:null,category:"Life & Values",stage:"friends",spicy:0,canFlip:false},
+  {question:"What's something you used to want that you no longer care about?",perspectiveQ:null,category:"Life & Values",stage:"friends",spicy:0,canFlip:false},
+  {question:"What's a value you hold that most people in your life don't share?",perspectiveQ:null,category:"Life & Values",stage:"friends",spicy:0,canFlip:false},
+  {question:"What does success look like to you right now, honestly?",perspectiveQ:null,category:"Life & Values",stage:"friends",spicy:0,canFlip:false},
+  {question:"What would you do differently if you weren't worried about what people thought?",perspectiveQ:null,category:"Life & Values",stage:"friends",spicy:0,canFlip:false},
+  {question:"What chapter of your life are you in right now?",perspectiveQ:null,category:"Life & Values",stage:"friends",spicy:0,canFlip:false},
+  {question:"What's something you hope you never compromise on?",perspectiveQ:null,category:"Life & Values",stage:"friends",spicy:0,canFlip:false},
+  {question:"Who has shaped your idea of what love should look like?",perspectiveQ:null,category:"Life & Values",stage:"friends",spicy:0,canFlip:false},
+  {question:"What kind of person do you want to have become in ten years?",perspectiveQ:null,category:"Life & Values",stage:"friends",spicy:0,canFlip:false},
+  // ── Emotional Intimacy ──
+  {question:"When do you feel most emotionally safe?",perspectiveQ:null,category:"Emotional Intimacy",stage:"were_a_thing",spicy:0,canFlip:false},
+  {question:"What makes somewhere feel like home to you?",perspectiveQ:null,category:"Emotional Intimacy",stage:"were_a_thing",spicy:0,canFlip:false},
+  {question:"What helps you feel calm when life is overwhelming?",perspectiveQ:null,category:"Emotional Intimacy",stage:"were_a_thing",spicy:0,canFlip:false},
+  {question:"What makes you shut down emotionally?",perspectiveQ:null,category:"Emotional Intimacy",stage:"were_a_thing",spicy:0,canFlip:false},
+  {question:"What kind of people make you feel safe?",perspectiveQ:null,category:"Emotional Intimacy",stage:"were_a_thing",spicy:0,canFlip:false},
+  {question:"What's something you wish more people understood about you?",perspectiveQ:null,category:"Emotional Intimacy",stage:"were_a_thing",spicy:0,canFlip:false},
+  {question:"What do you need most when you're stressed?",perspectiveQ:null,category:"Emotional Intimacy",stage:"were_a_thing",spicy:0,canFlip:false},
+  {question:"What makes you feel deeply loved?",perspectiveQ:null,category:"Emotional Intimacy",stage:"were_a_thing",spicy:0,canFlip:false},
+  {question:"What kind of relationship dynamic feels healthiest to you?",perspectiveQ:null,category:"Emotional Intimacy",stage:"were_a_thing",spicy:0,canFlip:false},
+  {question:"What's something you protect fiercely in your life?",perspectiveQ:null,category:"Emotional Intimacy",stage:"were_a_thing",spicy:0,canFlip:false},
+  {question:"What do you do when you need to process something hard?",perspectiveQ:null,category:"Emotional Intimacy",stage:"were_a_thing",spicy:0,canFlip:false},
+  {question:"How do you know when you actually trust someone?",perspectiveQ:null,category:"Emotional Intimacy",stage:"were_a_thing",spicy:0,canFlip:false},
+  {question:"What does it look like when you're at your worst, and what do you need then?",perspectiveQ:null,category:"Emotional Intimacy",stage:"were_a_thing",spicy:0,canFlip:false},
+  {question:"What's something you've had to unlearn about how to love people?",perspectiveQ:null,category:"Emotional Intimacy",stage:"were_a_thing",spicy:0,canFlip:false},
+  {question:"What's a boundary you've set that changed your life?",perspectiveQ:null,category:"Emotional Intimacy",stage:"were_a_thing",spicy:0,canFlip:false},
+  {question:"What's something you've forgiven someone for that took a long time?",perspectiveQ:null,category:"Emotional Intimacy",stage:"were_a_thing",spicy:0,canFlip:false},
+  {question:"What do you wish you were better at emotionally?",perspectiveQ:null,category:"Emotional Intimacy",stage:"were_a_thing",spicy:0,canFlip:false},
+  {question:"What's a version of yourself you've had to leave behind?",perspectiveQ:null,category:"Emotional Intimacy",stage:"were_a_thing",spicy:0,canFlip:false},
+  // ── Late Night ──
+  {question:"What do you think love should feel like?",perspectiveQ:null,category:"Late Night",stage:"committed",spicy:0,canFlip:false},
+  {question:"What part of yourself do you struggle to show people?",perspectiveQ:null,category:"Late Night",stage:"committed",spicy:0,canFlip:false},
+  {question:"What kind of relationship do you never want to repeat?",perspectiveQ:null,category:"Late Night",stage:"committed",spicy:0,canFlip:false},
+  {question:"When do you feel most connected to someone?",perspectiveQ:null,category:"Late Night",stage:"committed",spicy:0,canFlip:false},
+  {question:"What does emotional loyalty mean to you?",perspectiveQ:null,category:"Late Night",stage:"committed",spicy:0,canFlip:false},
+  {question:"What kind of relationship would make life feel softer?",perspectiveQ:null,category:"Late Night",stage:"committed",spicy:0,canFlip:false},
+  {question:"What do you think about when you can't sleep?",perspectiveQ:null,category:"Late Night",stage:"committed",spicy:0,canFlip:false},
+  {question:"What's the difference between being happy and being at peace?",perspectiveQ:null,category:"Late Night",stage:"committed",spicy:0,canFlip:false},
+  {question:"What do you think love asks of us that we're not always ready for?",perspectiveQ:null,category:"Late Night",stage:"committed",spicy:0,canFlip:false},
+  {question:"What's something you hope someone thinks about when they think about you?",perspectiveQ:null,category:"Late Night",stage:"committed",spicy:0,canFlip:false},
+  {question:"What do you think is the hardest part of being human?",perspectiveQ:null,category:"Late Night",stage:"committed",spicy:0,canFlip:false},
+  {question:"What's something beautiful you've found in something painful?",perspectiveQ:null,category:"Late Night",stage:"committed",spicy:0,canFlip:false},
 ];
 
 const CATEGORY_ORDER = ["Starter","Playful & Funny","Story Questions","Attraction & Chemistry","Honest Impressions","Life & Values","Emotional Intimacy","Late Night"];
@@ -92,11 +213,6 @@ const CATEGORIES = {
 };
 
 // ── Relationship stage icons ─────────────────────────────────
-// Friends: two figures side by side
-// Just Together: lightning bolt
-// We're a Thing: clean heart
-// Committed: interlinked rings
-
 const REL_ICONS = {
   friends: (col) => (
     <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke={col} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -124,49 +240,44 @@ const REL_ICONS = {
   ),
 };
 
-// ── Relationship stage config ────────────────────────────────
-// spicyMax: max spicy level available for this stage (0=none)
 const RELATIONSHIP_TYPES = [
-  {id:"friends",      label:"Friends",        description:"Deepen a friendship",    cats:["Starter","Playful & Funny","Story Questions","Honest Impressions","Life & Values"],         spicyMax:0},
-  {id:"just_together",label:"Just Together",  description:"Early days",             cats:["Starter","Playful & Funny","Attraction & Chemistry","Honest Impressions","Story Questions"],spicyMax:1},
-  {id:"were_a_thing", label:"We're a Thing",  description:"In a relationship",      cats:["Attraction & Chemistry","Honest Impressions","Emotional Intimacy","Life & Values","Story Questions"],spicyMax:2},
-  {id:"committed",    label:"Committed",      description:"Long term or married",   cats:["Emotional Intimacy","Life & Values","Late Night","Honest Impressions","Attraction & Chemistry"],spicyMax:3},
+  {id:"friends",       label:"Friends",       description:"Deepen a friendship",  cats:["Starter","Playful & Funny","Story Questions","Honest Impressions","Life & Values"],          spicyMax:0},
+  {id:"just_together", label:"Just Together", description:"Early days",            cats:["Starter","Playful & Funny","Attraction & Chemistry","Honest Impressions","Story Questions"], spicyMax:1},
+  {id:"were_a_thing",  label:"We're a Thing", description:"In a relationship",    cats:["Attraction & Chemistry","Honest Impressions","Emotional Intimacy","Life & Values","Story Questions"], spicyMax:2},
+  {id:"committed",     label:"Committed",     description:"Long term or married",  cats:["Emotional Intimacy","Life & Values","Late Night","Honest Impressions","Attraction & Chemistry"], spicyMax:3},
 ];
 
-// ── Tutorial steps ───────────────────────────────────────────
 const TUTORIAL_STEPS = [
-  {title:"Welcome to Go First",    body:"A card game for people brave enough to say the things typically left unsaid.",             dare:null},
-  {title:"Tap to reveal",          body:"Each card starts face down. Tap it when you're ready to flip and reveal the question.",    dare:null},
-  {title:"Answer honestly",        body:"Take turns answering. There are no right answers — just yours.",                           dare:null},
-  {title:"Swipe to move on",       body:"When you're done with a question, swipe left or right to move to the next card.",         dare:null},
-  {title:"Play it your way",       body:"Choose your relationship stage and fine-tune your categories at any time. Turn the heat up when you're ready — spicy questions unlock as you go deeper.",dare:"Who will Go First?"},
+  {title:"Welcome to Go First",  body:"A card game for people brave enough to say the things typically left unsaid.",            dare:null},
+  {title:"Tap to reveal",        body:"Each card starts face down. Tap it when you're ready to flip and reveal the question.",  dare:null},
+  {title:"Answer honestly",      body:"Take turns answering. There are no right answers — just yours.",                          dare:null},
+  {title:"Swipe to move on",     body:"When you're done with a question, swipe left or right to move to the next card.",       dare:null},
+  {title:"Play it your way",     body:"Choose your relationship stage and fine-tune your categories at any time. Turn the heat up when you're ready — spicy questions unlock as you go deeper.", dare:"Who will Go First?"},
 ];
 
-// ── Helpers ──────────────────────────────────────────────────
 function flipQuestion(q){
   if(!q)return q;
   return q.replace(/\bdo you find\b/gi,"do I find").replace(/\bdo you\b/gi,"do I").replace(/\byou find\b/gi,"I find").replace(/\byou feel\b/gi,"I feel").replace(/\byou need\b/gi,"I need").replace(/\byou want\b/gi,"I want").replace(/\byou think\b/gi,"I think").replace(/\byou wish\b/gi,"I wish").replace(/\byou love\b/gi,"I love").replace(/\byour\b/gi,"my").replace(/\bYour\b/g,"My").replace(/\byou\b/gi,"I").replace(/\bYou\b/g,"I").replace(/\bI I\b/g,"I").trim();
 }
 
 function buildPool(activeCats, stageId, spicyUnlocked) {
-  // spicyUnlocked: the max spicy level the user has enabled (0 = no spicy)
   const stageConfig = RELATIONSHIP_TYPES.find(r=>r.id===stageId);
   const maxSpicy = spicyUnlocked ? (stageConfig?.spicyMax||0) : 0;
-  return FREE_QUESTIONS.filter(q =>
-    activeCats.includes(q.category) &&
-    (!stageId || q.stage === stageId || stageId === null) &&
-    (q.spicy === 0 || q.spicy <= maxSpicy)
-  );
+  return ALL_QUESTIONS.filter(q => {
+    if (!activeCats.includes(q.category)) return false;
+    if (stageId && q.stage !== stageId) return false;
+    if (q.spicy > 0 && q.spicy > maxSpicy) return false;
+    return true;
+  });
 }
 
-function pickNextUnseen(pool, seenSet, excludeQ){
+function pickNextUnseen(pool,seenSet,excludeQ){
   const unseen=pool.filter(q=>!seenSet.has(q.question)&&q.question!==excludeQ);
   if(unseen.length>0)return unseen[Math.floor(Math.random()*unseen.length)];
   const fallback=pool.filter(q=>q.question!==excludeQ);
   return fallback.length>0?fallback[Math.floor(Math.random()*fallback.length)]:pool[0];
 }
 
-// ── Texture pill (colour only, no icon) ─────────────────────
 function TexturePill({cat, isOn, onClick, size="normal"}) {
   const d = CATEGORIES[cat];
   if (!d) return null;
@@ -182,11 +293,8 @@ function TexturePill({cat, isOn, onClick, size="normal"}) {
       fontWeight:500, letterSpacing:"0.04em", whiteSpace:"nowrap",
       color: isOn ? d.pillText : "#5C4030",
       background: isOn ? d.pillBg : "transparent",
-      opacity: isOn ? 1 : 0.9,
-      transition:"all 0.2s",
-      boxShadow: isOn
-        ? `-1px 3px 8px rgba(54,28,8,0.18), -1px 1px 3px rgba(54,28,8,0.10), inset 0 1px 0 rgba(255,255,255,0.2)`
-        : "none",
+      opacity: isOn ? 1 : 0.9, transition:"all 0.2s",
+      boxShadow: isOn ? `-1px 3px 8px rgba(54,28,8,0.18), inset 0 1px 0 rgba(255,255,255,0.2)` : "none",
     }}>
       {isOn && (
         <svg style={{position:"absolute",inset:0,width:"100%",height:"100%",opacity:0.18,pointerEvents:"none"}} viewBox="0 0 200 40" preserveAspectRatio="xMidYMid slice">
@@ -202,31 +310,24 @@ function TexturePill({cat, isOn, onClick, size="normal"}) {
   );
 }
 
-// ── Texture button ───────────────────────────────────────────
 function TextureButton({onClick, disabled, children, style={}, variant="dark"}) {
   const bg = variant === "dark" ? "#5C3418" : "#F5EDE0";
   const color = variant === "dark" ? "#F5EDD9" : "#5C3418";
-  const border = variant === "ghost" ? "1.5px solid #C4A882" : "none";
   return (
     <button onClick={onClick} disabled={disabled} className="texture-btn" style={{
       position:"relative", overflow:"hidden",
-      background: variant === "ghost" ? "transparent" : bg,
-      color, border: variant === "ghost" ? border : "none",
+      background: variant === "ghost" ? "transparent" : bg, color,
+      border: variant === "ghost" ? "1.5px solid #C4A882" : "none",
       borderRadius:100, padding:"16px 48px",
       fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:500,
       letterSpacing:"0.14em", textTransform:"uppercase",
-      cursor: disabled ? "default" : "pointer",
-      opacity: disabled ? 0.35 : 1,
-      boxShadow: variant === "ghost" ? "none" : `-2px 4px 12px rgba(54,28,8,0.28), -1px 2px 4px rgba(54,28,8,0.16), inset 0 1px 0 rgba(255,255,255,0.12)`,
-      transition:"all 0.15s",
-      ...style,
+      cursor: disabled ? "default" : "pointer", opacity: disabled ? 0.35 : 1,
+      boxShadow: variant === "ghost" ? "none" : `-2px 4px 12px rgba(54,28,8,0.28), inset 0 1px 0 rgba(255,255,255,0.12)`,
+      transition:"all 0.15s", ...style,
     }}>
       {variant !== "ghost" && (
         <svg style={{position:"absolute",inset:0,width:"100%",height:"100%",opacity:0.12,pointerEvents:"none"}} viewBox="0 0 300 52" preserveAspectRatio="xMidYMid slice">
-          <filter id="pf-btn">
-            <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" stitchTiles="stitch"/>
-            <feColorMatrix type="saturate" values="0"/>
-          </filter>
+          <filter id="pf-btn"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter>
           <rect width="300" height="52" filter="url(#pf-btn)" fill="white"/>
         </svg>
       )}
@@ -235,7 +336,6 @@ function TextureButton({onClick, disabled, children, style={}, variant="dark"}) 
   );
 }
 
-// ── Relationship tile ────────────────────────────────────────
 function RelTile({rel, isActive, onClick}) {
   return (
     <button onClick={onClick} style={{
@@ -245,29 +345,23 @@ function RelTile({rel, isActive, onClick}) {
       borderRadius:16, padding:"14px 8px",
       cursor:"pointer", display:"flex", flexDirection:"column", alignItems:"center", gap:6,
       transition:"all 0.2s", minWidth:0, flex:1,
-      boxShadow: isActive
-        ? `-3px 8px 24px rgba(54,28,8,0.30), -1px 3px 6px rgba(54,28,8,0.18), inset 0 1px 0 rgba(255,255,255,0.08)`
-        : `-1px 3px 8px rgba(54,28,8,0.10), inset 0 1px 0 rgba(255,255,255,0.7)`,
+      boxShadow: isActive ? `-3px 8px 24px rgba(54,28,8,0.30), inset 0 1px 0 rgba(255,255,255,0.08)` : `-1px 3px 8px rgba(54,28,8,0.10), inset 0 1px 0 rgba(255,255,255,0.7)`,
     }}>
       {isActive && (
         <svg style={{position:"absolute",inset:0,width:"100%",height:"100%",opacity:0.1,pointerEvents:"none"}} viewBox="0 0 160 90" preserveAspectRatio="xMidYMid slice">
-          <filter id="pf-rel">
-            <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"/>
-            <feColorMatrix type="saturate" values="0"/>
-          </filter>
+          <filter id="pf-rel"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter>
           <rect width="160" height="90" filter="url(#pf-rel)" fill="white"/>
         </svg>
       )}
       <span style={{position:"relative",display:"flex",alignItems:"center",justifyContent:"center"}}>
-        {REL_ICONS[rel.id] ? REL_ICONS[rel.id](isActive?"#F5EDD9":"#5C3418") : null}
+        {REL_ICONS[rel.id]?.(isActive?"#F5EDD9":"#5C3418")}
       </span>
       <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,fontWeight:500,color:isActive?"#F5EDD9":"#3C2010",letterSpacing:"0.02em",textAlign:"center",lineHeight:1.25,position:"relative"}}>{rel.label}</p>
-      <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:9,color:isActive?"#D4B882":"#6B4A30",letterSpacing:"0.01em",position:"relative",fontWeight:400,textAlign:"center"}}>{rel.description}</p>
+      <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:9,color:isActive?"#D4B882":"#6B4A30",position:"relative",fontWeight:400,textAlign:"center"}}>{rel.description}</p>
     </button>
   );
 }
 
-// ── Spicy toggle ─────────────────────────────────────────────
 function SpicyToggle({ enabled, onToggle, stageId }) {
   const stage = RELATIONSHIP_TYPES.find(r=>r.id===stageId);
   if (!stage || stage.spicyMax === 0) return null;
@@ -277,8 +371,7 @@ function SpicyToggle({ enabled, onToggle, stageId }) {
       display:"flex", alignItems:"center", gap:8,
       background: enabled ? "#3C2010" : "transparent",
       border:`1.5px solid ${enabled?"#3C2010":"#C4A882"}`,
-      borderRadius:100, padding:"8px 18px",
-      cursor:"pointer", transition:"all 0.2s",
+      borderRadius:100, padding:"8px 18px", cursor:"pointer", transition:"all 0.2s",
       boxShadow: enabled ? `-1px 3px 8px rgba(54,28,8,0.20)` : "none",
     }}>
       <FlameIcon size={13} color={enabled?"#F5A050":"#8B6445"}/>
@@ -289,7 +382,6 @@ function SpicyToggle({ enabled, onToggle, stageId }) {
   );
 }
 
-// ── Tutorial icon ────────────────────────────────────────────
 function TutIcon({step}){
   const p={stroke:"#7A4A24",strokeWidth:"1.5",strokeLinecap:"round",strokeLinejoin:"round",fill:"none"};
   if(step===0)return<svg width="44" height="44" viewBox="0 0 44 44" fill="none"><rect x="6" y="8" width="24" height="30" rx="3" {...p}/><rect x="12" y="4" width="24" height="30" rx="3" {...p}/><line x1="18" y1="17" x2="28" y2="17" {...p}/><line x1="18" y1="22" x2="24" y2="22" {...p}/></svg>;
@@ -300,23 +392,11 @@ function TutIcon({step}){
   return null;
 }
 
-// ── Info icon ────────────────────────────────────────────────
-function InfoIcon({ color="#A08868" }) {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="9"/>
-      <line x1="12" y1="16" x2="12" y2="12"/>
-      <line x1="12" y1="8" x2="12.01" y2="8"/>
-    </svg>
-  );
-}
-
-// ── Main app ─────────────────────────────────────────────────
 export default function App() {
   const mem = loadMemory();
   const [screen, setScreen] = useState("home");
   const [tutStep, setTutStep] = useState(0);
-  const [tutorialFrom, setTutorialFrom] = useState("home"); // track where to return after tutorial
+  const [tutorialFrom, setTutorialFrom] = useState("home");
   const [hasSeenTutorial, setHasSeenTutorial] = useState(mem.hasSeenTutorial||false);
   const [activeCats, setActiveCats] = useState(mem.activeCats||[...CATEGORY_ORDER]);
   const [relationshipType, setRelationshipType] = useState(null);
@@ -344,7 +424,7 @@ export default function App() {
 
   const pool = buildPool(activeCats, relationshipType, spicyUnlocked);
   const currentStage = RELATIONSHIP_TYPES.find(r=>r.id===relationshipType);
-  const showPerspectiveToggle = current?.canFlip && (relationshipType==="were_a_thing"||relationshipType==="committed");
+  const showPerspectiveToggle = !!(current?.canFlip && (relationshipType==="were_a_thing"||relationshipType==="committed"));
   const displayQuestion = current ? (perspectiveFlipped && current.perspectiveQ ? current.perspectiveQ : current.question) : "";
   const catData = current ? CATEGORIES[current.category] : null;
   const cardBg = catData?.cardBg||"#F5EDE0";
@@ -355,7 +435,7 @@ export default function App() {
 
   const initPlay = useCallback((cats)=>{
     const usedCats=cats||activeCats;
-    const p=buildPool(usedCats, relationshipType, spicyUnlocked);
+    const p=buildPool(usedCats,relationshipType,spicyUnlocked);
     if(!p.length)return;
     const first=pickNextUnseen(p,seenQuestions,"");
     const second=pickNextUnseen(p,seenQuestions,first?.question||"");
@@ -365,7 +445,7 @@ export default function App() {
   const advance = useCallback(()=>{
     if(!nextCard)return;
     if(current)markSeen(current.question);
-    const p=buildPool(activeCats, relationshipType, spicyUnlocked);
+    const p=buildPool(activeCats,relationshipType,spicyUnlocked);
     const newSeen=new Set(seenQuestions);
     if(current)newSeen.add(current.question);
     const allSeen=p.every(q=>newSeen.has(q.question));
@@ -380,13 +460,8 @@ export default function App() {
   const onPointerMove=(e)=>{if(!isDragging||dragStartX.current===null)return;const x=(e.touches?e.touches[0].clientX:e.clientX)-dragStartX.current;if(Math.abs(x)>4)hasDragged.current=true;setDragX(x);};
   const onPointerUp=()=>{if(!isDragging)return;setIsDragging(false);if(Math.abs(dragX)>80){audio.resume();audio.swipe();setGoneDir(dragX>0?1:-1);setGone(true);setTimeout(advance,300);}else{setDragX(0);setTimeout(()=>{hasDragged.current=false;},50);}dragStartX.current=null;};
   const toggleCat=(cat)=>{setActiveCats(prev=>{if(prev.includes(cat)){if(prev.length<=1)return prev;return prev.filter(c=>c!==cat);}return[...prev,cat];});};
-
-  const replayTutorial = () => {
-    setShowInfo(false);
-    setTutStep(0);
-    setTutorialFrom("info");
-    setScreen("tutorial");
-  };
+  const openInfo = () => setShowInfo(true);
+  const replayTutorial = () => { setShowInfo(false); setTutStep(0); setTutorialFrom("info"); setScreen("tutorial"); };
 
   return (
     <div style={{minHeight:"100vh",background:"#F0EAE0",display:"flex",flexDirection:"column",alignItems:"center"}}>
@@ -398,33 +473,21 @@ export default function App() {
         *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;user-select:none;}
         .texture-btn:active{transform:translateY(2px);box-shadow:-1px 2px 4px rgba(54,28,8,0.16),inset 0 1px 0 rgba(255,255,255,0.08)!important;}
         .btn-back{background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;color:#7A5840;letter-spacing:0.08em;text-transform:uppercase;padding:0;}
-        .btn-icon{background:none;border:none;cursor:pointer;padding:4px;display:flex;align-items:center;justify-content:center;opacity:0.7;transition:opacity 0.2s;}
+        .btn-icon{background:none;border:none;cursor:pointer;padding:6px;display:flex;align-items:center;justify-content:center;opacity:0.6;transition:opacity 0.2s;}
         .btn-icon:hover{opacity:1;}
         .tut-dot{height:6px;border-radius:3px;transition:all 0.3s;}
       `}</style>
 
-      {/* ── HOME ── */}
-      {screen==="home"&&(
-        <div style={{display:"flex",flexDirection:"column",alignItems:"center",padding:"0 24px 60px",width:"100%",maxWidth:460}}>
-          <div style={{width:"100%",paddingTop:48,paddingBottom:0,display:"flex",justifyContent:"flex-end"}}>
-            <button className="btn-icon" onClick={()=>setShowInfo(true)}><InfoIcon/></button>
-          </div>
-          <div style={{textAlign:"center",paddingTop:16,paddingBottom:40}}>
-            <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:10,letterSpacing:"0.22em",textTransform:"uppercase",color:"#A08868",marginBottom:12}}>Say the things we leave unsaid</p>
-            <h1 style={{...GF_TITLE,fontSize:56,color:"#3C2010",lineHeight:1}}>Go First</h1>
-            <div style={{width:32,height:1,background:"#C4905A",margin:"16px auto 0"}}/>
-          </div>
-          {/* Stacked cards */}
-          <div style={{position:"relative",width:260,height:240,marginBottom:48}}>
-            {[{rot:"-7deg",top:32,left:10,op:0.35,s:0.63},{rot:"4deg",top:16,left:22,op:0.6,s:0.65},{rot:"-1deg",top:0,left:16,op:1,s:0.67}].map((c,i)=>(
-              <div key={i} style={{position:"absolute",top:c.top,left:c.left,width:228,height:320,transform:`rotate(${c.rot}) scale(${c.s})`,transformOrigin:"top center",opacity:c.op}}>
-                <CardBack/>
-              </div>
-            ))}
-          </div>
-          <TextureButton onClick={()=>setScreen("deck")}>Build your deck</TextureButton>
-          <p style={{marginTop:14,fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#C0A888",letterSpacing:"0.06em"}}>Choose your categories, then play</p>
-          {totalPlayed>0&&<p style={{marginTop:10,fontFamily:"'DM Sans',sans-serif",fontSize:10,color:"#C8B8A0",letterSpacing:"0.04em"}}>{totalPlayed} question{totalPlayed!==1?"s":""} asked so far</p>}
+      {/* ── PERSISTENT INFO BUTTON ── */}
+      {!showInfo && !showReset && (
+        <div style={{position:"fixed",top:"calc(env(safe-area-inset-top) + 12px)",right:14,zIndex:50,pointerEvents:"auto"}}>
+          <button className="btn-icon" onClick={openInfo}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A08868" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="9"/>
+              <line x1="12" y1="16" x2="12" y2="12"/>
+              <line x1="12" y1="8" x2="12.01" y2="8"/>
+            </svg>
+          </button>
         </div>
       )}
 
@@ -455,6 +518,27 @@ export default function App() {
         </div>
       )}
 
+      {/* ── HOME ── */}
+      {screen==="home"&&(
+        <div style={{display:"flex",flexDirection:"column",alignItems:"center",padding:"0 24px 60px",width:"100%",maxWidth:460}}>
+          <div style={{textAlign:"center",paddingTop:64,paddingBottom:40}}>
+            <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:10,letterSpacing:"0.22em",textTransform:"uppercase",color:"#A08868",marginBottom:12}}>Say the things we leave unsaid</p>
+            <h1 style={{...GF_TITLE,fontSize:56,color:"#3C2010",lineHeight:1}}>Go First</h1>
+            <div style={{width:32,height:1,background:"#C4905A",margin:"16px auto 0"}}/>
+          </div>
+          <div style={{position:"relative",width:260,height:240,marginBottom:48}}>
+            {[{rot:"-7deg",top:32,left:10,op:0.35,s:0.63},{rot:"4deg",top:16,left:22,op:0.6,s:0.65},{rot:"-1deg",top:0,left:16,op:1,s:0.67}].map((c,i)=>(
+              <div key={i} style={{position:"absolute",top:c.top,left:c.left,width:228,height:320,transform:`rotate(${c.rot}) scale(${c.s})`,transformOrigin:"top center",opacity:c.op}}>
+                <CardBack/>
+              </div>
+            ))}
+          </div>
+          <TextureButton onClick={()=>setScreen("deck")}>Build your deck</TextureButton>
+          <p style={{marginTop:14,fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#C0A888",letterSpacing:"0.06em"}}>Choose your categories, then play</p>
+          {totalPlayed>0&&<p style={{marginTop:10,fontFamily:"'DM Sans',sans-serif",fontSize:10,color:"#C8B8A0",letterSpacing:"0.04em"}}>{totalPlayed} question{totalPlayed!==1?"s":""} asked so far</p>}
+        </div>
+      )}
+
       {/* ── TUTORIAL ── */}
       {screen==="tutorial"&&(
         <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:"100vh",padding:"24px 28px",width:"100%",maxWidth:420}}>
@@ -466,16 +550,8 @@ export default function App() {
             <div style={{display:"flex",gap:6,justifyContent:"center",marginBottom:28}}>
               {TUTORIAL_STEPS.map((_,i)=>{const stepColors=["#D4C4B0","#C4A882","#B8956A","#8B6445","#3C2410"];return<div key={i} className="tut-dot" style={{width:i===tutStep?20:6,background:i<=tutStep?stepColors[i]:"#E8DDD0"}}/>;})}</div>
             <TextureButton style={{width:"100%"}} onClick={()=>{
-              if(tutStep<TUTORIAL_STEPS.length-1){
-                setTutStep(t=>t+1);
-              } else {
-                setHasSeenTutorial(true);
-                if(tutorialFrom==="info"){
-                  setScreen("home");
-                } else {
-                  initPlay();
-                }
-              }
+              if(tutStep<TUTORIAL_STEPS.length-1){setTutStep(t=>t+1);}
+              else{setHasSeenTutorial(true);if(tutorialFrom==="info"){setScreen("home");}else{initPlay();}}
             }}>
               {tutStep<TUTORIAL_STEPS.length-1?"Next →":"Begin"}
             </TextureButton>
@@ -499,14 +575,11 @@ export default function App() {
               <RelTile key={rel.id} rel={rel} isActive={relationshipType===rel.id} onClick={()=>{setRelationshipType(rel.id);setActiveCats(rel.cats);setSpicyUnlocked(false);}}/>
             ))}
           </div>
-
-          {/* Spicy toggle — only shows when stage supports it */}
           {relationshipType && currentStage?.spicyMax > 0 && (
             <div style={{marginBottom:24,display:"flex",justifyContent:"center"}}>
               <SpicyToggle enabled={spicyUnlocked} onToggle={()=>setSpicyUnlocked(v=>!v)} stageId={relationshipType}/>
             </div>
           )}
-
           <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#6B4A30",textAlign:"center",marginBottom:16,letterSpacing:"0.02em"}}>
             {relationshipType?"Fine tune your deck":"Or choose categories manually"}
           </p>
@@ -515,8 +588,6 @@ export default function App() {
               <TexturePill key={cat} cat={cat} isOn={activeCats.includes(cat)} onClick={()=>toggleCat(cat)}/>
             ))}
           </div>
-
-          {/* Deck summary */}
           <div style={{width:"100%",background:"#FBF5EC",border:"1px solid #DDD0BC",borderRadius:16,padding:"18px 22px",marginBottom:12,display:"flex",alignItems:"center",justifyContent:"space-between",boxShadow:"inset 0 1px 4px rgba(54,28,8,0.08), -1px 2px 8px rgba(54,28,8,0.06)"}}>
             <div>
               <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:15,fontWeight:500,color:"#3C2010",marginBottom:4,letterSpacing:"0.02em"}}>Your deck</p>
@@ -527,7 +598,6 @@ export default function App() {
               {activeCats.length>4&&<div style={{width:26,height:34,borderRadius:4,background:"#C0A888",border:"2px solid #F0EAE0",marginLeft:-8,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"-1px 2px 6px rgba(54,28,8,0.18)"}}><span style={{fontSize:9,color:"white",fontFamily:"'DM Sans',sans-serif",fontWeight:500}}>+{activeCats.length-4}</span></div>}
             </div>
           </div>
-
           <TextureButton disabled={pool.length===0} onClick={()=>{if(!hasSeenTutorial){setTutStep(0);setTutorialFrom("deck");setScreen("tutorial");}else{initPlay();}}}>
             Play · {unseenCount} new questions
           </TextureButton>
@@ -547,8 +617,6 @@ export default function App() {
               <TexturePill key={cat} cat={cat} isOn={activeCats.includes(cat)} onClick={()=>toggleCat(cat)} size="small"/>
             ))}
           </div>
-
-          {/* Card stack */}
           <div style={{position:"relative",width:"100%",maxWidth:360,height:504,marginBottom:20}}>
             {nextCard&&!deckExhausted&&(
               <div style={{position:"absolute",inset:0,transform:"scale(0.95) translateY(10px)",transformOrigin:"bottom center",opacity:1,pointerEvents:"none",zIndex:1}}>
@@ -556,7 +624,7 @@ export default function App() {
               </div>
             )}
             {deckExhausted&&(
-              <div style={{position:"absolute",inset:0,zIndex:2,background:"#F5EDE0",border:`1.5px solid #E8DDD0`,borderRadius:20,padding:"40px 32px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",boxShadow:"-4px 12px 40px rgba(54,28,8,0.16), -2px 4px 12px rgba(54,28,8,0.10)"}}>
+              <div style={{position:"absolute",inset:0,zIndex:2,background:"#F5EDE0",border:"1.5px solid #E8DDD0",borderRadius:20,padding:"40px 32px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",boxShadow:"-4px 12px 40px rgba(54,28,8,0.16)"}}>
                 <div style={{position:"absolute",inset:10,border:"1px solid rgba(180,160,140,0.25)",borderRadius:12,pointerEvents:"none"}}/>
                 <p style={{...GF_TITLE,fontSize:28,color:"#3C2010",lineHeight:1.4,marginBottom:16}}>You've asked it all.</p>
                 <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#A08868",lineHeight:1.7,marginBottom:32}}>Every question in your deck has been asked. The conversations you've had are the ones worth having.</p>
@@ -564,22 +632,18 @@ export default function App() {
               </div>
             )}
             {current&&!deckExhausted&&(
-              <div
-                key={current.question}
-                style={{position:"absolute",inset:0,zIndex:2,
-                  transform:gone?`translateX(${goneDir*110}vw) rotate(${goneDir*18}deg)`:`translateX(${dragX}px) rotate(${dragX*0.025}deg)`,
-                  transition:isDragging?"none":gone?"transform 0.28s ease-in":"transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94)",
-                  cursor:flipped?"grab":"pointer",touchAction:"pan-y",
-                }}
+              <div key={current.question} style={{position:"absolute",inset:0,zIndex:2,
+                transform:gone?`translateX(${goneDir*110}vw) rotate(${goneDir*18}deg)`:`translateX(${dragX}px) rotate(${dragX*0.025}deg)`,
+                transition:isDragging?"none":gone?"transform 0.28s ease-in":"transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94)",
+                cursor:flipped?"grab":"pointer",touchAction:"pan-y",
+              }}
                 onClick={handleCardTap}
                 onMouseDown={onPointerDown} onMouseMove={onPointerMove} onMouseUp={onPointerUp} onMouseLeave={onPointerUp}
                 onTouchStart={onPointerDown} onTouchMove={onPointerMove} onTouchEnd={onPointerUp}
               >
-                {/* Card back face */}
                 <div style={{position:"absolute",inset:0,opacity:flipped?0:1,transform:flipped?"scale(0.94)":"scale(1)",transition:isDragging?"none":"opacity 0.22s ease, transform 0.22s ease",pointerEvents:flipped?"none":"auto"}}>
                   <CardBack/>
                 </div>
-                {/* Question face */}
                 <div style={{position:"absolute",inset:0,opacity:flipped?1:0,transform:flipped?"scale(1)":"scale(0.94)",
                   transition:isDragging?"none":"opacity 0.22s ease 0.08s, transform 0.22s ease 0.08s",
                   background:cardBg,border:`1.5px solid ${cardBorder}`,borderRadius:20,padding:"34px 28px",
@@ -587,20 +651,15 @@ export default function App() {
                   boxShadow:"-4px 12px 40px rgba(54,28,8,0.16), -2px 4px 12px rgba(54,28,8,0.10)",pointerEvents:flipped?"auto":"none"}}>
                   <div style={{position:"absolute",inset:10,border:"1px solid rgba(180,160,140,0.25)",borderRadius:12,pointerEvents:"none"}}/>
                   <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                    {/* Category label — left */}
                     <div style={{display:"flex",alignItems:"center",gap:8}}>
                       <div style={{width:5,height:5,borderRadius:"50%",background:"#3C2410",flexShrink:0}}/>
                       <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:9,letterSpacing:"0.18em",textTransform:"uppercase",color:"#3C2410",opacity:0.6}}>{current.category}</p>
                     </div>
-                    {/* Spicy badge — right (only if spicy) */}
                     <SpicyBadge level={current.spicy}/>
                   </div>
-
                   <p style={{...GF_TITLE,fontSize:displayQuestion.length>90?19:displayQuestion.length>65?22:25,lineHeight:1.55,color:"#2C1808",flex:1,display:"flex",alignItems:"center",paddingTop:14}}>
                     {displayQuestion}
                   </p>
-
-                  {/* Perspective toggle — bottom of card */}
                   {showPerspectiveToggle&&(
                     <div style={{display:"flex",justifyContent:"flex-end",paddingTop:10}}>
                       <button onClick={(e)=>{e.stopPropagation();setPerspectiveFlipped(v=>!v);}} style={{background:perspectiveFlipped?"#3C2410":"transparent",border:"1px solid #C4A882",borderRadius:100,padding:"3px 10px",cursor:"pointer",display:"flex",alignItems:"center",gap:5,transition:"all 0.2s"}}>
