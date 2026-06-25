@@ -521,26 +521,28 @@ export default function App() {
 
       {/* ── HOME ── */}
       {screen==="home"&&(
-        <div style={{display:"flex",flexDirection:"column",alignItems:"center",width:"100%",maxWidth:460,height:"100vh",maxHeight:"100vh",boxSizing:"border-box",paddingLeft:24,paddingRight:24,paddingTop:"calc(env(safe-area-inset-top) + 16px)",paddingBottom:"calc(env(safe-area-inset-bottom) + 28px)"}}>
-          {/* Title + tagline — tight together */}
+        <div style={{display:"flex",flexDirection:"column",alignItems:"center",width:"100%",maxWidth:460,height:"100vh",boxSizing:"border-box",paddingLeft:24,paddingRight:24,paddingTop:"calc(env(safe-area-inset-top) + 16px)",paddingBottom:"calc(env(safe-area-inset-bottom) + 24px)"}}>
+          {/* Title + tagline */}
           <div style={{textAlign:"center",flexShrink:0}}>
             <h1 style={{...GF_TITLE,fontSize:54,color:"#3C2010",lineHeight:1}}>Go First</h1>
-            <p style={{...GF_TITLE,marginTop:8,fontSize:11,letterSpacing:"0.2em",textTransform:"uppercase",color:"#A08868",lineHeight:1.4}}>Say the things we leave unsaid</p>
+            <p style={{...GF_TITLE,marginTop:8,fontSize:11,letterSpacing:"0.2em",textTransform:"uppercase",color:"#A08868"}}>Say the things we leave unsaid</p>
           </div>
-          {/* Card fan — vh-based so it scales to any screen */}
-          <div style={{position:"relative",width:"70vw",maxWidth:280,height:"38vh",maxHeight:320,flexShrink:0,margin:"8px auto"}}>
-            {[
-              {rot:"-7deg", top:"8%",  left:"-4%", op:0.3, w:"88%", h:"90%"},
-              {rot:"4deg",  top:"4%",  left:"1%",  op:0.6, w:"92%", h:"94%"},
-              {rot:"-1deg", top:"0%",  left:"-1%", op:1,   w:"96%", h:"98%"},
-            ].map((c,i)=>(
-              <div key={i} style={{position:"absolute",top:c.top,left:c.left,width:c.w,height:c.h,transform:`rotate(${c.rot})`,transformOrigin:"top center",opacity:c.op}}>
-                <CardBack/>
-              </div>
-            ))}
+          {/* Card fan — grows to fill remaining space between tagline and button */}
+          <div style={{flex:1,width:"100%",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden"}}>
+            <div style={{position:"relative",width:260,height:260}}>
+              {[
+                {rot:"-7deg", top:20,  left:-6, op:0.3, w:234, h:328},
+                {rot:"4deg",  top:10,  left:2,  op:0.6, w:244, h:342},
+                {rot:"-1deg", top:0,   left:-2, op:1,   w:252, h:353},
+              ].map((c,i)=>(
+                <div key={i} style={{position:"absolute",top:c.top,left:c.left,width:c.w,height:c.h,transform:`rotate(${c.rot})`,transformOrigin:"top center",opacity:c.op}}>
+                  <CardBack/>
+                </div>
+              ))}
+            </div>
           </div>
-          {/* CTA pinned to bottom */}
-          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8,flexShrink:0,marginTop:"auto"}}>
+          {/* CTA */}
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8,flexShrink:0}}>
             <TextureButton onClick={()=>setScreen("deck")}>Build your deck</TextureButton>
             {totalPlayed>0&&<p style={{fontFamily:"'DM Sans',sans-serif",fontSize:10,color:"#C8B8A0",letterSpacing:"0.04em"}}>{totalPlayed} question{totalPlayed!==1?"s":""} asked so far</p>}
           </div>
