@@ -207,8 +207,8 @@ const CATEGORIES = {
   "Story Questions":       {pillBg:"#B8956A",pillText:"#3C2410",cardBg:"#F5EDE0",cardBorder:"#E8DDD0"},
   "Attraction & Chemistry":{pillBg:"#A67D55",pillText:"#F5EDD9",cardBg:"#F5EDE0",cardBorder:"#E8DDD0"},
   "Honest Impressions":    {pillBg:"#8B6445",pillText:"#F5EDD9",cardBg:"#F5EDE0",cardBorder:"#E8DDD0"},
-  "Life & Values":         {pillBg:"#52371E",pillText:"#F5EDD9",cardBg:"#F5EDE0",cardBorder:"#E8DDD0"},
-  "Emotional Intimacy":    {pillBg:"#6B4A30",pillText:"#F5EDD9",cardBg:"#F5EDE0",cardBorder:"#E8DDD0"},
+  "Life & Values":         {pillBg:"#6B4A30",pillText:"#F5EDD9",cardBg:"#F5EDE0",cardBorder:"#E8DDD0"},
+  "Emotional Intimacy":    {pillBg:"#52371E",pillText:"#F5EDD9",cardBg:"#F5EDE0",cardBorder:"#E8DDD0"},
   "Late Night":            {pillBg:"#3C2410",pillText:"#F5EDD9",cardBg:"#F5EDE0",cardBorder:"#E8DDD0"},
 };
 
@@ -521,7 +521,7 @@ export default function App() {
 
       {/* ── HOME ── */}
       {screen==="home"&&(
-        <div style={{display:"flex",flexDirection:"column",alignItems:"center",width:"100%",maxWidth:460,height:"100vh",maxHeight:"100vh",boxSizing:"border-box",paddingLeft:24,paddingRight:24,paddingTop:"calc(env(safe-area-inset-top) + 48px)",paddingBottom:"calc(env(safe-area-inset-bottom) + 28px)"}}>
+        <div style={{display:"flex",flexDirection:"column",alignItems:"center",width:"100%",maxWidth:460,height:"100vh",maxHeight:"100vh",boxSizing:"border-box",paddingLeft:24,paddingRight:24,paddingTop:"calc(env(safe-area-inset-top) + 16px)",paddingBottom:"calc(env(safe-area-inset-bottom) + 28px)"}}>
           {/* Title + tagline — tight together */}
           <div style={{textAlign:"center",flexShrink:0}}>
             <h1 style={{...GF_TITLE,fontSize:54,color:"#3C2010",lineHeight:1}}>Go First</h1>
