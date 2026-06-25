@@ -32,8 +32,7 @@ function CardBack() {
 function FlameIcon({ size=13, color="#B84A1A" }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 2c0 0-4 4-4 8.5C8 14 9.5 16 12 17c2.5-1 4-3 4-6.5C16 6 12 2 12 2z"/>
-      <path d="M12 17c0 0-3 1.5-3 4 0 1.7 1.3 3 3 3s3-1.3 3-3c0-2.5-3-4-3-4z"/>
+      <path d="M12 22c4 0 7-2.5 7-7 0-3-1.5-5-3.5-6.5 0 2-1 3.5-2.5 4.5C13 11 11.5 8.5 12 5c-4 2-6 5-6 8 0 2.5 1.5 4.5 3 5.5-.5-1-.5-2.5.5-3.5C10.5 19.5 12 22 12 22z"/>
     </svg>
   );
 }
@@ -67,52 +66,52 @@ function InfoIcon({ color="#A08868" }) {
 // stageMax: latest stage this applies to (null = no upper limit, just_together = only that stage)
 // spicy: 0=none, 1=warm, 2=medium, 3=hot
 const ALL_QUESTIONS = [
-  {question:`Describe the person on your right using only three positive words.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Use a movie title to describe your life as it currently stands.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Describe your dream weekend in under 20 words.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Do your best impression of the person to your left. Make it funny, but keep it. kind!`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Share 3 words to describe your current life chapter.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What's something you felt strongly about but have since changed your mind about?`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What's the best advice you'd give your younger self?`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What is the last song you had on repeat, and what does it say about you?`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What is the most recent compliment you received that felt meaningful?`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What is the best thing that happened to you this week?`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Choose one person at the table and share a favourite quality about them.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Choose one photo on your phone that captures this year so far. Explain why.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Name one thing you appreciate about your current life chapter.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What is something you are excited about that isn't happening for a while yet?`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What is something that you admire about the person to your left?`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Share a photo of a place that matters to you and why it is important.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What is a win you had recently that deserves more celebration?`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What is a tradition you'd like to start one day?`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What is something you're grateful for that didn't seem like a positive at the time?`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What is something you've become better at this year that felt unrealistic at first?`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Share a memory that this game has triggered that you had forgotten about completely.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What is something you're looking forward to that you haven't told anyone about yet.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What is something you're quietly proud of that you don't usually mention?`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What was the last thing that made you genuinely laugh out loud?`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Find the oldest screenshot on your phone, that you're willing to share. Explain it.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Finish this sentence: "The thing I find most interesting about you is..."`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Give a short toast to the person on your right to honour them.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What is one thing you're grateful for right now.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Go around the table, each person says what they think the others are best at.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Go around the table, everyone says one thing they appreciate about this exact moment.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Say the nicest true thing you can about the person to your right.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Share a photo that instantly makes you smile.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Play or name a song that perfectly matches your current season of life.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Share a story that your family will never let you live down.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Share the last piece of advice that genuinely helped you.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Show the most recent photo on your camera roll and explain it.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What is a place you’ve been to that you would return to tomorrow if you could?`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Tell a story that begins with: 'I can't believe I actually did this.'`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Tell the funniest true story you have heard or witnessed.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Share a time when luck was completely on your side.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Tell the person next to you one thing you genuinely appreciate about them.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Tell the person next to you one thing you hope for them.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Tell the person opposite you something you have noticed they do well.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Turn to the person next to you and tell them something you genuinely admire about them.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Describe the person opposite you as though you are reporting them to police as a missing person.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Announce your life right now as a newspaper headline.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Describe the person on your right using only three positive words.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Use a movie title to describe your life as it currently stands.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Describe your dream weekend in under 20 words.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Do your best impression of the person to your left. Make it funny, but keep it. kind!`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Share 3 words to describe your current life chapter.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What's something you felt strongly about but have since changed your mind about?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What's the best advice you'd give your younger self?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What is the last song you had on repeat, and what does it say about you?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What is the most recent compliment you received that felt meaningful?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What is the best thing that happened to you this week?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Choose one person at the table and share a favourite quality about them.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Choose one photo on your phone that captures this year so far. Explain why.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Name one thing you appreciate about your current life chapter.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What is something you are excited about that isn't happening for a while yet?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What is something that you admire about the person to your left?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Share a photo of a place that matters to you and why it is important.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What is a win you had recently that deserves more celebration?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What is a tradition you'd like to start one day?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What is something you're grateful for that didn't seem like a positive at the time?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What is something you've become better at this year that felt unrealistic at first?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Share a memory that this game has triggered that you had forgotten about completely.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What is something you're looking forward to that you haven't told anyone about yet.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What is something you're quietly proud of that you don't usually mention?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What was the last thing that made you genuinely laugh out loud?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Find the oldest screenshot on your phone, that you're willing to share. Explain it.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Finish this sentence: "The thing I find most interesting about you is..."`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Give a short toast to the person on your right to honour them.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What is one thing you're grateful for right now.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Go around the table, each person says what they think the others are best at.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Go around the table, everyone says one thing they appreciate about this exact moment.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Say the nicest true thing you can about the person to your right.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Share a photo that instantly makes you smile.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Play or name a song that perfectly matches your current season of life.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Share a story that your family will never let you live down.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Share the last piece of advice that genuinely helped you.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Show the most recent photo on your camera roll and explain it.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What is a place you’ve been to that you would return to tomorrow if you could?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Tell a story that begins with: 'I can't believe I actually did this.'`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Tell the funniest true story you have heard or witnessed.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Share a time when luck was completely on your side.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Tell the person next to you one thing you genuinely appreciate about them.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Tell the person next to you one thing you hope for them.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Tell the person opposite you something you have noticed they do well.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Turn to the person next to you and tell them something you genuinely admire about them.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Describe the person opposite you as though you are reporting them to police as a missing person.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Announce your life right now as a newspaper headline.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
   {question:`What's something you wish more people understood about you?`,perspectiveQ:null,category:`Emotional Intimacy`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
   {question:`What is something you feel strongly about that you struggle to see from someone elses perspective?`,perspectiveQ:null,category:`Emotional Intimacy`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
   {question:`What did you assume about me that turned out to be completely wrong?`,perspectiveQ:`What do you think I assumed about you that turned out to be completely wrong?`,category:`Honest Impressions`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:true},
@@ -133,33 +132,33 @@ const ALL_QUESTIONS = [
   {question:`What would you do differently if you weren't worried about what people thought?`,perspectiveQ:null,category:`Life & Values`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
   {question:`What's something you used to want that you no longer care about?`,perspectiveQ:null,category:`Life & Values`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
   {question:`What's something you've stopped pretending to care about?`,perspectiveQ:null,category:`Life & Values`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`If your life had a warning label, what would it say?`,perspectiveQ:null,category:`Playful & Funny`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`If your child/children had to describe you to a stranger, what would they say?`,perspectiveQ:null,category:`Playful & Funny`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What would your villain origin story be?`,perspectiveQ:null,category:`Playful & Funny`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What's a skill you've pretended to have but had and just bluffed your way through - that is now an actual skill you have?`,perspectiveQ:null,category:`Playful & Funny`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What's a completely unhinged rule you have for yourself?`,perspectiveQ:null,category:`Playful & Funny`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What's a film or show you're embarrassed to admit you love?`,perspectiveQ:null,category:`Playful & Funny`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What's a hill you'll die on for absolutely no reason?`,perspectiveQ:null,category:`Playful & Funny`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What's a phrase or word you say too much?`,perspectiveQ:null,category:`Playful & Funny`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What's a trend you participated in that you would undo if you could?`,perspectiveQ:null,category:`Playful & Funny`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What's a word you always mispronounce and just hope nobody notices?`,perspectiveQ:null,category:`Playful & Funny`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What's something you owned as a kid that you'd be mortified by now?`,perspectiveQ:null,category:`Playful & Funny`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What's something you are absolutely terrible at but keep doing anyway?`,perspectiveQ:null,category:`Playful & Funny`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What's something you were convinced of as a kid that was completely wrong?`,perspectiveQ:null,category:`Playful & Funny`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What's something you're weirdly competitive about?`,perspectiveQ:null,category:`Playful & Funny`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What's something you've fixed with the most ridiculous solution?`,perspectiveQ:null,category:`Playful & Funny`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What's the dumbest injury you've ever had, and how did it happen?`,perspectiveQ:null,category:`Playful & Funny`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What's the most chaotic decision you've ever made on a whim?`,perspectiveQ:null,category:`Playful & Funny`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What's the most dramatic reaction you have had to something that turned out to be small?`,perspectiveQ:null,category:`Playful & Funny`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What's the most embarrassing thing you've ever googled?`,perspectiveQ:null,category:`Playful & Funny`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What's the most ridiculous thing you've ever argued about?`,perspectiveQ:null,category:`Playful & Funny`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What's the pettiest thing you've ever done and felt zero guilt about?`,perspectiveQ:null,category:`Playful & Funny`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What's the worst or incorrect advice you've ever confidently given someone?`,perspectiveQ:null,category:`Playful & Funny`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What's the worst gift you've ever enthusiastically pretended to love?`,perspectiveQ:null,category:`Playful & Funny`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What's your most controversial food opinion?`,perspectiveQ:null,category:`Playful & Funny`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What's your most irrational fear?`,perspectiveQ:null,category:`Playful & Funny`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What's your most useless talent?`,perspectiveQ:null,category:`Playful & Funny`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What's your weirdest habit when nobody is watching?`,perspectiveQ:null,category:`Playful & Funny`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`If your life had a warning label, what would it say?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`If your child/children had to describe you to a stranger, what would they say?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What would your villain origin story be?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What's a skill you've pretended to have but had and just bluffed your way through - that is now an actual skill you have?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What's a completely unhinged rule you have for yourself?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What's a film or show you're embarrassed to admit you love?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What's a hill you'll die on for absolutely no reason?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What's a phrase or word you say too much?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What's a trend you participated in that you would undo if you could?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What's a word you always mispronounce and just hope nobody notices?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What's something you owned as a kid that you'd be mortified by now?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What's something you are absolutely terrible at but keep doing anyway?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What's something you were convinced of as a kid that was completely wrong?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What's something you're weirdly competitive about?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What's something you've fixed with the most ridiculous solution?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What's the dumbest injury you've ever had, and how did it happen?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What's the most chaotic decision you've ever made on a whim?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What's the most dramatic reaction you have had to something that turned out to be small?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What's the most embarrassing thing you've ever googled?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What's the most ridiculous thing you've ever argued about?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What's the pettiest thing you've ever done and felt zero guilt about?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What's the worst or incorrect advice you've ever confidently given someone?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What's the worst gift you've ever enthusiastically pretended to love?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What's your most controversial food opinion?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What's your most irrational fear?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What's your most useless talent?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What's your weirdest habit when nobody is watching?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
   {question:`Tell me about a friendship that shaped who you are.`,perspectiveQ:null,category:`Story Questions`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
   {question:`Tell me about a moment you felt truly free.`,perspectiveQ:null,category:`Story Questions`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
   {question:`Tell me about a moment you laughed so hard you couldn't breathe.`,perspectiveQ:null,category:`Story Questions`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
@@ -205,46 +204,46 @@ const ALL_QUESTIONS = [
   {question:`What's something small we did in the beginning that felt like just ours?`,perspectiveQ:`What's something small from our beginning that you think I still think about?`,category:`Nostalgia`,stageMin:`committed`,stageMax:null,spicy:0,canFlip:true},
   {question:`What's something we used to talk about that we don't talk about anymore?`,perspectiveQ:`What's something you think I miss talking about that we don't anymore?`,category:`Nostalgia`,stageMin:`committed`,stageMax:null,spicy:0,canFlip:true},
   {question:`What's something you used to do to impress me early on that you've since stopped?`,perspectiveQ:`What's something you think I used to do to impress you that I've since stopped?`,category:`Nostalgia`,stageMin:`committed`,stageMax:null,spicy:0,canFlip:true},
-  {question:`What's a personality trait of mine you swore you'd never find attractive that you now love?`,perspectiveQ:`What's a personality trait of yours that you think I swore I'd never find attractive but now love?`,category:`Playful & Funny`,stageMin:`committed`,stageMax:null,spicy:0,canFlip:true},
-  {question:`What's something about me that would genuinely surprise the person I was ten years ago?`,perspectiveQ:`What's something about you that you think would genuinely surprise the person I was ten years ago?`,category:`Playful & Funny`,stageMin:`committed`,stageMax:null,spicy:0,canFlip:true},
-  {question:`What's something that used to drive you crazy about me that you'd now miss if it was gone?`,perspectiveQ:`What's something about you that used to drive me crazy that you think I'd now miss?`,category:`Playful & Funny`,stageMin:`committed`,stageMax:null,spicy:0,canFlip:true},
-  {question:`What's something we swore we'd never do that we now do regularly?`,perspectiveQ:`What's something we swore we'd never do that you think I've fully embraced?`,category:`Playful & Funny`,stageMin:`committed`,stageMax:null,spicy:0,canFlip:true},
-  {question:`Complete the sentence: 'A good life, to me, looks like...'`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Describe a moment when you felt completely in the right place.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Describe the best day you've had in the last 12 months.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What's something about where you are in life right now that you never would have predicted?`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What is one thing you wish you were better at? No judgment.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What's something you've been thinking about lately that you haven't said out loud?`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What does your perfect ordinary day actually look like?`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What is something you want to achieve in the next 12 months?`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Everyone chooses a photo they would frame forever and explains why.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Describe your younger self in one sentence.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Name one thing you wish you could worry less about.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Share a memory that still makes you smile when you think about it.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What would you like more of in your life right now?`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What is something you wish wou could make more time for?`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What is something you hope is true about your future self?`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What is a goal you are working towards right now?`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What is a superstition you know is silly but can't help but observe?`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What is a question you would love to ask but don't know if it’s appropriate?`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What is something you want to be remembered for?`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Predict something that will happen to the person to your left in the next five years.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What is an item you keep for sentimental reasons? Why is it important to you?`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Share a photo that represents home to you.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What is the best surprise life has given you so far.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What is a challenge that taught you something valuable?`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What is a decision you made that you'd make differently now?`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Share a dream you've had for your life that you have never quite let go of.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What fear have you overcome, big or small?`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Share a moment in the last year that quietly changed you.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Tell the person across from you something you've noticed about them that you've never said.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Tell the person beside you what your first impression of them was.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Tell the person opposite you one thing you've learned from them.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Who is a person who has shaped your life that nobody here has met? How did they impact your life?`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What was a risk you took that was completely worth it?`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Who is someone who believed in you when you needed it the most?`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What is one thing on your bucket list you'd love to experience in the next five years?`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What three words would be happy to hear people to use to describe you?`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What's a personality trait of mine you swore you'd never find attractive that you now love?`,perspectiveQ:`What's a personality trait of yours that you think I swore I'd never find attractive but now love?`,category:`Light & Fun`,stageMin:`committed`,stageMax:null,spicy:0,canFlip:true},
+  {question:`What's something about me that would genuinely surprise the person I was ten years ago?`,perspectiveQ:`What's something about you that you think would genuinely surprise the person I was ten years ago?`,category:`Light & Fun`,stageMin:`committed`,stageMax:null,spicy:0,canFlip:true},
+  {question:`What's something that used to drive you crazy about me that you'd now miss if it was gone?`,perspectiveQ:`What's something about you that used to drive me crazy that you think I'd now miss?`,category:`Light & Fun`,stageMin:`committed`,stageMax:null,spicy:0,canFlip:true},
+  {question:`What's something we swore we'd never do that we now do regularly?`,perspectiveQ:`What's something we swore we'd never do that you think I've fully embraced?`,category:`Light & Fun`,stageMin:`committed`,stageMax:null,spicy:0,canFlip:true},
+  {question:`Complete the sentence: 'A good life, to me, looks like...'`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Describe a moment when you felt completely in the right place.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Describe the best day you've had in the last 12 months.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What's something about where you are in life right now that you never would have predicted?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What is one thing you wish you were better at? No judgment.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What's something you've been thinking about lately that you haven't said out loud?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What does your perfect ordinary day actually look like?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What is something you want to achieve in the next 12 months?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Everyone chooses a photo they would frame forever and explains why.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Describe your younger self in one sentence.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Name one thing you wish you could worry less about.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Share a memory that still makes you smile when you think about it.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What would you like more of in your life right now?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What is something you wish wou could make more time for?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What is something you hope is true about your future self?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What is a goal you are working towards right now?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What is a superstition you know is silly but can't help but observe?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What is a question you would love to ask but don't know if it’s appropriate?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What is something you want to be remembered for?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Predict something that will happen to the person to your left in the next five years.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What is an item you keep for sentimental reasons? Why is it important to you?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Share a photo that represents home to you.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What is the best surprise life has given you so far.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What is a challenge that taught you something valuable?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What is a decision you made that you'd make differently now?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Share a dream you've had for your life that you have never quite let go of.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What fear have you overcome, big or small?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Share a moment in the last year that quietly changed you.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Tell the person across from you something you've noticed about them that you've never said.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Tell the person beside you what your first impression of them was.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Tell the person opposite you one thing you've learned from them.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Who is a person who has shaped your life that nobody here has met? How did they impact your life?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What was a risk you took that was completely worth it?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Who is someone who believed in you when you needed it the most?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What is one thing on your bucket list you'd love to experience in the next five years?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What three words would be happy to hear people to use to describe you?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
   {question:`How do you know when you actually trust someone?`,perspectiveQ:null,category:`Emotional Intimacy`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
   {question:`What do you think has shaped your worldview the most?`,perspectiveQ:null,category:`Emotional Intimacy`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
   {question:`What do you think motivates you more than most people realise?`,perspectiveQ:null,category:`Emotional Intimacy`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
@@ -389,9 +388,9 @@ const ALL_QUESTIONS = [
   {question:`What's something you're looking for that you haven't said out loud yet?`,perspectiveQ:null,category:`Life & Values`,stageMin:`just_together`,stageMax:`just_together`,spicy:0,canFlip:false},
   {question:`What's the best version of this? What does it look like?`,perspectiveQ:null,category:`Life & Values`,stageMin:`just_together`,stageMax:`just_together`,spicy:0,canFlip:false},
   {question:`What's the thing that usually gets in the way of something becoming real for you?`,perspectiveQ:null,category:`Life & Values`,stageMin:`just_together`,stageMax:`just_together`,spicy:0,canFlip:false},
-  {question:`Hold eye contact for 30 seconds without speaking.`,perspectiveQ:null,category:`Activities`,stageMin:`just_together`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Recreate your first impression of me. Keep it kind and act it out.`,perspectiveQ:null,category:`Activities`,stageMin:`just_together`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Tell a two sentence story about how you think you'll remember tonight.`,perspectiveQ:null,category:`Activities`,stageMin:`just_together`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Hold eye contact for 30 seconds without speaking.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`just_together`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Recreate your first impression of me. Keep it kind and act it out.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`just_together`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Tell a two sentence story about how you think you'll remember tonight.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`just_together`,stageMax:null,spicy:0,canFlip:false},
   {question:`What creates chemistry for you beyond physical attraction?`,perspectiveQ:null,category:`Attraction & Chemistry`,stageMin:`just_together`,stageMax:null,spicy:0,canFlip:false},
   {question:`What do you notice about someone before you notice anything else?`,perspectiveQ:null,category:`Attraction & Chemistry`,stageMin:`just_together`,stageMax:null,spicy:0,canFlip:false},
   {question:`What does flirting look like to you when it's done well?`,perspectiveQ:null,category:`Attraction & Chemistry`,stageMin:`just_together`,stageMax:null,spicy:0,canFlip:false},
@@ -473,14 +472,14 @@ const ALL_QUESTIONS = [
   {question:`What's something about being near me that you like?`,perspectiveQ:null,category:`Attraction & Chemistry`,stageMin:`just_together`,stageMax:null,spicy:1,canFlip:false},
   {question:`When do you think I'm most attractive?`,perspectiveQ:`When do you think you're most attractive to me?`,category:`Attraction & Chemistry`,stageMin:`just_together`,stageMax:null,spicy:1,canFlip:true},
   {question:`What's something about how we flirt that you enjoy?`,perspectiveQ:`What's something about how we flirt that you think I enjoy?`,category:`Attraction & Chemistry`,stageMin:`just_together`,stageMax:null,spicy:1,canFlip:true},
-  {question:`Hold eye contact for 60 seconds without looking away. No kissing allowed until time is up.`,perspectiveQ:null,category:`Activities`,stageMin:`just_together`,stageMax:null,spicy:1,canFlip:false},
-  {question:`Tell the other person one thing about their appearance that you genuinely love. No backing out.`,perspectiveQ:null,category:`Activities`,stageMin:`just_together`,stageMax:null,spicy:1,canFlip:false},
-  {question:`Send the most flirtatious text you can think of to each other. Right now.`,perspectiveQ:null,category:`Activities`,stageMin:`just_together`,stageMax:null,spicy:1,canFlip:false},
-  {question:`Describe how you did/would introduce the other person to your friends before they meet them. What would/did you actually say?`,perspectiveQ:null,category:`Activities`,stageMin:`just_together`,stageMax:null,spicy:1,canFlip:false},
-  {question:`Move closer together, intentionally.`,perspectiveQ:null,category:`Activities`,stageMin:`just_together`,stageMax:null,spicy:1,canFlip:false},
-  {question:`Share a purchase under \$100 that genuinely improved your life.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Give everyone at the table a nickname based on tonight.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Name something everyone in the group has in common that is subtle at first.`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Hold eye contact for 60 seconds without looking away. No kissing allowed until time is up.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`just_together`,stageMax:null,spicy:1,canFlip:false},
+  {question:`Tell the other person one thing about their appearance that you genuinely love. No backing out.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`just_together`,stageMax:null,spicy:1,canFlip:false},
+  {question:`Send the most flirtatious text you can think of to each other. Right now.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`just_together`,stageMax:null,spicy:1,canFlip:false},
+  {question:`Describe how you did/would introduce the other person to your friends before they meet them. What would/did you actually say?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`just_together`,stageMax:null,spicy:1,canFlip:false},
+  {question:`Move closer together, intentionally.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`just_together`,stageMax:null,spicy:1,canFlip:false},
+  {question:`Share a purchase under \$100 that genuinely improved your life.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Give everyone at the table a nickname based on tonight.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Name something everyone in the group has in common that is subtle at first.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
   {question:`What's a little known fact about you that would surprise most people here?`,perspectiveQ:null,category:`Honest Impressions`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
   {question:`What's a passion or interest that surprises people when they find out about it?`,perspectiveQ:null,category:`Honest Impressions`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
   {question:`What's a small thing that tells you a lot about a person?`,perspectiveQ:null,category:`Honest Impressions`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
@@ -499,13 +498,13 @@ const ALL_QUESTIONS = [
   {question:`What's something you've learned the hard way that you'd tell anyone who would listen?`,perspectiveQ:null,category:`Life & Values`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
   {question:`What's the best decision you've made in the last year?`,perspectiveQ:null,category:`Life & Values`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
   {question:`What's the best piece of advice you've been given that you actually followed?`,perspectiveQ:null,category:`Life & Values`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What do you think is underrated in life?`,perspectiveQ:null,category:`Playful & Funny`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What's something about adulthood that surprised you?`,perspectiveQ:null,category:`Playful & Funny`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What's something that made you laugh this week?`,perspectiveQ:null,category:`Playful & Funny`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What's something you believed for years that turned out to be completely wrong?`,perspectiveQ:null,category:`Playful & Funny`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What's something you're unexpectedly good at?`,perspectiveQ:null,category:`Playful & Funny`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What's the most useful thing you know that most people don't?`,perspectiveQ:null,category:`Playful & Funny`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What's your most strongly held opinion about something completely unimportant?`,perspectiveQ:null,category:`Playful & Funny`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What do you think is underrated in life?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What's something about adulthood that surprised you?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What's something that made you laugh this week?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What's something you believed for years that turned out to be completely wrong?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What's something you're unexpectedly good at?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What's the most useful thing you know that most people don't?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What's your most strongly held opinion about something completely unimportant?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
   {question:`What's a moment in your life that makes a great story at dinner?`,perspectiveQ:null,category:`Story Questions`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
   {question:`What's a place you've been that genuinely surprised you?`,perspectiveQ:null,category:`Story Questions`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
   {question:`What's a tradition from your family that you've kept or broken?`,perspectiveQ:null,category:`Story Questions`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
@@ -516,13 +515,13 @@ const ALL_QUESTIONS = [
   {question:`What's the most interesting thing you've learned in the last month?`,perspectiveQ:null,category:`Story Questions`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
   {question:`What's the most memorable meal you've ever had?`,perspectiveQ:null,category:`Story Questions`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
   {question:`What's the most spontaneous thing you've ever done?`,perspectiveQ:null,category:`Story Questions`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Share your biggest regret or biggest non-regret, you choose.`,perspectiveQ:null,category:`Activities`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Find the oldest photo you have together and send it to each other.`,perspectiveQ:null,category:`Activities`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What is your favourite early memory of us?`,perspectiveQ:null,category:`Activities`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Retell your first date in one sentence each.`,perspectiveQ:null,category:`Activities`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What is the most meaningfuly conversation we have had that has stuck with you?`,perspectiveQ:null,category:`Activities`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What is something you want to do together this year that you have not said aloud?`,perspectiveQ:null,category:`Activities`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Text a short love note to each other.`,perspectiveQ:null,category:`Activities`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Share your biggest regret or biggest non-regret, you choose.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Find the oldest photo you have together and send it to each other.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What is your favourite early memory of us?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Retell your first date in one sentence each.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What is the most meaningfuly conversation we have had that has stuck with you?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What is something you want to do together this year that you have not said aloud?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Text a short love note to each other.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:false},
   {question:`What do I do that makes you want to be closer to me?`,perspectiveQ:null,category:`Attraction & Chemistry`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:false},
   {question:`What do you think keeps attraction alive in a long-term relationship?`,perspectiveQ:null,category:`Attraction & Chemistry`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:false},
   {question:`What does intimacy feel like to you when it's really working?`,perspectiveQ:`What do you think intimacy looks like for me?`,category:`Attraction & Chemistry`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:true},
@@ -578,7 +577,7 @@ const ALL_QUESTIONS = [
   {question:`What does loneliness feel like for you specifically?`,perspectiveQ:null,category:`Emotional Intimacy`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:false},
   {question:`What makes you feel deeply loved?`,perspectiveQ:null,category:`Emotional Intimacy`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:false},
   {question:`What makes you shut down emotionally?`,perspectiveQ:null,category:`Emotional Intimacy`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What part of you do you find it hardest to share?`,perspectiveQ:null,category:`Activities`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What part of you do you find it hardest to share?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
   {question:`What part of yourself do you find easiest to share with me?`,perspectiveQ:null,category:`Emotional Intimacy`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:false},
   {question:`What's a fear you have about us that you've never said out loud?`,perspectiveQ:`What's a fear you think I have about us that I've never said out loud?`,category:`Emotional Intimacy`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:true},
   {question:`What's a moment you felt like we really showed up for each other?`,perspectiveQ:`What is a moment where you felt I really showed up for you`,category:`Emotional Intimacy`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:true},
@@ -642,32 +641,32 @@ const ALL_QUESTIONS = [
   {question:`What's the first trip we took together and what do you remember most about it?`,perspectiveQ:null,category:`Nostalgia`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:false},
   {question:`What's the moment you first felt truly comfortable being yourself with me?`,perspectiveQ:`What moment do you think I first felt truly comfortable being myself with you?`,category:`Nostalgia`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:true},
   {question:`What's the moment you knew this was going to be something real?`,perspectiveQ:`What do you think was the moment I knew this was going to be something real?`,category:`Nostalgia`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:true},
-  {question:`If our relationship was a TV show, what genre would it be?`,perspectiveQ:`What genre do you think I'd say our relationship TV show would be?`,category:`Playful & Funny`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:true},
-  {question:`If someone had to play me in the movie of our relationship, who would you cast and why?`,perspectiveQ:`If someone had to play you in the movie of our relationship, who do you think I'd cast?`,category:`Playful & Funny`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:true},
-  {question:`If someone were writing a book about our relationship, what would the funniest chapter be?`,perspectiveQ:null,category:`Playful & Funny`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:false},
-  {question:`Send a text with three emojis that describe our relationship.`,perspectiveQ:null,category:`Playful & Funny`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What's a habit of mine you've picked up?`,perspectiveQ:`What's a habit of yours that you think noticed I've picked up?`,category:`Playful & Funny`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:true},
-  {question:`What's a phrase I say so often you could have it printed on a mug?`,perspectiveQ:null,category:`Playful & Funny`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What's a phrase or word that belongs entirely to us?`,perspectiveQ:`What's a phrase or word that belongs to us that you think I use more than you?`,category:`Playful & Funny`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:true},
-  {question:`What's a running joke we have that would make absolutely no sense to anyone else?`,perspectiveQ:`What running joke of ours do you think I find funnier than you do?`,category:`Playful & Funny`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:true},
-  {question:`What's my most annoying habit that you've just completely accepted as part of the deal?`,perspectiveQ:`What do you think is your most annoying habit that I've just completely accepted?`,category:`Playful & Funny`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:true},
-  {question:`What's my most dramatic reaction to something completely trivial?`,perspectiveQ:`What's your most dramatic reaction to something completely trivial that you think I secretly find adorable?`,category:`Playful & Funny`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:true},
-  {question:`What's my most dramatic trait and how have you learned to work with it?`,perspectiveQ:`What's your most dramatic trait and how do you think I've learned to work with it?`,category:`Playful & Funny`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:true},
-  {question:`What's our most legendary inside joke and where did it come from?`,perspectiveQ:`What do you think is my favourite inside joke of ours?`,category:`Playful & Funny`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:true},
-  {question:`What's something I bought that you thought was completely ridiculous but secretly used anyway?`,perspectiveQ:`What's something you bought that I thought was completely ridiculous but secretly used anyway?`,category:`Playful & Funny`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:true},
-  {question:`What's something I do that you'd find really strange if a stranger did it?`,perspectiveQ:`What's something you do that I'd find really strange if a stranger did it?`,category:`Playful & Funny`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:true},
-  {question:`What's something about living with me that nobody else would understand?`,perspectiveQ:`What's something about living with you that I'd say nobody else would understand?`,category:`Playful & Funny`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:true},
-  {question:`What's something about our home that guests notice but we've completely stopped seeing?`,perspectiveQ:null,category:`Playful & Funny`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What's something we disagree on that we've just agreed to permanently disagree on?`,perspectiveQ:`What thing we permanently disagree on do you think bothers me more than I let on?`,category:`Playful & Funny`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:true},
-  {question:`What's something we do together that would look completely bizarre to an outsider?`,perspectiveQ:null,category:`Playful & Funny`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What's the funniest thing one of us has said in our sleep?`,perspectiveQ:null,category:`Playful & Funny`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What's the most chaotic trip or experience we've had together?`,perspectiveQ:`What chaotic experience of ours do you think I tell the best version of?`,category:`Playful & Funny`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:true},
-  {question:`What's the most elaborate thing either of us has ever done to avoid a difficult conversation?`,perspectiveQ:`What do you think is the most elaborate thing I've done to avoid a difficult conversation?`,category:`Playful & Funny`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:true},
-  {question:`What's the most memorable thing I've ever done to win an argument even when I was wrong?`,perspectiveQ:`What's the most memorable thing you've done to win an argument even when you were wrong?`,category:`Playful & Funny`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:true},
-  {question:`What's the most ridiculous argument we've ever had?`,perspectiveQ:`What's the most ridiculous argument we've ever had that you think I still think about?`,category:`Playful & Funny`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:true},
-  {question:`What's the thing I do that makes you roll your eyes but secretly makes you love me more?`,perspectiveQ:null,category:`Playful & Funny`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:false},
-  {question:`What's the weirdest thing that's become a tradition for us?`,perspectiveQ:`What's the weirdest tradition of ours that you think I secretly love?`,category:`Playful & Funny`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:true},
-  {question:`What is the worst gift I've ever given you that you pretended to love?`,perspectiveQ:null,category:`Playful & Funny`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:false},
+  {question:`If our relationship was a TV show, what genre would it be?`,perspectiveQ:`What genre do you think I'd say our relationship TV show would be?`,category:`Light & Fun`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:true},
+  {question:`If someone had to play me in the movie of our relationship, who would you cast and why?`,perspectiveQ:`If someone had to play you in the movie of our relationship, who do you think I'd cast?`,category:`Light & Fun`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:true},
+  {question:`If someone were writing a book about our relationship, what would the funniest chapter be?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:false},
+  {question:`Send a text with three emojis that describe our relationship.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What's a habit of mine you've picked up?`,perspectiveQ:`What's a habit of yours that you think noticed I've picked up?`,category:`Light & Fun`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:true},
+  {question:`What's a phrase I say so often you could have it printed on a mug?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What's a phrase or word that belongs entirely to us?`,perspectiveQ:`What's a phrase or word that belongs to us that you think I use more than you?`,category:`Light & Fun`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:true},
+  {question:`What's a running joke we have that would make absolutely no sense to anyone else?`,perspectiveQ:`What running joke of ours do you think I find funnier than you do?`,category:`Light & Fun`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:true},
+  {question:`What's my most annoying habit that you've just completely accepted as part of the deal?`,perspectiveQ:`What do you think is your most annoying habit that I've just completely accepted?`,category:`Light & Fun`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:true},
+  {question:`What's my most dramatic reaction to something completely trivial?`,perspectiveQ:`What's your most dramatic reaction to something completely trivial that you think I secretly find adorable?`,category:`Light & Fun`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:true},
+  {question:`What's my most dramatic trait and how have you learned to work with it?`,perspectiveQ:`What's your most dramatic trait and how do you think I've learned to work with it?`,category:`Light & Fun`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:true},
+  {question:`What's our most legendary inside joke and where did it come from?`,perspectiveQ:`What do you think is my favourite inside joke of ours?`,category:`Light & Fun`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:true},
+  {question:`What's something I bought that you thought was completely ridiculous but secretly used anyway?`,perspectiveQ:`What's something you bought that I thought was completely ridiculous but secretly used anyway?`,category:`Light & Fun`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:true},
+  {question:`What's something I do that you'd find really strange if a stranger did it?`,perspectiveQ:`What's something you do that I'd find really strange if a stranger did it?`,category:`Light & Fun`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:true},
+  {question:`What's something about living with me that nobody else would understand?`,perspectiveQ:`What's something about living with you that I'd say nobody else would understand?`,category:`Light & Fun`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:true},
+  {question:`What's something about our home that guests notice but we've completely stopped seeing?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What's something we disagree on that we've just agreed to permanently disagree on?`,perspectiveQ:`What thing we permanently disagree on do you think bothers me more than I let on?`,category:`Light & Fun`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:true},
+  {question:`What's something we do together that would look completely bizarre to an outsider?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What's the funniest thing one of us has said in our sleep?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What's the most chaotic trip or experience we've had together?`,perspectiveQ:`What chaotic experience of ours do you think I tell the best version of?`,category:`Light & Fun`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:true},
+  {question:`What's the most elaborate thing either of us has ever done to avoid a difficult conversation?`,perspectiveQ:`What do you think is the most elaborate thing I've done to avoid a difficult conversation?`,category:`Light & Fun`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:true},
+  {question:`What's the most memorable thing I've ever done to win an argument even when I was wrong?`,perspectiveQ:`What's the most memorable thing you've done to win an argument even when you were wrong?`,category:`Light & Fun`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:true},
+  {question:`What's the most ridiculous argument we've ever had?`,perspectiveQ:`What's the most ridiculous argument we've ever had that you think I still think about?`,category:`Light & Fun`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:true},
+  {question:`What's the thing I do that makes you roll your eyes but secretly makes you love me more?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:false},
+  {question:`What's the weirdest thing that's become a tradition for us?`,perspectiveQ:`What's the weirdest tradition of ours that you think I secretly love?`,category:`Light & Fun`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:true},
+  {question:`What is the worst gift I've ever given you that you pretended to love?`,perspectiveQ:null,category:`Light & Fun`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:false},
   {question:`What's a memory that still gives you butterflies?`,perspectiveQ:null,category:`Late Night`,stageMin:`were_a_thing`,stageMax:null,spicy:0,canFlip:false},
   {question:`What's something I do that instantly turns up the heat between us?`,perspectiveQ:null,category:`Emotional Intimacy`,stageMin:`were_a_thing`,stageMax:null,spicy:2,canFlip:false},
   {question:`What is a way I touch you (that is not sexual) that instantly turns you on?`,perspectiveQ:null,category:`Emotional Intimacy`,stageMin:`were_a_thing`,stageMax:null,spicy:2,canFlip:false},
@@ -688,11 +687,11 @@ const ALL_QUESTIONS = [
   {question:`What's something about the way we connect that you think is rare?`,perspectiveQ:null,category:`Emotional Intimacy`,stageMin:`were_a_thing`,stageMax:null,spicy:2,canFlip:false},
   {question:`What's a simple thing I do that makes you feel like everything is okay?`,perspectiveQ:null,category:`Emotional Intimacy`,stageMin:`were_a_thing`,stageMax:null,spicy:2,canFlip:false},
   {question:`What does it feel like when we're completely in sync with each other physically and emotionally?`,perspectiveQ:null,category:`Emotional Intimacy`,stageMin:`were_a_thing`,stageMax:null,spicy:2,canFlip:false},
-  {question:`Without speaking, show the other person somewhere on your body that holds tension. Let them decide what to do with that information.`,perspectiveQ:null,category:`Activities`,stageMin:`were_a_thing`,stageMax:null,spicy:2,canFlip:false},
-  {question:`Sit closer than you normally would. Don't move for five minutes.`,perspectiveQ:null,category:`Activities`,stageMin:`were_a_thing`,stageMax:null,spicy:2,canFlip:false},
-  {question:`Tell the other person one thing about how they physically make you feel that you've never said out loud.`,perspectiveQ:null,category:`Activities`,stageMin:`were_a_thing`,stageMax:null,spicy:2,canFlip:false},
-  {question:`Put on a song that makes you think of them. Don't explain. Just play it.`,perspectiveQ:null,category:`Activities`,stageMin:`were_a_thing`,stageMax:null,spicy:2,canFlip:false},
-  {question:`Take their hand. Hold it. Tell them one thing you notice.`,perspectiveQ:null,category:`Activities`,stageMin:`were_a_thing`,stageMax:null,spicy:2,canFlip:false},
+  {question:`Without speaking, show the other person somewhere on your body that holds tension. Let them decide what to do with that information.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`were_a_thing`,stageMax:null,spicy:2,canFlip:false},
+  {question:`Sit closer than you normally would. Don't move for five minutes.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`were_a_thing`,stageMax:null,spicy:2,canFlip:false},
+  {question:`Tell the other person one thing about how they physically make you feel that you've never said out loud.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`were_a_thing`,stageMax:null,spicy:2,canFlip:false},
+  {question:`Put on a song that makes you think of them. Don't explain. Just play it.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`were_a_thing`,stageMax:null,spicy:2,canFlip:false},
+  {question:`Take their hand. Hold it. Tell them one thing you notice.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`were_a_thing`,stageMax:null,spicy:2,canFlip:false},
   {question:`What's something you've thought about doing with me that you haven't said out loud yet?`,perspectiveQ:null,category:`Late Night`,stageMin:`were_a_thing`,stageMax:null,spicy:3,canFlip:false},
   {question:`What's a fantasy you have that involves me?`,perspectiveQ:null,category:`Late Night`,stageMin:`were_a_thing`,stageMax:null,spicy:3,canFlip:false},
   {question:`What's something you want more of from me that you've been waiting to ask for?`,perspectiveQ:null,category:`Late Night`,stageMin:`were_a_thing`,stageMax:null,spicy:3,canFlip:false},
@@ -713,25 +712,24 @@ const ALL_QUESTIONS = [
   {question:`What's a version of tonight you'd love to create?`,perspectiveQ:null,category:`Late Night`,stageMin:`were_a_thing`,stageMax:null,spicy:3,canFlip:false},
   {question:`What makes you feel completely yourself with me, including physically?`,perspectiveQ:null,category:`Late Night`,stageMin:`were_a_thing`,stageMax:null,spicy:3,canFlip:false},
   {question:`What do you wish happened more between us?`,perspectiveQ:null,category:`Late Night`,stageMin:`were_a_thing`,stageMax:null,spicy:3,canFlip:false},
-  {question:`Write down one thing you want to do together tonight that you haven't said out loud. Swap and read.`,perspectiveQ:null,category:`Activities`,stageMin:`were_a_thing`,stageMax:null,spicy:3,canFlip:false},
-  {question:`Tell the other person exactly what you find irresistible about them right now. No editing.`,perspectiveQ:null,category:`Activities`,stageMin:`were_a_thing`,stageMax:null,spicy:3,canFlip:false},
-  {question:`Look each other directly in the eyes for 30 seconds. Then one of you decides what happens next.`,perspectiveQ:null,category:`Activities`,stageMin:`were_a_thing`,stageMax:null,spicy:3,canFlip:false},
-  {question:`Describe a memory of me that you still think about. Be specific.`,perspectiveQ:null,category:`Activities`,stageMin:`were_a_thing`,stageMax:null,spicy:3,canFlip:false},
-  {question:`Tell me something you've been holding back on saying. Tonight is the night.`,perspectiveQ:null,category:`Activities`,stageMin:`were_a_thing`,stageMax:null,spicy:3,canFlip:false},
+  {question:`Write down one thing you want to do together tonight that you haven't said out loud. Swap and read.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`were_a_thing`,stageMax:null,spicy:3,canFlip:false},
+  {question:`Tell the other person exactly what you find irresistible about them right now. No editing.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`were_a_thing`,stageMax:null,spicy:3,canFlip:false},
+  {question:`Look each other directly in the eyes for 30 seconds. Then one of you decides what happens next.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`were_a_thing`,stageMax:null,spicy:3,canFlip:false},
+  {question:`Describe a memory of me that you still think about. Be specific.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`were_a_thing`,stageMax:null,spicy:3,canFlip:false},
+  {question:`Tell me something you've been holding back on saying. Tonight is the night.`,perspectiveQ:null,category:`Light & Fun`,stageMin:`were_a_thing`,stageMax:null,spicy:3,canFlip:false},
   {question:`What makes someone feel like home to you?`,perspectiveQ:null,category:`Emotional Intimacy`,stageMin:`friends`,stageMax:null,spicy:0,canFlip:false},
 ];
 
-const CATEGORY_ORDER = ["Activities","Playful & Funny","Story Questions","Attraction & Chemistry","Honest Impressions","Life & Values","Nostalgia","Emotional Intimacy","Late Night"];
+const CATEGORY_ORDER = ["Light & Fun","Story Questions","Attraction & Chemistry","Honest Impressions","Life & Values","Nostalgia","Emotional Intimacy","Late Night"];
 
 const CATEGORIES = {
-  "Activities":             {pillBg:"#D4C4B0",pillText:"#3C2410",cardBg:"#F5EDE0",cardBorder:"#E8DDD0"},
-  "Playful & Funny":        {pillBg:"#C4A882",pillText:"#3C2410",cardBg:"#F5EDE0",cardBorder:"#E8DDD0"},
-  "Story Questions":        {pillBg:"#B8956A",pillText:"#3C2410",cardBg:"#F5EDE0",cardBorder:"#E8DDD0"},
-  "Attraction & Chemistry": {pillBg:"#A67D55",pillText:"#F5EDD9",cardBg:"#F5EDE0",cardBorder:"#E8DDD0"},
-  "Honest Impressions":     {pillBg:"#8B6445",pillText:"#F5EDD9",cardBg:"#F5EDE0",cardBorder:"#E8DDD0"},
-  "Life & Values":          {pillBg:"#7A5535",pillText:"#F5EDD9",cardBg:"#F5EDE0",cardBorder:"#E8DDD0"},
-  "Nostalgia":              {pillBg:"#6B4A30",pillText:"#F5EDD9",cardBg:"#F5EDE0",cardBorder:"#E8DDD0"},
-  "Emotional Intimacy":     {pillBg:"#52371E",pillText:"#F5EDD9",cardBg:"#F5EDE0",cardBorder:"#E8DDD0"},
+  "Light & Fun":            {pillBg:"#D4C4B0",pillText:"#3C2410",cardBg:"#F5EDE0",cardBorder:"#E8DDD0"},
+  "Story Questions":        {pillBg:"#C4A882",pillText:"#3C2410",cardBg:"#F5EDE0",cardBorder:"#E8DDD0"},
+  "Attraction & Chemistry": {pillBg:"#B8956A",pillText:"#3C2410",cardBg:"#F5EDE0",cardBorder:"#E8DDD0"},
+  "Honest Impressions":     {pillBg:"#A67D55",pillText:"#F5EDD9",cardBg:"#F5EDE0",cardBorder:"#E8DDD0"},
+  "Life & Values":          {pillBg:"#8B6445",pillText:"#F5EDD9",cardBg:"#F5EDE0",cardBorder:"#E8DDD0"},
+  "Nostalgia":              {pillBg:"#7A5535",pillText:"#F5EDD9",cardBg:"#F5EDE0",cardBorder:"#E8DDD0"},
+  "Emotional Intimacy":     {pillBg:"#6B4A30",pillText:"#F5EDD9",cardBg:"#F5EDE0",cardBorder:"#E8DDD0"},
   "Late Night":             {pillBg:"#3C2410",pillText:"#F5EDD9",cardBg:"#F5EDE0",cardBorder:"#E8DDD0"},
 };
 
@@ -764,8 +762,8 @@ const REL_ICONS = {
 };
 
 const RELATIONSHIP_TYPES = [
-  {id:"friends",       label:"Friends",       description:"Deepen a friendship",  cats:["Activities","Playful & Funny","Story Questions","Honest Impressions","Life & Values"],                    spicyMax:0},
-  {id:"just_together", label:"Just Together", description:"Early days",            cats:["Activities","Playful & Funny","Attraction & Chemistry","Honest Impressions","Story Questions"],           spicyMax:1},
+  {id:"friends",       label:"Friends",       description:"Deepen a friendship",  cats:["Light & Fun","Story Questions","Honest Impressions","Life & Values"],                    spicyMax:0},
+  {id:"just_together", label:"Just Together", description:"Early days",            cats:["Light & Fun","Attraction & Chemistry","Honest Impressions","Story Questions"],           spicyMax:1},
   {id:"were_a_thing",  label:"We're a Thing", description:"In a relationship",     cats:["Attraction & Chemistry","Emotional Intimacy","Life & Values","Nostalgia","Honest Impressions"],           spicyMax:2},
   {id:"committed",     label:"Committed",     description:"Long term or married",  cats:["Emotional Intimacy","Life & Values","Late Night","Nostalgia","Honest Impressions","Attraction & Chemistry"], spicyMax:3},
 ];
@@ -774,7 +772,7 @@ const TUTORIAL_STEPS = [
   {title:"Welcome to Go First",    body:"A card game for people brave enough to say the things typically left unsaid. There are no wrong answers.",                                                                                                          dare:null},
   {title:"Tap to flip",            body:"Each card starts face down. Tap it to reveal the question. Take turns answering — or answer together.",                                                                                                           dare:null},
   {title:"Swipe to move on",       body:"Done with a question? Swipe left or right to move to the next card. You can skip anything that doesn't feel right.",                                                                                              dare:null},
-  {title:"Flip the perspective",   body:"Some cards can be flipped. Tap the toggle on the card face to hear the same question from the other person's point of view.",                                                                                     dare:null},
+  {title:"Flip the perspective",   body:"Some cards can be flipped. Tap the toggle on the card face to hear the same question from another perspective.",                                                                                     dare:null},
   {title:"Play it your way",       body:"Choose your relationship stage before you play. Fine-tune your categories, and turn up the heat when you're ready. Spicy questions unlock as you go deeper. Use the ⓘ at any time to revisit these instructions.", dare:"Who will Go First?"},
 ];
 
@@ -784,16 +782,14 @@ function flipQuestion(q){
 }
 
 const STAGE_ORDER = ['friends','just_together','were_a_thing','committed'];
-function buildPool(activeCats, stageId, spicyUnlocked) {
-  const stageConfig = RELATIONSHIP_TYPES.find(r=>r.id===stageId);
-  const maxSpicy = spicyUnlocked ? (stageConfig?.spicyMax||0) : 0;
+function buildPool(activeCats, stageId, spicyLevel) {
   const stageIdx = STAGE_ORDER.indexOf(stageId);
   return ALL_QUESTIONS.filter(q => {
     if (!activeCats.includes(q.category)) return false;
     const minIdx = STAGE_ORDER.indexOf(q.stageMin);
     const maxIdx = q.stageMax ? STAGE_ORDER.indexOf(q.stageMax) : 3;
     if (stageIdx < minIdx || stageIdx > maxIdx) return false;
-    if (q.spicy > 0 && q.spicy > maxSpicy) return false;
+    if (q.spicy > 0 && q.spicy > spicyLevel) return false;
     return true;
   });
 }
@@ -889,21 +885,23 @@ function RelTile({rel, isActive, onClick}) {
   );
 }
 
-function SpicyToggle({ enabled, onToggle, stageId }) {
+function SpicyToggle({ level, onCycle, stageId }) {
   const stage = RELATIONSHIP_TYPES.find(r=>r.id===stageId);
   if (!stage || stage.spicyMax === 0) return null;
-  const levelLabel = stage.spicyMax === 1 ? "Warm" : stage.spicyMax === 2 ? "Medium" : "All levels";
+  const LABELS = {0:"Turn up the heat", 1:"🔥 Mild", 2:"🔥🔥 Medium", 3:"🔥🔥🔥 Hot"};
+  const FLAME_COLORS = {0:"#8B6445", 1:"#C4783A", 2:"#B85A20", 3:"#8B2800"};
+  const isOn = level > 0;
   return (
-    <button onClick={onToggle} style={{
+    <button onClick={onCycle} style={{
       display:"flex", alignItems:"center", gap:8,
-      background: enabled ? "#3C2010" : "transparent",
-      border:`1.5px solid ${enabled?"#3C2010":"#C4A882"}`,
+      background: isOn ? "#3C2010" : "transparent",
+      border:`1.5px solid ${isOn?"#3C2010":"#C4A882"}`,
       borderRadius:100, padding:"8px 18px", cursor:"pointer", transition:"all 0.2s",
-      boxShadow: enabled ? `-1px 3px 8px rgba(54,28,8,0.20)` : "none",
+      boxShadow: isOn ? `-1px 3px 8px rgba(54,28,8,0.20)` : "none",
     }}>
-      <FlameIcon size={13} color={enabled?"#F5A050":"#8B6445"}/>
-      <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,fontWeight:500,letterSpacing:"0.06em",color:enabled?"#F5EDD9":"#7A5840"}}>
-        {enabled ? `Spicy on · ${levelLabel}` : "Turn up the heat"}
+      <FlameIcon size={13} color={FLAME_COLORS[level]}/>
+      <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,fontWeight:500,letterSpacing:"0.06em",color:isOn?"#F5EDD9":"#7A5840"}}>
+        {LABELS[level]}
       </span>
     </button>
   );
@@ -927,7 +925,7 @@ export default function App() {
   const [hasSeenTutorial, setHasSeenTutorial] = useState(mem.hasSeenTutorial||false);
   const [activeCats, setActiveCats] = useState(mem.activeCats||[...CATEGORY_ORDER]);
   const [relationshipType, setRelationshipType] = useState(null);
-  const [spicyUnlocked, setSpicyUnlocked] = useState(false);
+  const [spicyLevel, setSpicyLevel] = useState(0);
   const [perspectiveFlipped, setPerspectiveFlipped] = useState(false);
   const [seenQuestions, setSeenQuestions] = useState(new Set(mem.seen||[]));
   const [totalPlayed, setTotalPlayed] = useState(mem.totalPlayed||0);
@@ -949,7 +947,7 @@ export default function App() {
 
   const GF_TITLE = {fontFamily:"'Cormorant Garamond',serif",fontWeight:400,fontStyle:"normal"};
 
-  const pool = buildPool(activeCats, relationshipType, spicyUnlocked);
+  const pool = buildPool(activeCats, relationshipType, spicyLevel);
   const currentStage = RELATIONSHIP_TYPES.find(r=>r.id===relationshipType);
   const showPerspectiveToggle = !!(current?.canFlip && (relationshipType==="were_a_thing"||relationshipType==="committed"));
   const displayQuestion = current ? (perspectiveFlipped && current.perspectiveQ ? current.perspectiveQ : current.question) : "";
@@ -962,24 +960,24 @@ export default function App() {
 
   const initPlay = useCallback((cats)=>{
     const usedCats=cats||activeCats;
-    const p=buildPool(usedCats,relationshipType,spicyUnlocked);
+    const p=buildPool(usedCats,relationshipType,spicyLevel);
     if(!p.length)return;
     const first=pickNextUnseen(p,seenQuestions,"");
     const second=pickNextUnseen(p,seenQuestions,first?.question||"");
     setCurrent(first);setNextCard(second);setFlipped(false);setCount(1);setDragX(0);setGone(false);setIsDragging(false);setDeckExhausted(false);setScreen("play");
-  },[activeCats,seenQuestions,relationshipType,spicyUnlocked]);
+  },[activeCats,seenQuestions,relationshipType,spicyLevel]);
 
   const advance = useCallback(()=>{
     if(!nextCard)return;
     if(current)markSeen(current.question);
-    const p=buildPool(activeCats,relationshipType,spicyUnlocked);
+    const p=buildPool(activeCats,relationshipType,spicyLevel);
     const newSeen=new Set(seenQuestions);
     if(current)newSeen.add(current.question);
     const allSeen=p.every(q=>newSeen.has(q.question));
     if(allSeen){setCurrent(nextCard);setNextCard(null);setFlipped(false);setCount(c=>c+1);setDragX(0);setGone(false);setIsDragging(false);hasDragged.current=false;setPerspectiveFlipped(false);setDeckExhausted(true);return;}
     const upcoming=pickNextUnseen(p,newSeen,nextCard.question);
     setCurrent(nextCard);setNextCard(upcoming);setFlipped(false);setCount(c=>c+1);setDragX(0);setGone(false);setIsDragging(false);hasDragged.current=false;setPerspectiveFlipped(false);
-  },[nextCard,current,activeCats,seenQuestions,markSeen,relationshipType,spicyUnlocked]);
+  },[nextCard,current,activeCats,seenQuestions,markSeen,relationshipType,spicyLevel]);
 
   const handleReset=()=>{setSeenQuestions(new Set());setTotalPlayed(0);setShowReset(false);setDeckExhausted(false);initPlay();};
   const handleCardTap=()=>{if(!flipped&&!hasDragged.current){audio.resume();audio.flip();setFlipped(true);}};
@@ -1117,18 +1115,18 @@ export default function App() {
           </div>
           <div style={{display:"flex",gap:10,width:"100%",marginBottom:32}}>
             {RELATIONSHIP_TYPES.map(rel=>(
-              <RelTile key={rel.id} rel={rel} isActive={relationshipType===rel.id} onClick={()=>{setRelationshipType(rel.id);setActiveCats(rel.cats);setSpicyUnlocked(false);}}/>
+              <RelTile key={rel.id} rel={rel} isActive={relationshipType===rel.id} onClick={()=>{setRelationshipType(rel.id);setActiveCats(rel.cats);setSpicyLevel(0);}}/>
             ))}
           </div>
-          {relationshipType && currentStage?.spicyMax > 0 && (
+          {relationshipType && (currentStage?.spicyMax||0) > 0 && (
             <div style={{marginBottom:28,display:"flex",justifyContent:"center"}}>
-              <SpicyToggle enabled={spicyUnlocked} onToggle={()=>setSpicyUnlocked(v=>!v)} stageId={relationshipType}/>
+              <SpicyToggle level={spicyLevel} onCycle={()=>{const max=RELATIONSHIP_TYPES.find(r=>r.id===relationshipType)?.spicyMax||0;setSpicyLevel(l=>(l>=max?0:l+1));}} stageId={relationshipType}/>
             </div>
           )}
           <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#6B4A30",textAlign:"center",marginBottom:16,letterSpacing:"0.02em"}}>
             {relationshipType?"Fine tune your deck":"Or choose categories manually"}
           </p>
-          <div style={{display:"flex",flexWrap:"wrap",gap:8,justifyContent:"center",marginBottom:36}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:36,width:"100%"}}>
             {CATEGORY_ORDER.map(cat=>(
               <TexturePill key={cat} cat={cat} isOn={activeCats.includes(cat)} onClick={()=>toggleCat(cat)}/>
             ))}
@@ -1214,8 +1212,8 @@ export default function App() {
                   </p>
                   {showPerspectiveToggle&&(
                     <div style={{display:"flex",justifyContent:"flex-end",paddingTop:8}}>
-                      <button onClick={(e)=>{e.stopPropagation();setPerspectiveFlipped(v=>!v);}} style={{background:perspectiveFlipped?"#3C2410":"transparent",border:"1px solid #C4A882",borderRadius:100,padding:"3px 10px",cursor:"pointer",display:"flex",alignItems:"center",gap:5,transition:"all 0.2s"}}>
-                        <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:9,letterSpacing:"0.08em",color:perspectiveFlipped?"#F5EDD9":"#8B6445",fontWeight:500}}>{perspectiveFlipped?"About you":"About me"}</span>
+                      <button onClick={(e)=>{e.stopPropagation();setPerspectiveFlipped(v=>!v);}} style={{background:perspectiveFlipped?"#3C2410":"transparent",border:"1px solid #C4A882",borderRadius:100,padding:"4px 14px",cursor:"pointer",display:"flex",alignItems:"center",gap:5,transition:"all 0.2s"}}>
+                        <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:10,letterSpacing:"0.12em",textTransform:"uppercase",color:perspectiveFlipped?"#F5EDD9":"#8B6445",fontWeight:500}}>Flip</span>
                       </button>
                     </div>
                   )}
