@@ -472,9 +472,10 @@ export default function App() {
         #root{height:100%;overflow-y:auto;overscroll-behavior:none;-webkit-overflow-scrolling:touch;}
         *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;user-select:none;}
         .texture-btn:active{transform:translateY(2px);box-shadow:-1px 2px 4px rgba(54,28,8,0.16),inset 0 1px 0 rgba(255,255,255,0.08)!important;}
-        .btn-back{background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;color:#7A5840;letter-spacing:0.08em;text-transform:uppercase;padding:0;}
         .btn-icon{background:none;border:none;cursor:pointer;padding:6px;display:flex;align-items:center;justify-content:center;opacity:0.6;transition:opacity 0.2s;}
         .btn-icon:hover{opacity:1;}
+        .btn-back-arrow{background:none;border:none;cursor:pointer;padding:6px;display:flex;align-items:center;justify-content:center;opacity:0.6;transition:opacity 0.2s;}
+        .btn-back-arrow:hover{opacity:1;}
         .tut-dot{height:6px;border-radius:3px;transition:all 0.3s;}
       `}</style>
 
@@ -520,22 +521,26 @@ export default function App() {
 
       {/* ── HOME ── */}
       {screen==="home"&&(
-        <div style={{display:"flex",flexDirection:"column",alignItems:"center",padding:"0 24px 60px",width:"100%",maxWidth:460}}>
-          <div style={{textAlign:"center",paddingTop:64,paddingBottom:40}}>
-            <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:10,letterSpacing:"0.22em",textTransform:"uppercase",color:"#A08868",marginBottom:12}}>Say the things we leave unsaid</p>
-            <h1 style={{...GF_TITLE,fontSize:56,color:"#3C2010",lineHeight:1}}>Go First</h1>
-            <div style={{width:32,height:1,background:"#C4905A",margin:"16px auto 0"}}/>
+        <div style={{display:"flex",flexDirection:"column",alignItems:"center",padding:"0 24px 48px",width:"100%",maxWidth:460,minHeight:"100vh",justifyContent:"space-between"}}>
+          {/* Top: title */}
+          <div style={{textAlign:"center",paddingTop:72,paddingBottom:0}}>
+            <h1 style={{...GF_TITLE,fontSize:64,color:"#3C2010",lineHeight:1}}>Go First</h1>
+            <div style={{width:32,height:1,background:"#C4905A",margin:"14px auto 0"}}/>
           </div>
-          <div style={{position:"relative",width:260,height:240,marginBottom:48}}>
-            {[{rot:"-7deg",top:32,left:10,op:0.35,s:0.63},{rot:"4deg",top:16,left:22,op:0.6,s:0.65},{rot:"-1deg",top:0,left:16,op:1,s:0.67}].map((c,i)=>(
-              <div key={i} style={{position:"absolute",top:c.top,left:c.left,width:228,height:320,transform:`rotate(${c.rot}) scale(${c.s})`,transformOrigin:"top center",opacity:c.op}}>
+          {/* Middle: card stack — much larger */}
+          <div style={{position:"relative",width:"100%",maxWidth:340,height:420,margin:"32px 0"}}>
+            {[{rot:"-7deg",top:40,left:0,op:0.3,s:0.82},{rot:"4deg",top:20,left:12,op:0.6,s:0.88},{rot:"-1deg",top:0,left:6,op:1,s:0.94}].map((c,i)=>(
+              <div key={i} style={{position:"absolute",top:c.top,left:`calc(50% - ${170*c.s}px)`,width:`${340*c.s}px`,height:`${476*c.s}px`,transform:`rotate(${c.rot})`,transformOrigin:"top center",opacity:c.op}}>
                 <CardBack/>
               </div>
             ))}
           </div>
-          <TextureButton onClick={()=>setScreen("deck")}>Build your deck</TextureButton>
-          <p style={{marginTop:14,fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#C0A888",letterSpacing:"0.06em"}}>Choose your categories, then play</p>
-          {totalPlayed>0&&<p style={{marginTop:10,fontFamily:"'DM Sans',sans-serif",fontSize:10,color:"#C8B8A0",letterSpacing:"0.04em"}}>{totalPlayed} question{totalPlayed!==1?"s":""} asked so far</p>}
+          {/* Bottom: CTA + tagline */}
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:0,width:"100%"}}>
+            <TextureButton onClick={()=>setScreen("deck")}>Build your deck</TextureButton>
+            <p style={{...GF_TITLE,marginTop:20,fontSize:13,letterSpacing:"0.2em",textTransform:"uppercase",color:"#A08868",textAlign:"center",lineHeight:1.6}}>Say the things we leave unsaid</p>
+            {totalPlayed>0&&<p style={{marginTop:12,fontFamily:"'DM Sans',sans-serif",fontSize:10,color:"#C8B8A0",letterSpacing:"0.04em"}}>{totalPlayed} question{totalPlayed!==1?"s":""} asked so far</p>}
+          </div>
         </div>
       )}
 
@@ -563,32 +568,38 @@ export default function App() {
       {/* ── DECK BUILDER ── */}
       {screen==="deck"&&(
         <div style={{display:"flex",flexDirection:"column",alignItems:"center",padding:"0 20px 80px",width:"100%",maxWidth:460}}>
-          <div style={{width:"100%",paddingTop:40,paddingBottom:24,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-            <button className="btn-back" onClick={()=>setScreen("home")}>← Back</button>
-            <p style={{...GF_TITLE,fontSize:20,color:"#3C2010"}}>Go First</p>
-            <div style={{width:48}}/>
+          {/* Back arrow aligned with persistent ⓘ */}
+          <div style={{width:"100%",paddingTop:14,paddingBottom:0,display:"flex",alignItems:"center",justifyContent:"flex-start"}}>
+            <button className="btn-back-arrow" onClick={()=>setScreen("home")}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A08868" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M19 12H5M12 5l-7 7 7 7"/>
+              </svg>
+            </button>
           </div>
-          <p style={{...GF_TITLE,fontSize:22,color:"#3C2010",textAlign:"center",marginBottom:8,lineHeight:1.4}}>Who are you playing with?</p>
-          <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#7A5840",textAlign:"center",marginBottom:24}}>We'll suggest the right questions</p>
-          <div style={{display:"flex",gap:10,width:"100%",marginBottom:24}}>
+          {/* Heading with generous space */}
+          <div style={{width:"100%",textAlign:"center",paddingTop:32,paddingBottom:32}}>
+            <p style={{...GF_TITLE,fontSize:30,color:"#3C2010",lineHeight:1.3,marginBottom:10}}>Who are you playing with?</p>
+            <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#A08868"}}>We'll suggest the right questions</p>
+          </div>
+          <div style={{display:"flex",gap:10,width:"100%",marginBottom:32}}>
             {RELATIONSHIP_TYPES.map(rel=>(
               <RelTile key={rel.id} rel={rel} isActive={relationshipType===rel.id} onClick={()=>{setRelationshipType(rel.id);setActiveCats(rel.cats);setSpicyUnlocked(false);}}/>
             ))}
           </div>
           {relationshipType && currentStage?.spicyMax > 0 && (
-            <div style={{marginBottom:24,display:"flex",justifyContent:"center"}}>
+            <div style={{marginBottom:28,display:"flex",justifyContent:"center"}}>
               <SpicyToggle enabled={spicyUnlocked} onToggle={()=>setSpicyUnlocked(v=>!v)} stageId={relationshipType}/>
             </div>
           )}
-          <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#6B4A30",textAlign:"center",marginBottom:16,letterSpacing:"0.02em"}}>
+          <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#6B4A30",textAlign:"center",marginBottom:16,letterSpacing:"0.02em"}}>
             {relationshipType?"Fine tune your deck":"Or choose categories manually"}
           </p>
-          <div style={{display:"flex",flexWrap:"wrap",gap:8,justifyContent:"center",marginBottom:32}}>
+          <div style={{display:"flex",flexWrap:"wrap",gap:8,justifyContent:"center",marginBottom:36}}>
             {CATEGORY_ORDER.map(cat=>(
               <TexturePill key={cat} cat={cat} isOn={activeCats.includes(cat)} onClick={()=>toggleCat(cat)}/>
             ))}
           </div>
-          <div style={{width:"100%",background:"#FBF5EC",border:"1px solid #DDD0BC",borderRadius:16,padding:"18px 22px",marginBottom:12,display:"flex",alignItems:"center",justifyContent:"space-between",boxShadow:"inset 0 1px 4px rgba(54,28,8,0.08), -1px 2px 8px rgba(54,28,8,0.06)"}}>
+          <div style={{width:"100%",background:"#FBF5EC",border:"1px solid #DDD0BC",borderRadius:16,padding:"18px 22px",marginBottom:16,display:"flex",alignItems:"center",justifyContent:"space-between",boxShadow:"inset 0 1px 4px rgba(54,28,8,0.08), -1px 2px 8px rgba(54,28,8,0.06)"}}>
             <div>
               <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:15,fontWeight:500,color:"#3C2010",marginBottom:4,letterSpacing:"0.02em"}}>Your deck</p>
               <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#7A5840"}}>{unseenCount} unseen · {pool.length} total</p>
@@ -607,10 +618,13 @@ export default function App() {
       {/* ── PLAY ── */}
       {screen==="play"&&(
         <div style={{display:"flex",flexDirection:"column",alignItems:"center",padding:"0 12px 40px",width:"100%",maxWidth:460,minHeight:"100vh"}}>
-          <div style={{width:"100%",paddingTop:36,paddingBottom:16,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-            <button className="btn-back" onClick={()=>setScreen("deck")}>← Decks</button>
-            <p style={{...GF_TITLE,fontSize:18,color:"#3C2010"}}>Go First</p>
-            <div style={{width:40}}/>
+          {/* Back arrow aligned with persistent ⓘ — no title, no label */}
+          <div style={{width:"100%",paddingTop:14,paddingBottom:16,display:"flex",alignItems:"center",justifyContent:"flex-start"}}>
+            <button className="btn-back-arrow" onClick={()=>setScreen("deck")}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A08868" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M19 12H5M12 5l-7 7 7 7"/>
+              </svg>
+            </button>
           </div>
           <div style={{display:"flex",flexWrap:"wrap",gap:7,justifyContent:"center",marginBottom:20,width:"100%"}}>
             {CATEGORY_ORDER.map(cat=>(
