@@ -521,16 +521,20 @@ export default function App() {
 
       {/* ── HOME ── */}
       {screen==="home"&&(
-        <div style={{display:"flex",flexDirection:"column",alignItems:"center",padding:"0 24px",width:"100%",maxWidth:460,height:"100vh",maxHeight:"100vh",boxSizing:"border-box",justifyContent:"space-between",paddingTop:"calc(env(safe-area-inset-top) + 56px)",paddingBottom:"calc(env(safe-area-inset-bottom) + 40px)"}}>
+        <div style={{display:"flex",flexDirection:"column",alignItems:"center",padding:"0 24px",width:"100%",maxWidth:460,height:"100vh",maxHeight:"100vh",boxSizing:"border-box",justifyContent:"space-between",paddingTop:"calc(env(safe-area-inset-top) + 52px)",paddingBottom:"calc(env(safe-area-inset-bottom) + 36px)"}}>
           {/* Top: title + tagline */}
           <div style={{textAlign:"center",flexShrink:0}}>
             <h1 style={{...GF_TITLE,fontSize:58,color:"#3C2010",lineHeight:1}}>Go First</h1>
             <p style={{...GF_TITLE,marginTop:10,fontSize:12,letterSpacing:"0.2em",textTransform:"uppercase",color:"#A08868",lineHeight:1.5}}>Say the things we leave unsaid</p>
           </div>
-          {/* Middle: card stack — fills available space */}
-          <div style={{position:"relative",width:"100%",maxWidth:320,flex:1,minHeight:0,margin:"24px 0"}}>
-            {[{rot:"-7deg",op:0.3,s:0.82,y:"5%"},{rot:"4deg",op:0.6,s:0.88,y:"3%"},{rot:"-1deg",op:1,s:0.94,y:"0%"}].map((c,i)=>(
-              <div key={i} style={{position:"absolute",inset:0,transform:`rotate(${c.rot}) scale(${c.s}) translateY(${c.y})`,transformOrigin:"top center",opacity:c.op}}>
+          {/* Middle: card stack — fixed proportions, slightly larger than original */}
+          <div style={{position:"relative",width:280,height:300,flexShrink:0}}>
+            {[
+              {rot:"-7deg", top:28, left:-8,  op:0.3, w:252, h:353},
+              {rot:"4deg",  top:14, left:4,   op:0.6, w:262, h:367},
+              {rot:"-1deg", top:0,  left:-2,  op:1,   w:272, h:381},
+            ].map((c,i)=>(
+              <div key={i} style={{position:"absolute",top:c.top,left:c.left,width:c.w,height:c.h,transform:`rotate(${c.rot})`,transformOrigin:"top center",opacity:c.op}}>
                 <CardBack/>
               </div>
             ))}
