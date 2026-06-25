@@ -763,7 +763,7 @@ const REL_ICONS = {
 
 const RELATIONSHIP_TYPES = [
   {id:"friends",       label:"Friends",       description:"Deepen a friendship",  cats:["Light & Fun","Story Questions","Honest Impressions","Life & Values"],                    spicyMax:0},
-  {id:"just_together", label:"Just Together", description:"Early days",            cats:["Light & Fun","Attraction & Chemistry","Honest Impressions","Story Questions"],           spicyMax:1},
+  {id:"just_together", label:"Just Together", description:"Early days",            cats:["Light & Fun","Attraction & Chemistry","Honest Impressions","Story Questions","Life & Values"],           spicyMax:1},
   {id:"were_a_thing",  label:"We're a Thing", description:"In a relationship",     cats:["Attraction & Chemistry","Emotional Intimacy","Life & Values","Nostalgia","Honest Impressions"],           spicyMax:2},
   {id:"committed",     label:"Committed",     description:"Long term or married",  cats:["Emotional Intimacy","Life & Values","Late Night","Nostalgia","Honest Impressions","Attraction & Chemistry"], spicyMax:3},
 ];
@@ -801,25 +801,26 @@ function pickNextUnseen(pool,seenSet,excludeQ){
   return fallback.length>0?fallback[Math.floor(Math.random()*fallback.length)]:pool[0];
 }
 
-function TexturePill({cat, isOn, onClick, size="normal"}) {
+function TexturePill({cat, isOn, onClick, size="normal", disabled=false}) {
   const d = CATEGORIES[cat];
   if (!d) return null;
   const small = size === "small";
   return (
     <button onClick={onClick} style={{
       position:"relative", overflow:"hidden",
-      border: isOn ? "none" : `1.5px solid ${d.pillBg}`,
+      border: `1.5px solid ${isOn ? "transparent" : disabled ? "#E8E0D5" : d.pillBg}`,
       borderRadius:100,
       padding: small ? "5px 12px" : "7px 15px",
-      cursor:"pointer", display:"inline-flex", alignItems:"center",
+      cursor: disabled ? "default" : "pointer", display:"inline-flex", alignItems:"center", justifyContent:"center",
       fontFamily:"'DM Sans',sans-serif", fontSize: small ? 11 : 12,
       fontWeight:500, letterSpacing:"0.04em", whiteSpace:"nowrap",
-      color: isOn ? d.pillText : "#5C4030",
-      background: isOn ? d.pillBg : "transparent",
-      opacity: isOn ? 1 : 0.9, transition:"all 0.2s",
-      boxShadow: isOn ? `-1px 3px 8px rgba(54,28,8,0.18), inset 0 1px 0 rgba(255,255,255,0.2)` : "none",
+      color: disabled ? "#C8BEB2" : isOn ? d.pillText : "#5C4030",
+      background: disabled ? "transparent" : isOn ? d.pillBg : "transparent",
+      opacity: disabled ? 0.5 : isOn ? 1 : 0.9, transition:"background 0.2s, color 0.2s",
+      boxShadow: isOn && !disabled ? `-1px 3px 8px rgba(54,28,8,0.18), inset 0 1px 0 rgba(255,255,255,0.2)` : "none",
+      width:"100%",
     }}>
-      {isOn && (
+      {isOn && !disabled && (
         <svg style={{position:"absolute",inset:0,width:"100%",height:"100%",opacity:0.18,pointerEvents:"none"}} viewBox="0 0 200 40" preserveAspectRatio="xMidYMid slice">
           <filter id={`pf-${cat.replace(/[\s&]/g,"")}`}>
             <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"/>
@@ -948,6 +949,15 @@ export default function App() {
   const GF_TITLE = {fontFamily:"'Cormorant Garamond',serif",fontWeight:400,fontStyle:"normal"};
 
   const pool = buildPool(activeCats, relationshipType, spicyLevel);
+  // Only show category pills that have questions for the current stage
+  const availableCats = relationshipType
+    ? CATEGORY_ORDER.filter(cat => ALL_QUESTIONS.some(q => {
+        const stageIdx = STAGE_ORDER.indexOf(relationshipType);
+        const minIdx = STAGE_ORDER.indexOf(q.stageMin);
+        const maxIdx = q.stageMax ? STAGE_ORDER.indexOf(q.stageMax) : 3;
+        return q.category === cat && stageIdx >= minIdx && stageIdx <= maxIdx;
+      }))
+    : CATEGORY_ORDER;
   const currentStage = RELATIONSHIP_TYPES.find(r=>r.id===relationshipType);
   const showPerspectiveToggle = !!(current?.canFlip && (relationshipType==="were_a_thing"||relationshipType==="committed"));
   const displayQuestion = current ? (perspectiveFlipped && current.perspectiveQ ? current.perspectiveQ : current.question) : "";
@@ -1115,7 +1125,7 @@ export default function App() {
           </div>
           <div style={{display:"flex",gap:10,width:"100%",marginBottom:32}}>
             {RELATIONSHIP_TYPES.map(rel=>(
-              <RelTile key={rel.id} rel={rel} isActive={relationshipType===rel.id} onClick={()=>{setRelationshipType(rel.id);setActiveCats(rel.cats);setSpicyLevel(0);}}/>
+              <RelTile key={rel.id} rel={rel} isActive={relationshipType===rel.id} onClick={()=>{const validCats=CATEGORY_ORDER.filter(cat=>ALL_QUESTIONS.some(q=>{const si=STAGE_ORDER.indexOf(rel.id);const mi=STAGE_ORDER.indexOf(q.stageMin);const mx=q.stageMax?STAGE_ORDER.indexOf(q.stageMax):3;return q.category===cat&&si>=mi&&si<=mx;}));setRelationshipType(rel.id);setActiveCats(validCats);setSpicyLevel(0);}}/>
             ))}
           </div>
           {relationshipType && (currentStage?.spicyMax||0) > 0 && (
@@ -1126,9 +1136,9 @@ export default function App() {
           <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#6B4A30",textAlign:"center",marginBottom:16,letterSpacing:"0.02em"}}>
             {relationshipType?"Fine tune your deck":"Or choose categories manually"}
           </p>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:36,width:"100%"}}>
+          <div style={{display:"flex",flexWrap:"wrap",gap:8,justifyContent:"center",marginBottom:36}}>
             {CATEGORY_ORDER.map(cat=>(
-              <TexturePill key={cat} cat={cat} isOn={activeCats.includes(cat)} onClick={()=>toggleCat(cat)}/>
+              <TexturePill key={cat} cat={cat} isOn={activeCats.includes(cat)} disabled={!availableCats.includes(cat)} onClick={()=>toggleCat(cat)}/>
             ))}
           </div>
           <div style={{width:"100%",background:"#FBF5EC",border:"1px solid #DDD0BC",borderRadius:16,padding:"18px 22px",marginBottom:16,display:"flex",alignItems:"center",justifyContent:"space-between",boxShadow:"inset 0 1px 4px rgba(54,28,8,0.08), -1px 2px 8px rgba(54,28,8,0.06)"}}>
