@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
+import { useRoom } from "./useRoom";
 
 // ── Audio ────────────────────────────────────────────────────
 function createAudio() {
@@ -24,6 +25,189 @@ function CardBack() {
   return (
     <div style={{width:"100%",height:"100%",borderRadius:20,overflow:"hidden",boxShadow:"-4px 12px 40px rgba(54,28,8,0.22), -2px 6px 16px rgba(54,28,8,0.14), -1px 2px 4px rgba(54,28,8,0.08)"}}>
       <img src="https://i.imgur.com/RFAJysA.png" alt="" draggable="false" style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} />
+
+      {/* ── PLAY TOGETHER ── */}
+      {screen==="together"&&(
+        <div style={{display:"flex",flexDirection:"column",alignItems:"center",width:"100%",maxWidth:460,boxSizing:"border-box",paddingLeft:24,paddingRight:24,paddingTop:"calc(env(safe-area-inset-top) + 52px)",paddingBottom:"calc(env(safe-area-inset-bottom) + 32px)"}}>
+          <div style={{textAlign:"center",marginBottom:32}}>
+            <h1 style={{...GF_TITLE,fontSize:40,color:"#3C2010",lineHeight:1}}>Play Together</h1>
+            <p style={{...GF_TITLE,marginTop:8,fontSize:11,letterSpacing:"0.2em",textTransform:"uppercase",color:"#A08868"}}>Same card. Different cities.</p>
+          </div>
+          {/* Name input */}
+          {!roomCode && (
+            <div style={{width:"100%",marginBottom:24}}>
+              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#7A5840",marginBottom:8,letterSpacing:"0.04em"}}>Your name</p>
+              <input
+                value={playerName}
+                onChange={e=>setPlayerName(e.target.value)}
+                placeholder="So they know you're there"
+                style={{width:"100%",border:"1.5px solid #DDD0BC",borderRadius:12,padding:"12px 16px",fontFamily:"'DM Sans',sans-serif",fontSize:14,color:"#3C2010",background:"#FBF5EC",outline:"none"}}
+              />
+            </div>
+          )}
+          {!roomCode && (
+            <div style={{width:"100%",display:"flex",flexDirection:"column",gap:12}}>
+              <TextureButton style={{width:"100%"}} onClick={async()=>{
+                if(!playerName.trim())return;
+                const pool=buildPool(activeCats,relationshipType,spicyLevel);
+                const first=pickNextUnseen(pool,seenQuestions,"");
+                const second=pickNextUnseen(pool,seenQuestions,first?.question||"");
+                const code=await createRoom({stage:relationshipType,spicyLevel,activeCats,currentQuestion:first,nextQuestion:second,seenQuestions:[],hostName:playerName.trim()});
+                setCurrent(first);setNextCard(second);
+              }}>
+                Create a room
+              </TextureButton>
+              <div style={{display:"flex",gap:8,alignItems:"center"}}>
+                <input
+                  value={joinCodeInput}
+                  onChange={e=>setJoinCodeInput(e.target.value.replace(/\D/g,"").slice(0,4))}
+                  placeholder="Enter 4-digit code"
+                  maxLength={4}
+                  inputMode="numeric"
+                  style={{flex:1,border:"1.5px solid #DDD0BC",borderRadius:12,padding:"12px 16px",fontFamily:"'DM Sans',sans-serif",fontSize:18,color:"#3C2010",background:"#FBF5EC",outline:"none",textAlign:"center",letterSpacing:"0.2em"}}
+                />
+                <TextureButton style={{padding:"16px 24px",flexShrink:0}} onClick={async()=>{
+                  if(!playerName.trim()||joinCodeInput.length!==4)return;
+                  const ok=await joinRoom(joinCodeInput);
+                  if(ok){
+                    setCurrent(roomState?.currentQuestion||null);
+                    setNextCard(roomState?.nextQuestion||null);
+                    setScreen("connected-play");
+                  }
+                }}>Join</TextureButton>
+              </div>
+              {roomError&&<p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#B84A1A",textAlign:"center"}}>{roomError}</p>}
+            </div>
+          )}
+          {/* Waiting for partner */}
+          {roomCode && roomStatus==="waiting" && (
+            <div style={{textAlign:"center",width:"100%"}}>
+              <div style={{background:"#FBF5EC",border:"1.5px solid #DDD0BC",borderRadius:20,padding:"40px 32px",marginBottom:24}}>
+                <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#A08868",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:16}}>Your room code</p>
+                <p style={{...GF_TITLE,fontSize:64,color:"#3C2010",letterSpacing:"0.2em",lineHeight:1}}>{roomCode}</p>
+                <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#7A5840",marginTop:16,marginBottom:24}}>Share this with your person</p>
+                <button onClick={async()=>{
+                  const msg = `Join me on Go First! Enter code ${roomCode} at go-first-gamma.vercel.app`;
+                  if(navigator.share){
+                    try{ await navigator.share({title:"Go First",text:msg}); }catch(e){}
+                  } else {
+                    try{ await navigator.clipboard.writeText(msg); alert("Code copied!"); }catch(e){}
+                  }
+                }} style={{
+                  display:"flex",alignItems:"center",gap:8,margin:"0 auto",
+                  background:"#3C2010",color:"#F5EDD9",
+                  border:"none",borderRadius:100,padding:"10px 24px",
+                  fontFamily:"'DM Sans',sans-serif",fontSize:11,fontWeight:500,letterSpacing:"0.12em",textTransform:"uppercase",cursor:"pointer",
+                }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F5EDD9" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                    <polyline points="16 6 12 2 8 6"/>
+                    <line x1="12" y1="2" x2="12" y2="15"/>
+                  </svg>
+                  Share code
+                </button>
+              </div>
+              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#A08868"}}>Waiting for them to join...</p>
+            </div>
+          )}
+          {/* Connected -- go to play */}
+          {roomCode && roomStatus==="connected" && (
+            <div style={{textAlign:"center",width:"100%"}}>
+              <div style={{background:"#FBF5EC",border:"1.5px solid #DDD0BC",borderRadius:20,padding:"32px",marginBottom:24}}>
+                <p style={{...GF_TITLE,fontSize:24,color:"#3C2010",marginBottom:8}}>You're connected</p>
+                <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#7A5840"}}>Both devices are ready</p>
+              </div>
+              <TextureButton style={{width:"100%"}} onClick={()=>{
+                if(roomState?.currentQuestion){setCurrent(roomState.currentQuestion);setNextCard(roomState.nextQuestion);}
+                setScreen("connected-play");
+              }}>Start playing</TextureButton>
+            </div>
+          )}
+          <button onClick={()=>{leaveRoom();setScreen("home");}} style={{background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#B8A888",marginTop:24}}>← Back</button>
+        </div>
+      )}
+
+      {/* ── CONNECTED PLAY ── */}
+      {screen==="connected-play"&&(
+        <div style={{display:"flex",flexDirection:"column",alignItems:"center",width:"100%",maxWidth:460,height:"100vh",maxHeight:"100vh",boxSizing:"border-box",paddingLeft:12,paddingRight:12,paddingTop:"calc(env(safe-area-inset-top) + 8px)",paddingBottom:"calc(env(safe-area-inset-bottom) + 10px)"}}>
+          {/* Header */}
+          <div style={{width:"100%",paddingBottom:8,display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
+            <button className="btn-back-arrow" onClick={()=>{leaveRoom();setScreen("deck");}}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A08868" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M19 12H5M12 5l-7 7 7 7"/>
+              </svg>
+            </button>
+            <div style={{display:"flex",alignItems:"center",gap:6}}>
+              <div style={{width:7,height:7,borderRadius:"50%",background:roomStatus==="connected"?"#5A8A5A":"#C4A882"}}/>
+              <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#7A5840",letterSpacing:"0.04em"}}>
+                {roomStatus==="connected"?"Connected":roomStatus==="waiting"?"Waiting...":"Disconnected"} · Room {roomCode}
+              </span>
+            </div>
+            <div style={{width:28}}/>
+          </div>
+          {/* Use roomState for the question when connected */}
+          {(() => {
+            const syncedQ = roomState?.currentQuestion || current;
+            const syncedFlipped = roomState?.flipped || false;
+            const syncedPerspective = roomState?.perspectiveFlipped || false;
+            const syncedDisplay = syncedQ ? (syncedPerspective && syncedQ.perspectiveQ ? syncedQ.perspectiveQ : syncedQ.question) : "";
+            const syncedCatData = syncedQ ? CATEGORIES[syncedQ.category] : null;
+            const syncedBg = syncedCatData?.cardBg||"#F5EDE0";
+            const syncedBorder = syncedCatData?.cardBorder||"#E8DDD0";
+            return (
+              <>
+                <div style={{position:"relative",width:"100%",maxWidth:340,height:"55vh",maxHeight:460,flexShrink:0,marginBottom:8}}>
+                  <div style={{position:"absolute",inset:0,zIndex:2}}>
+                    <div style={{position:"absolute",inset:0,opacity:syncedFlipped?0:1,transform:syncedFlipped?"scale(0.94)":"scale(1)",transition:"opacity 0.22s ease, transform 0.22s ease",pointerEvents:syncedFlipped?"none":"auto",cursor:"pointer"}}
+                      onClick={async()=>{await syncAction({flipped:true});}}>
+                      <CardBack/>
+                    </div>
+                    <div style={{position:"absolute",inset:0,opacity:syncedFlipped?1:0,transform:syncedFlipped?"scale(1)":"scale(0.94)",
+                      transition:"opacity 0.22s ease 0.08s, transform 0.22s ease 0.08s",
+                      background:syncedBg,border:`1.5px solid ${syncedBorder}`,borderRadius:20,padding:"24px 22px",
+                      display:"flex",flexDirection:"column",justifyContent:"space-between",
+                      boxShadow:"-4px 12px 40px rgba(54,28,8,0.16)",pointerEvents:syncedFlipped?"auto":"none"}}>
+                      <div style={{position:"absolute",inset:10,border:"1px solid rgba(180,160,140,0.25)",borderRadius:12,pointerEvents:"none"}}/>
+                      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                        <div style={{display:"flex",alignItems:"center",gap:8}}>
+                          <div style={{width:5,height:5,borderRadius:"50%",background:"#3C2410",flexShrink:0}}/>
+                          <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:9,letterSpacing:"0.18em",textTransform:"uppercase",color:"#3C2410",opacity:0.6}}>{syncedQ?.category}</p>
+                        </div>
+                        <SpicyBadge level={syncedQ?.spicy}/>
+                      </div>
+                      <p style={{...GF_TITLE,fontSize:20,lineHeight:1.6,color:"#2C1808",flex:1,display:"flex",alignItems:"center",paddingTop:10,textAlign:"left"}}>
+                        {syncedDisplay}
+                      </p>
+                      {syncedQ?.canFlip && (
+                        <div style={{display:"flex",justifyContent:"flex-end",paddingTop:8}}>
+                          <button onClick={async()=>{await syncAction({perspectiveFlipped:!syncedPerspective});}} style={{background:syncedPerspective?"#3C2410":"transparent",border:"1px solid #C4A882",borderRadius:100,padding:"4px 14px",cursor:"pointer",transition:"all 0.2s"}}>
+                            <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:10,letterSpacing:"0.12em",textTransform:"uppercase",color:syncedPerspective?"#F5EDD9":"#8B6445",fontWeight:500}}>Flip</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                {/* Next button -- either player can advance */}
+                <div style={{flexShrink:0,textAlign:"center",marginTop:"auto"}}>
+                  {syncedFlipped && (
+                    <TextureButton variant="ghost" style={{padding:"10px 32px",marginBottom:8}} onClick={async()=>{
+                      const pool=buildPool(activeCats,relationshipType,spicyLevel);
+                      const newSeen=[...(roomState?.seenQuestions||[]),syncedQ?.question].filter(Boolean);
+                      const upcoming=pickNextUnseen(pool,new Set(newSeen),roomState?.nextQuestion?.question||"");
+                      await syncAction({currentQuestion:roomState?.nextQuestion||null,nextQuestion:upcoming,seenQuestions:newSeen,flipped:false,perspectiveFlipped:false});
+                    }}>Next question →</TextureButton>
+                  )}
+                  <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#A08868",letterSpacing:"0.03em",minHeight:16}}>
+                    {!syncedFlipped?"Tap to reveal":"Either of you can go next"}
+                  </p>
+                </div>
+              </>
+            );
+          })()}
+        </div>
+      )}
+
     </div>
   );
 }
@@ -46,6 +230,189 @@ function SpicyBadge({ level }) {
     <div style={{display:"flex",alignItems:"center",gap:3}}>
       <FlameIcon size={12} color={col}/>
       <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:9,fontWeight:600,color:col,letterSpacing:"0.06em"}}>{level}</span>
+
+      {/* ── PLAY TOGETHER ── */}
+      {screen==="together"&&(
+        <div style={{display:"flex",flexDirection:"column",alignItems:"center",width:"100%",maxWidth:460,boxSizing:"border-box",paddingLeft:24,paddingRight:24,paddingTop:"calc(env(safe-area-inset-top) + 52px)",paddingBottom:"calc(env(safe-area-inset-bottom) + 32px)"}}>
+          <div style={{textAlign:"center",marginBottom:32}}>
+            <h1 style={{...GF_TITLE,fontSize:40,color:"#3C2010",lineHeight:1}}>Play Together</h1>
+            <p style={{...GF_TITLE,marginTop:8,fontSize:11,letterSpacing:"0.2em",textTransform:"uppercase",color:"#A08868"}}>Same card. Different cities.</p>
+          </div>
+          {/* Name input */}
+          {!roomCode && (
+            <div style={{width:"100%",marginBottom:24}}>
+              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#7A5840",marginBottom:8,letterSpacing:"0.04em"}}>Your name</p>
+              <input
+                value={playerName}
+                onChange={e=>setPlayerName(e.target.value)}
+                placeholder="So they know you're there"
+                style={{width:"100%",border:"1.5px solid #DDD0BC",borderRadius:12,padding:"12px 16px",fontFamily:"'DM Sans',sans-serif",fontSize:14,color:"#3C2010",background:"#FBF5EC",outline:"none"}}
+              />
+            </div>
+          )}
+          {!roomCode && (
+            <div style={{width:"100%",display:"flex",flexDirection:"column",gap:12}}>
+              <TextureButton style={{width:"100%"}} onClick={async()=>{
+                if(!playerName.trim())return;
+                const pool=buildPool(activeCats,relationshipType,spicyLevel);
+                const first=pickNextUnseen(pool,seenQuestions,"");
+                const second=pickNextUnseen(pool,seenQuestions,first?.question||"");
+                const code=await createRoom({stage:relationshipType,spicyLevel,activeCats,currentQuestion:first,nextQuestion:second,seenQuestions:[],hostName:playerName.trim()});
+                setCurrent(first);setNextCard(second);
+              }}>
+                Create a room
+              </TextureButton>
+              <div style={{display:"flex",gap:8,alignItems:"center"}}>
+                <input
+                  value={joinCodeInput}
+                  onChange={e=>setJoinCodeInput(e.target.value.replace(/\D/g,"").slice(0,4))}
+                  placeholder="Enter 4-digit code"
+                  maxLength={4}
+                  inputMode="numeric"
+                  style={{flex:1,border:"1.5px solid #DDD0BC",borderRadius:12,padding:"12px 16px",fontFamily:"'DM Sans',sans-serif",fontSize:18,color:"#3C2010",background:"#FBF5EC",outline:"none",textAlign:"center",letterSpacing:"0.2em"}}
+                />
+                <TextureButton style={{padding:"16px 24px",flexShrink:0}} onClick={async()=>{
+                  if(!playerName.trim()||joinCodeInput.length!==4)return;
+                  const ok=await joinRoom(joinCodeInput);
+                  if(ok){
+                    setCurrent(roomState?.currentQuestion||null);
+                    setNextCard(roomState?.nextQuestion||null);
+                    setScreen("connected-play");
+                  }
+                }}>Join</TextureButton>
+              </div>
+              {roomError&&<p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#B84A1A",textAlign:"center"}}>{roomError}</p>}
+            </div>
+          )}
+          {/* Waiting for partner */}
+          {roomCode && roomStatus==="waiting" && (
+            <div style={{textAlign:"center",width:"100%"}}>
+              <div style={{background:"#FBF5EC",border:"1.5px solid #DDD0BC",borderRadius:20,padding:"40px 32px",marginBottom:24}}>
+                <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#A08868",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:16}}>Your room code</p>
+                <p style={{...GF_TITLE,fontSize:64,color:"#3C2010",letterSpacing:"0.2em",lineHeight:1}}>{roomCode}</p>
+                <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#7A5840",marginTop:16,marginBottom:24}}>Share this with your person</p>
+                <button onClick={async()=>{
+                  const msg = `Join me on Go First! Enter code ${roomCode} at go-first-gamma.vercel.app`;
+                  if(navigator.share){
+                    try{ await navigator.share({title:"Go First",text:msg}); }catch(e){}
+                  } else {
+                    try{ await navigator.clipboard.writeText(msg); alert("Code copied!"); }catch(e){}
+                  }
+                }} style={{
+                  display:"flex",alignItems:"center",gap:8,margin:"0 auto",
+                  background:"#3C2010",color:"#F5EDD9",
+                  border:"none",borderRadius:100,padding:"10px 24px",
+                  fontFamily:"'DM Sans',sans-serif",fontSize:11,fontWeight:500,letterSpacing:"0.12em",textTransform:"uppercase",cursor:"pointer",
+                }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F5EDD9" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                    <polyline points="16 6 12 2 8 6"/>
+                    <line x1="12" y1="2" x2="12" y2="15"/>
+                  </svg>
+                  Share code
+                </button>
+              </div>
+              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#A08868"}}>Waiting for them to join...</p>
+            </div>
+          )}
+          {/* Connected -- go to play */}
+          {roomCode && roomStatus==="connected" && (
+            <div style={{textAlign:"center",width:"100%"}}>
+              <div style={{background:"#FBF5EC",border:"1.5px solid #DDD0BC",borderRadius:20,padding:"32px",marginBottom:24}}>
+                <p style={{...GF_TITLE,fontSize:24,color:"#3C2010",marginBottom:8}}>You're connected</p>
+                <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#7A5840"}}>Both devices are ready</p>
+              </div>
+              <TextureButton style={{width:"100%"}} onClick={()=>{
+                if(roomState?.currentQuestion){setCurrent(roomState.currentQuestion);setNextCard(roomState.nextQuestion);}
+                setScreen("connected-play");
+              }}>Start playing</TextureButton>
+            </div>
+          )}
+          <button onClick={()=>{leaveRoom();setScreen("home");}} style={{background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#B8A888",marginTop:24}}>← Back</button>
+        </div>
+      )}
+
+      {/* ── CONNECTED PLAY ── */}
+      {screen==="connected-play"&&(
+        <div style={{display:"flex",flexDirection:"column",alignItems:"center",width:"100%",maxWidth:460,height:"100vh",maxHeight:"100vh",boxSizing:"border-box",paddingLeft:12,paddingRight:12,paddingTop:"calc(env(safe-area-inset-top) + 8px)",paddingBottom:"calc(env(safe-area-inset-bottom) + 10px)"}}>
+          {/* Header */}
+          <div style={{width:"100%",paddingBottom:8,display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
+            <button className="btn-back-arrow" onClick={()=>{leaveRoom();setScreen("deck");}}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A08868" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M19 12H5M12 5l-7 7 7 7"/>
+              </svg>
+            </button>
+            <div style={{display:"flex",alignItems:"center",gap:6}}>
+              <div style={{width:7,height:7,borderRadius:"50%",background:roomStatus==="connected"?"#5A8A5A":"#C4A882"}}/>
+              <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#7A5840",letterSpacing:"0.04em"}}>
+                {roomStatus==="connected"?"Connected":roomStatus==="waiting"?"Waiting...":"Disconnected"} · Room {roomCode}
+              </span>
+            </div>
+            <div style={{width:28}}/>
+          </div>
+          {/* Use roomState for the question when connected */}
+          {(() => {
+            const syncedQ = roomState?.currentQuestion || current;
+            const syncedFlipped = roomState?.flipped || false;
+            const syncedPerspective = roomState?.perspectiveFlipped || false;
+            const syncedDisplay = syncedQ ? (syncedPerspective && syncedQ.perspectiveQ ? syncedQ.perspectiveQ : syncedQ.question) : "";
+            const syncedCatData = syncedQ ? CATEGORIES[syncedQ.category] : null;
+            const syncedBg = syncedCatData?.cardBg||"#F5EDE0";
+            const syncedBorder = syncedCatData?.cardBorder||"#E8DDD0";
+            return (
+              <>
+                <div style={{position:"relative",width:"100%",maxWidth:340,height:"55vh",maxHeight:460,flexShrink:0,marginBottom:8}}>
+                  <div style={{position:"absolute",inset:0,zIndex:2}}>
+                    <div style={{position:"absolute",inset:0,opacity:syncedFlipped?0:1,transform:syncedFlipped?"scale(0.94)":"scale(1)",transition:"opacity 0.22s ease, transform 0.22s ease",pointerEvents:syncedFlipped?"none":"auto",cursor:"pointer"}}
+                      onClick={async()=>{await syncAction({flipped:true});}}>
+                      <CardBack/>
+                    </div>
+                    <div style={{position:"absolute",inset:0,opacity:syncedFlipped?1:0,transform:syncedFlipped?"scale(1)":"scale(0.94)",
+                      transition:"opacity 0.22s ease 0.08s, transform 0.22s ease 0.08s",
+                      background:syncedBg,border:`1.5px solid ${syncedBorder}`,borderRadius:20,padding:"24px 22px",
+                      display:"flex",flexDirection:"column",justifyContent:"space-between",
+                      boxShadow:"-4px 12px 40px rgba(54,28,8,0.16)",pointerEvents:syncedFlipped?"auto":"none"}}>
+                      <div style={{position:"absolute",inset:10,border:"1px solid rgba(180,160,140,0.25)",borderRadius:12,pointerEvents:"none"}}/>
+                      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                        <div style={{display:"flex",alignItems:"center",gap:8}}>
+                          <div style={{width:5,height:5,borderRadius:"50%",background:"#3C2410",flexShrink:0}}/>
+                          <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:9,letterSpacing:"0.18em",textTransform:"uppercase",color:"#3C2410",opacity:0.6}}>{syncedQ?.category}</p>
+                        </div>
+                        <SpicyBadge level={syncedQ?.spicy}/>
+                      </div>
+                      <p style={{...GF_TITLE,fontSize:20,lineHeight:1.6,color:"#2C1808",flex:1,display:"flex",alignItems:"center",paddingTop:10,textAlign:"left"}}>
+                        {syncedDisplay}
+                      </p>
+                      {syncedQ?.canFlip && (
+                        <div style={{display:"flex",justifyContent:"flex-end",paddingTop:8}}>
+                          <button onClick={async()=>{await syncAction({perspectiveFlipped:!syncedPerspective});}} style={{background:syncedPerspective?"#3C2410":"transparent",border:"1px solid #C4A882",borderRadius:100,padding:"4px 14px",cursor:"pointer",transition:"all 0.2s"}}>
+                            <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:10,letterSpacing:"0.12em",textTransform:"uppercase",color:syncedPerspective?"#F5EDD9":"#8B6445",fontWeight:500}}>Flip</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                {/* Next button -- either player can advance */}
+                <div style={{flexShrink:0,textAlign:"center",marginTop:"auto"}}>
+                  {syncedFlipped && (
+                    <TextureButton variant="ghost" style={{padding:"10px 32px",marginBottom:8}} onClick={async()=>{
+                      const pool=buildPool(activeCats,relationshipType,spicyLevel);
+                      const newSeen=[...(roomState?.seenQuestions||[]),syncedQ?.question].filter(Boolean);
+                      const upcoming=pickNextUnseen(pool,new Set(newSeen),roomState?.nextQuestion?.question||"");
+                      await syncAction({currentQuestion:roomState?.nextQuestion||null,nextQuestion:upcoming,seenQuestions:newSeen,flipped:false,perspectiveFlipped:false});
+                    }}>Next question →</TextureButton>
+                  )}
+                  <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#A08868",letterSpacing:"0.03em",minHeight:16}}>
+                    {!syncedFlipped?"Tap to reveal":"Either of you can go next"}
+                  </p>
+                </div>
+              </>
+            );
+          })()}
+        </div>
+      )}
+
     </div>
   );
 }
@@ -949,6 +1316,10 @@ export default function App() {
   const [showInfo, setShowInfo] = useState(false);
   const dragStartX = useRef(null);
   const hasDragged = useRef(false);
+  const { roomCode, roomState, isHost, status: roomStatus, error: roomError, createRoom, joinRoom, syncAction, leaveRoom } = useRoom();
+  const [joinCodeInput, setJoinCodeInput] = useState("");
+  const [playerName, setPlayerName] = useState("");
+  const [partnerName, setPartnerName] = useState("");
 
   useEffect(()=>{saveMemory({seen:[...seenQuestions],totalPlayed,activeCats,hasSeenTutorial});},[seenQuestions,totalPlayed,activeCats,hasSeenTutorial]);
 
@@ -1085,8 +1456,9 @@ export default function App() {
           {/* 60px gap card to button */}
           <div style={{height:60}}/>
           {/* CTA */}
-          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8}}>
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:10}}>
             <TextureButton onClick={()=>setScreen("deck")}>Build your deck</TextureButton>
+            <TextureButton variant="ghost" style={{padding:"12px 48px"}} onClick={()=>setScreen("together")}>Play together →</TextureButton>
             {totalPlayed>0&&<p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#C8B8A0",letterSpacing:"0.04em"}}>{totalPlayed} question{totalPlayed!==1?"s":""} asked so far</p>}
           </div>
         </div>
@@ -1254,6 +1626,189 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* ── PLAY TOGETHER ── */}
+      {screen==="together"&&(
+        <div style={{display:"flex",flexDirection:"column",alignItems:"center",width:"100%",maxWidth:460,boxSizing:"border-box",paddingLeft:24,paddingRight:24,paddingTop:"calc(env(safe-area-inset-top) + 52px)",paddingBottom:"calc(env(safe-area-inset-bottom) + 32px)"}}>
+          <div style={{textAlign:"center",marginBottom:32}}>
+            <h1 style={{...GF_TITLE,fontSize:40,color:"#3C2010",lineHeight:1}}>Play Together</h1>
+            <p style={{...GF_TITLE,marginTop:8,fontSize:11,letterSpacing:"0.2em",textTransform:"uppercase",color:"#A08868"}}>Same card. Different cities.</p>
+          </div>
+          {/* Name input */}
+          {!roomCode && (
+            <div style={{width:"100%",marginBottom:24}}>
+              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#7A5840",marginBottom:8,letterSpacing:"0.04em"}}>Your name</p>
+              <input
+                value={playerName}
+                onChange={e=>setPlayerName(e.target.value)}
+                placeholder="So they know you're there"
+                style={{width:"100%",border:"1.5px solid #DDD0BC",borderRadius:12,padding:"12px 16px",fontFamily:"'DM Sans',sans-serif",fontSize:14,color:"#3C2010",background:"#FBF5EC",outline:"none"}}
+              />
+            </div>
+          )}
+          {!roomCode && (
+            <div style={{width:"100%",display:"flex",flexDirection:"column",gap:12}}>
+              <TextureButton style={{width:"100%"}} onClick={async()=>{
+                if(!playerName.trim())return;
+                const pool=buildPool(activeCats,relationshipType,spicyLevel);
+                const first=pickNextUnseen(pool,seenQuestions,"");
+                const second=pickNextUnseen(pool,seenQuestions,first?.question||"");
+                const code=await createRoom({stage:relationshipType,spicyLevel,activeCats,currentQuestion:first,nextQuestion:second,seenQuestions:[],hostName:playerName.trim()});
+                setCurrent(first);setNextCard(second);
+              }}>
+                Create a room
+              </TextureButton>
+              <div style={{display:"flex",gap:8,alignItems:"center"}}>
+                <input
+                  value={joinCodeInput}
+                  onChange={e=>setJoinCodeInput(e.target.value.replace(/\D/g,"").slice(0,4))}
+                  placeholder="Enter 4-digit code"
+                  maxLength={4}
+                  inputMode="numeric"
+                  style={{flex:1,border:"1.5px solid #DDD0BC",borderRadius:12,padding:"12px 16px",fontFamily:"'DM Sans',sans-serif",fontSize:18,color:"#3C2010",background:"#FBF5EC",outline:"none",textAlign:"center",letterSpacing:"0.2em"}}
+                />
+                <TextureButton style={{padding:"16px 24px",flexShrink:0}} onClick={async()=>{
+                  if(!playerName.trim()||joinCodeInput.length!==4)return;
+                  const ok=await joinRoom(joinCodeInput);
+                  if(ok){
+                    setCurrent(roomState?.currentQuestion||null);
+                    setNextCard(roomState?.nextQuestion||null);
+                    setScreen("connected-play");
+                  }
+                }}>Join</TextureButton>
+              </div>
+              {roomError&&<p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#B84A1A",textAlign:"center"}}>{roomError}</p>}
+            </div>
+          )}
+          {/* Waiting for partner */}
+          {roomCode && roomStatus==="waiting" && (
+            <div style={{textAlign:"center",width:"100%"}}>
+              <div style={{background:"#FBF5EC",border:"1.5px solid #DDD0BC",borderRadius:20,padding:"40px 32px",marginBottom:24}}>
+                <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#A08868",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:16}}>Your room code</p>
+                <p style={{...GF_TITLE,fontSize:64,color:"#3C2010",letterSpacing:"0.2em",lineHeight:1}}>{roomCode}</p>
+                <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#7A5840",marginTop:16,marginBottom:24}}>Share this with your person</p>
+                <button onClick={async()=>{
+                  const msg = `Join me on Go First! Enter code ${roomCode} at go-first-gamma.vercel.app`;
+                  if(navigator.share){
+                    try{ await navigator.share({title:"Go First",text:msg}); }catch(e){}
+                  } else {
+                    try{ await navigator.clipboard.writeText(msg); alert("Code copied!"); }catch(e){}
+                  }
+                }} style={{
+                  display:"flex",alignItems:"center",gap:8,margin:"0 auto",
+                  background:"#3C2010",color:"#F5EDD9",
+                  border:"none",borderRadius:100,padding:"10px 24px",
+                  fontFamily:"'DM Sans',sans-serif",fontSize:11,fontWeight:500,letterSpacing:"0.12em",textTransform:"uppercase",cursor:"pointer",
+                }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F5EDD9" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                    <polyline points="16 6 12 2 8 6"/>
+                    <line x1="12" y1="2" x2="12" y2="15"/>
+                  </svg>
+                  Share code
+                </button>
+              </div>
+              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#A08868"}}>Waiting for them to join...</p>
+            </div>
+          )}
+          {/* Connected -- go to play */}
+          {roomCode && roomStatus==="connected" && (
+            <div style={{textAlign:"center",width:"100%"}}>
+              <div style={{background:"#FBF5EC",border:"1.5px solid #DDD0BC",borderRadius:20,padding:"32px",marginBottom:24}}>
+                <p style={{...GF_TITLE,fontSize:24,color:"#3C2010",marginBottom:8}}>You're connected</p>
+                <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#7A5840"}}>Both devices are ready</p>
+              </div>
+              <TextureButton style={{width:"100%"}} onClick={()=>{
+                if(roomState?.currentQuestion){setCurrent(roomState.currentQuestion);setNextCard(roomState.nextQuestion);}
+                setScreen("connected-play");
+              }}>Start playing</TextureButton>
+            </div>
+          )}
+          <button onClick={()=>{leaveRoom();setScreen("home");}} style={{background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#B8A888",marginTop:24}}>← Back</button>
+        </div>
+      )}
+
+      {/* ── CONNECTED PLAY ── */}
+      {screen==="connected-play"&&(
+        <div style={{display:"flex",flexDirection:"column",alignItems:"center",width:"100%",maxWidth:460,height:"100vh",maxHeight:"100vh",boxSizing:"border-box",paddingLeft:12,paddingRight:12,paddingTop:"calc(env(safe-area-inset-top) + 8px)",paddingBottom:"calc(env(safe-area-inset-bottom) + 10px)"}}>
+          {/* Header */}
+          <div style={{width:"100%",paddingBottom:8,display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
+            <button className="btn-back-arrow" onClick={()=>{leaveRoom();setScreen("deck");}}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A08868" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M19 12H5M12 5l-7 7 7 7"/>
+              </svg>
+            </button>
+            <div style={{display:"flex",alignItems:"center",gap:6}}>
+              <div style={{width:7,height:7,borderRadius:"50%",background:roomStatus==="connected"?"#5A8A5A":"#C4A882"}}/>
+              <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#7A5840",letterSpacing:"0.04em"}}>
+                {roomStatus==="connected"?"Connected":roomStatus==="waiting"?"Waiting...":"Disconnected"} · Room {roomCode}
+              </span>
+            </div>
+            <div style={{width:28}}/>
+          </div>
+          {/* Use roomState for the question when connected */}
+          {(() => {
+            const syncedQ = roomState?.currentQuestion || current;
+            const syncedFlipped = roomState?.flipped || false;
+            const syncedPerspective = roomState?.perspectiveFlipped || false;
+            const syncedDisplay = syncedQ ? (syncedPerspective && syncedQ.perspectiveQ ? syncedQ.perspectiveQ : syncedQ.question) : "";
+            const syncedCatData = syncedQ ? CATEGORIES[syncedQ.category] : null;
+            const syncedBg = syncedCatData?.cardBg||"#F5EDE0";
+            const syncedBorder = syncedCatData?.cardBorder||"#E8DDD0";
+            return (
+              <>
+                <div style={{position:"relative",width:"100%",maxWidth:340,height:"55vh",maxHeight:460,flexShrink:0,marginBottom:8}}>
+                  <div style={{position:"absolute",inset:0,zIndex:2}}>
+                    <div style={{position:"absolute",inset:0,opacity:syncedFlipped?0:1,transform:syncedFlipped?"scale(0.94)":"scale(1)",transition:"opacity 0.22s ease, transform 0.22s ease",pointerEvents:syncedFlipped?"none":"auto",cursor:"pointer"}}
+                      onClick={async()=>{await syncAction({flipped:true});}}>
+                      <CardBack/>
+                    </div>
+                    <div style={{position:"absolute",inset:0,opacity:syncedFlipped?1:0,transform:syncedFlipped?"scale(1)":"scale(0.94)",
+                      transition:"opacity 0.22s ease 0.08s, transform 0.22s ease 0.08s",
+                      background:syncedBg,border:`1.5px solid ${syncedBorder}`,borderRadius:20,padding:"24px 22px",
+                      display:"flex",flexDirection:"column",justifyContent:"space-between",
+                      boxShadow:"-4px 12px 40px rgba(54,28,8,0.16)",pointerEvents:syncedFlipped?"auto":"none"}}>
+                      <div style={{position:"absolute",inset:10,border:"1px solid rgba(180,160,140,0.25)",borderRadius:12,pointerEvents:"none"}}/>
+                      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                        <div style={{display:"flex",alignItems:"center",gap:8}}>
+                          <div style={{width:5,height:5,borderRadius:"50%",background:"#3C2410",flexShrink:0}}/>
+                          <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:9,letterSpacing:"0.18em",textTransform:"uppercase",color:"#3C2410",opacity:0.6}}>{syncedQ?.category}</p>
+                        </div>
+                        <SpicyBadge level={syncedQ?.spicy}/>
+                      </div>
+                      <p style={{...GF_TITLE,fontSize:20,lineHeight:1.6,color:"#2C1808",flex:1,display:"flex",alignItems:"center",paddingTop:10,textAlign:"left"}}>
+                        {syncedDisplay}
+                      </p>
+                      {syncedQ?.canFlip && (
+                        <div style={{display:"flex",justifyContent:"flex-end",paddingTop:8}}>
+                          <button onClick={async()=>{await syncAction({perspectiveFlipped:!syncedPerspective});}} style={{background:syncedPerspective?"#3C2410":"transparent",border:"1px solid #C4A882",borderRadius:100,padding:"4px 14px",cursor:"pointer",transition:"all 0.2s"}}>
+                            <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:10,letterSpacing:"0.12em",textTransform:"uppercase",color:syncedPerspective?"#F5EDD9":"#8B6445",fontWeight:500}}>Flip</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                {/* Next button -- either player can advance */}
+                <div style={{flexShrink:0,textAlign:"center",marginTop:"auto"}}>
+                  {syncedFlipped && (
+                    <TextureButton variant="ghost" style={{padding:"10px 32px",marginBottom:8}} onClick={async()=>{
+                      const pool=buildPool(activeCats,relationshipType,spicyLevel);
+                      const newSeen=[...(roomState?.seenQuestions||[]),syncedQ?.question].filter(Boolean);
+                      const upcoming=pickNextUnseen(pool,new Set(newSeen),roomState?.nextQuestion?.question||"");
+                      await syncAction({currentQuestion:roomState?.nextQuestion||null,nextQuestion:upcoming,seenQuestions:newSeen,flipped:false,perspectiveFlipped:false});
+                    }}>Next question →</TextureButton>
+                  )}
+                  <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#A08868",letterSpacing:"0.03em",minHeight:16}}>
+                    {!syncedFlipped?"Tap to reveal":"Either of you can go next"}
+                  </p>
+                </div>
+              </>
+            );
+          })()}
+        </div>
+      )}
+
     </div>
   );
 }
