@@ -1,27 +1,33 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { ref, set, update, onValue, off, remove } from "firebase/database";
+import { ref, set, update, onValue, off, remove, get } from "firebase/database";
 import { db } from "./firebase";
 
-// Generate a random 4-digit room code
+const PLAYER_ID_KEY = "gofirst_player_id";
+
 function generateCode() {
   return Math.floor(1000 + Math.random() * 9000).toString();
 }
 
-// Generate a random player ID for this session
-function generatePlayerId() {
-  return Math.random().toString(36).slice(2, 8);
+// Persist player ID across sessions so rejoin works
+function getOrCreatePlayerId() {
+  let id = localStorage.getItem(PLAYER_ID_KEY);
+  if (!id) {
+    id = Math.random().toString(36).slice(2, 10);
+    localStorage.setItem(PLAYER_ID_KEY, id);
+  }
+  return id;
 }
 
 export function useRoom() {
   const [roomCode, setRoomCode] = useState(null);
   const [roomState, setRoomState] = useState(null);
   const [isHost, setIsHost] = useState(false);
-  const [playerId] = useState(() => generatePlayerId());
+  const [playerId] = useState(() => getOrCreatePlayerId());
   const [error, setError] = useState(null);
-  const [status, setStatus] = useState("idle"); // idle | creating | waiting | joining | connected | error
+  const [status, setStatus] = useState("idle");
   const listenerRef = useRef(null);
+  const lastSentRef = useRef(null);
 
-  // Clean up listener on unmount
   useEffect(() => {
     return () => {
       if (listenerRef.current) {
@@ -30,7 +36,6 @@ export function useRoom() {
     };
   }, []);
 
-  // Subscribe to a room
   const subscribeToRoom = useCallback((code) => {
     const roomRef = ref(db, `rooms/${code}`);
     listenerRef.current = roomRef;
@@ -41,21 +46,25 @@ export function useRoom() {
         setStatus("error");
         return;
       }
+      // Ignore our own echoes to prevent re-render loop fighting drag state
+      if (lastSentRef.current &&
+          data.lastActionBy === playerId &&
+          data.lastAction === lastSentRef.current) {
+        return;
+      }
       setRoomState(data);
-      // If guest just joined, update status to connected
       if (data.guestId && data.status === "connected") {
         setStatus("connected");
       }
     });
-  }, []);
+  }, [playerId]);
 
-  // Create a room (host)
   const createRoom = useCallback(async (deckConfig) => {
     setStatus("creating");
     setError(null);
     const code = generateCode();
     const roomRef = ref(db, `rooms/${code}`);
-    const initialState = {
+    await set(roomRef, {
       hostId: playerId,
       guestId: null,
       status: "waiting",
@@ -68,9 +77,9 @@ export function useRoom() {
       flipped: false,
       perspectiveFlipped: false,
       lastAction: null,
+      lastActionBy: null,
       createdAt: Date.now(),
-    };
-    await set(roomRef, initialState);
+    });
     setRoomCode(code);
     setIsHost(true);
     setStatus("waiting");
@@ -78,25 +87,46 @@ export function useRoom() {
     return code;
   }, [playerId, subscribeToRoom]);
 
-  // Join a room (guest)
   const joinRoom = useCallback(async (code) => {
     setStatus("joining");
     setError(null);
     const roomRef = ref(db, `rooms/${code}`);
-    // Check room exists first
-    const snapshot = await new Promise((resolve) => onValue(roomRef, resolve, { onlyOnce: true }));
+    const snapshot = await get(roomRef);
     const data = snapshot.val();
+
     if (!data) {
-      setError("Room not found. Check the code and try again.");
+      setError("Code expired. Ask them to create a new room.");
       setStatus("error");
       return false;
     }
-    if (data.guestId) {
-      setError("This room is already full.");
+
+    // Rejoin as host
+    if (data.hostId === playerId) {
+      setRoomCode(code);
+      setIsHost(true);
+      setStatus(data.status === "connected" ? "connected" : "waiting");
+      subscribeToRoom(code);
+      return true;
+    }
+
+    // Rejoin as guest
+    if (data.guestId === playerId) {
+      await update(roomRef, { status: "connected" });
+      setRoomCode(code);
+      setIsHost(false);
+      setStatus("connected");
+      subscribeToRoom(code);
+      return true;
+    }
+
+    // New guest -- room already has someone else
+    if (data.guestId && data.guestId !== playerId) {
+      setError("Code expired. Ask them to create a new room.");
       setStatus("error");
       return false;
     }
-    // Join the room
+
+    // Fresh join
     await update(roomRef, { guestId: playerId, status: "connected" });
     setRoomCode(code);
     setIsHost(false);
@@ -105,27 +135,29 @@ export function useRoom() {
     return true;
   }, [playerId, subscribeToRoom]);
 
-  // Sync an action to the room (both players can trigger)
   const syncAction = useCallback(async (updates) => {
     if (!roomCode) return;
+    const ts = Date.now();
+    lastSentRef.current = ts;
     await update(ref(db, `rooms/${roomCode}`), {
       ...updates,
-      lastAction: Date.now(),
+      lastAction: ts,
+      lastActionBy: playerId,
     });
-  }, [roomCode]);
+  }, [roomCode, playerId]);
 
-  // Leave and clean up room
   const leaveRoom = useCallback(async () => {
     if (listenerRef.current) {
       off(listenerRef.current);
       listenerRef.current = null;
     }
     if (roomCode && isHost) {
-      // Host leaving removes the room
       await remove(ref(db, `rooms/${roomCode}`));
     } else if (roomCode) {
-      // Guest leaving just clears their ID
-      await update(ref(db, `rooms/${roomCode}`), { guestId: null, status: "waiting" });
+      await update(ref(db, `rooms/${roomCode}`), {
+        guestId: null,
+        status: "waiting",
+      });
     }
     setRoomCode(null);
     setRoomState(null);
