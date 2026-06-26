@@ -25,115 +25,10 @@ function CardBack() {
   return (
     <div style={{width:"100%",height:"100%",borderRadius:20,overflow:"hidden",boxShadow:"-4px 12px 40px rgba(54,28,8,0.22), -2px 6px 16px rgba(54,28,8,0.14), -1px 2px 4px rgba(54,28,8,0.08)"}}>
       <img src="https://i.imgur.com/RFAJysA.png" alt="" draggable="false" style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} />
-
-      {/* ── PLAY TOGETHER ── */}
-      {screen==="together"&&(
-        <div style={{display:"flex",flexDirection:"column",alignItems:"center",width:"100%",maxWidth:460,boxSizing:"border-box",paddingLeft:24,paddingRight:24,paddingTop:"calc(env(safe-area-inset-top) + 52px)",paddingBottom:"calc(env(safe-area-inset-bottom) + 32px)"}}>
-          <div style={{textAlign:"center",marginBottom:32}}>
-            <h1 style={{...GF_TITLE,fontSize:40,color:"#3C2010",lineHeight:1}}>Play Together</h1>
-            <p style={{...GF_TITLE,marginTop:8,fontSize:11,letterSpacing:"0.2em",textTransform:"uppercase",color:"#A08868"}}>Same card. Different cities.</p>
-          </div>
-          {/* Name input */}
-          {!roomCode && (
-            <div style={{width:"100%",marginBottom:24}}>
-              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#7A5840",marginBottom:8,letterSpacing:"0.04em"}}>Your name</p>
-              <input
-                value={playerName}
-                onChange={e=>setPlayerName(e.target.value)}
-                placeholder="So they know you're there"
-                style={{width:"100%",border:"1.5px solid #DDD0BC",borderRadius:12,padding:"12px 16px",fontFamily:"'DM Sans',sans-serif",fontSize:14,color:"#3C2010",background:"#FBF5EC",outline:"none"}}
-              />
-            </div>
-          )}
-          {!roomCode && (
-            <div style={{width:"100%",display:"flex",flexDirection:"column",gap:12}}>
-              <TextureButton style={{width:"100%"}} onClick={async()=>{
-                if(!playerName.trim())return;
-                const pool=buildPool(activeCats,relationshipType,spicyLevel);
-                const first=pickNextUnseen(pool,seenQuestions,"");
-                const second=pickNextUnseen(pool,seenQuestions,first?.question||"");
-                const code=await createRoom({stage:relationshipType,spicyLevel,activeCats,currentQuestion:first,nextQuestion:second,seenQuestions:[],hostName:playerName.trim()});
-                setCurrent(first);setNextCard(second);
-              }}>
-                Create a room
-              </TextureButton>
-              <div style={{display:"flex",gap:8,alignItems:"center"}}>
-                <input
-                  value={joinCodeInput}
-                  onChange={e=>setJoinCodeInput(e.target.value.replace(/\D/g,"").slice(0,4))}
-                  placeholder="Enter 4-digit code"
-                  maxLength={4}
-                  inputMode="numeric"
-                  style={{flex:1,border:"1.5px solid #DDD0BC",borderRadius:12,padding:"12px 16px",fontFamily:"'DM Sans',sans-serif",fontSize:18,color:"#3C2010",background:"#FBF5EC",outline:"none",textAlign:"center",letterSpacing:"0.2em"}}
-                />
-                <TextureButton style={{padding:"16px 24px",flexShrink:0}} onClick={async()=>{
-                  if(!playerName.trim()||joinCodeInput.length!==4)return;
-                  const ok=await joinRoom(joinCodeInput);
-                  if(ok){
-                    setCurrent(roomState?.currentQuestion||null);
-                    setNextCard(roomState?.nextQuestion||null);
-                    setScreen("connected-play");
-                  }
-                }}>Join</TextureButton>
-              </div>
-              {roomError&&<p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#B84A1A",textAlign:"center"}}>{roomError}</p>}
-            </div>
-          )}
-          {/* Waiting for partner */}
-          {roomCode && roomStatus==="waiting" && (
-            <div style={{textAlign:"center",width:"100%"}}>
-              <div style={{background:"#FBF5EC",border:"1.5px solid #DDD0BC",borderRadius:20,padding:"40px 32px",marginBottom:24}}>
-                <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#A08868",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:16}}>Your room code</p>
-                <p style={{...GF_TITLE,fontSize:64,color:"#3C2010",letterSpacing:"0.2em",lineHeight:1}}>{roomCode}</p>
-                <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#7A5840",marginTop:16,marginBottom:24}}>Share this with your person</p>
-                <button onClick={async()=>{
-                  const msg = `Join me on Go First! Enter code ${roomCode} at go-first-gamma.vercel.app`;
-                  if(navigator.share){
-                    try{ await navigator.share({title:"Go First",text:msg}); }catch(e){}
-                  } else {
-                    try{ await navigator.clipboard.writeText(msg); alert("Code copied!"); }catch(e){}
-                  }
-                }} style={{
-                  display:"flex",alignItems:"center",gap:8,margin:"0 auto",
-                  background:"#3C2010",color:"#F5EDD9",
-                  border:"none",borderRadius:100,padding:"10px 24px",
-                  fontFamily:"'DM Sans',sans-serif",fontSize:11,fontWeight:500,letterSpacing:"0.12em",textTransform:"uppercase",cursor:"pointer",
-                }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F5EDD9" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
-                    <polyline points="16 6 12 2 8 6"/>
-                    <line x1="12" y1="2" x2="12" y2="15"/>
-                  </svg>
-                  Share code
-                </button>
-              </div>
-              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#A08868"}}>Waiting for them to join...</p>
-            </div>
-          )}
-          {/* Connected -- go to play */}
-          {roomCode && roomStatus==="connected" && (
-            <div style={{textAlign:"center",width:"100%"}}>
-              <div style={{background:"#FBF5EC",border:"1.5px solid #DDD0BC",borderRadius:20,padding:"32px",marginBottom:24}}>
-                <p style={{...GF_TITLE,fontSize:24,color:"#3C2010",marginBottom:8}}>You're connected</p>
-                <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#7A5840"}}>Both devices are ready</p>
-              </div>
-              <TextureButton style={{width:"100%"}} onClick={()=>{
-                if(roomState?.currentQuestion){setCurrent(roomState.currentQuestion);setNextCard(roomState.nextQuestion);}
-                setScreen("connected-play");
-              }}>Start playing</TextureButton>
-            </div>
-          )}
-          <button onClick={()=>{leaveRoom();setScreen("home");}} style={{background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#B8A888",marginTop:24}}>← Back</button>
-        </div>
-      )}
-
-      
-
     </div>
   );
 }
 
-// ── Flame icon ───────────────────────────────────────────────
 function FlameIcon({ size=13, color="#B84A1A" }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -151,115 +46,10 @@ function SpicyBadge({ level }) {
     <div style={{display:"flex",alignItems:"center",gap:3}}>
       <FlameIcon size={12} color={col}/>
       <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:9,fontWeight:600,color:col,letterSpacing:"0.06em"}}>{level}</span>
-
-      {/* ── PLAY TOGETHER ── */}
-      {screen==="together"&&(
-        <div style={{display:"flex",flexDirection:"column",alignItems:"center",width:"100%",maxWidth:460,boxSizing:"border-box",paddingLeft:24,paddingRight:24,paddingTop:"calc(env(safe-area-inset-top) + 52px)",paddingBottom:"calc(env(safe-area-inset-bottom) + 32px)"}}>
-          <div style={{textAlign:"center",marginBottom:32}}>
-            <h1 style={{...GF_TITLE,fontSize:40,color:"#3C2010",lineHeight:1}}>Play Together</h1>
-            <p style={{...GF_TITLE,marginTop:8,fontSize:11,letterSpacing:"0.2em",textTransform:"uppercase",color:"#A08868"}}>Same card. Different cities.</p>
-          </div>
-          {/* Name input */}
-          {!roomCode && (
-            <div style={{width:"100%",marginBottom:24}}>
-              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#7A5840",marginBottom:8,letterSpacing:"0.04em"}}>Your name</p>
-              <input
-                value={playerName}
-                onChange={e=>setPlayerName(e.target.value)}
-                placeholder="So they know you're there"
-                style={{width:"100%",border:"1.5px solid #DDD0BC",borderRadius:12,padding:"12px 16px",fontFamily:"'DM Sans',sans-serif",fontSize:14,color:"#3C2010",background:"#FBF5EC",outline:"none"}}
-              />
-            </div>
-          )}
-          {!roomCode && (
-            <div style={{width:"100%",display:"flex",flexDirection:"column",gap:12}}>
-              <TextureButton style={{width:"100%"}} onClick={async()=>{
-                if(!playerName.trim())return;
-                const pool=buildPool(activeCats,relationshipType,spicyLevel);
-                const first=pickNextUnseen(pool,seenQuestions,"");
-                const second=pickNextUnseen(pool,seenQuestions,first?.question||"");
-                const code=await createRoom({stage:relationshipType,spicyLevel,activeCats,currentQuestion:first,nextQuestion:second,seenQuestions:[],hostName:playerName.trim()});
-                setCurrent(first);setNextCard(second);
-              }}>
-                Create a room
-              </TextureButton>
-              <div style={{display:"flex",gap:8,alignItems:"center"}}>
-                <input
-                  value={joinCodeInput}
-                  onChange={e=>setJoinCodeInput(e.target.value.replace(/\D/g,"").slice(0,4))}
-                  placeholder="Enter 4-digit code"
-                  maxLength={4}
-                  inputMode="numeric"
-                  style={{flex:1,border:"1.5px solid #DDD0BC",borderRadius:12,padding:"12px 16px",fontFamily:"'DM Sans',sans-serif",fontSize:18,color:"#3C2010",background:"#FBF5EC",outline:"none",textAlign:"center",letterSpacing:"0.2em"}}
-                />
-                <TextureButton style={{padding:"16px 24px",flexShrink:0}} onClick={async()=>{
-                  if(!playerName.trim()||joinCodeInput.length!==4)return;
-                  const ok=await joinRoom(joinCodeInput);
-                  if(ok){
-                    setCurrent(roomState?.currentQuestion||null);
-                    setNextCard(roomState?.nextQuestion||null);
-                    setScreen("connected-play");
-                  }
-                }}>Join</TextureButton>
-              </div>
-              {roomError&&<p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#B84A1A",textAlign:"center"}}>{roomError}</p>}
-            </div>
-          )}
-          {/* Waiting for partner */}
-          {roomCode && roomStatus==="waiting" && (
-            <div style={{textAlign:"center",width:"100%"}}>
-              <div style={{background:"#FBF5EC",border:"1.5px solid #DDD0BC",borderRadius:20,padding:"40px 32px",marginBottom:24}}>
-                <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#A08868",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:16}}>Your room code</p>
-                <p style={{...GF_TITLE,fontSize:64,color:"#3C2010",letterSpacing:"0.2em",lineHeight:1}}>{roomCode}</p>
-                <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#7A5840",marginTop:16,marginBottom:24}}>Share this with your person</p>
-                <button onClick={async()=>{
-                  const msg = `Join me on Go First! Enter code ${roomCode} at go-first-gamma.vercel.app`;
-                  if(navigator.share){
-                    try{ await navigator.share({title:"Go First",text:msg}); }catch(e){}
-                  } else {
-                    try{ await navigator.clipboard.writeText(msg); alert("Code copied!"); }catch(e){}
-                  }
-                }} style={{
-                  display:"flex",alignItems:"center",gap:8,margin:"0 auto",
-                  background:"#3C2010",color:"#F5EDD9",
-                  border:"none",borderRadius:100,padding:"10px 24px",
-                  fontFamily:"'DM Sans',sans-serif",fontSize:11,fontWeight:500,letterSpacing:"0.12em",textTransform:"uppercase",cursor:"pointer",
-                }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F5EDD9" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
-                    <polyline points="16 6 12 2 8 6"/>
-                    <line x1="12" y1="2" x2="12" y2="15"/>
-                  </svg>
-                  Share code
-                </button>
-              </div>
-              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#A08868"}}>Waiting for them to join...</p>
-            </div>
-          )}
-          {/* Connected -- go to play */}
-          {roomCode && roomStatus==="connected" && (
-            <div style={{textAlign:"center",width:"100%"}}>
-              <div style={{background:"#FBF5EC",border:"1.5px solid #DDD0BC",borderRadius:20,padding:"32px",marginBottom:24}}>
-                <p style={{...GF_TITLE,fontSize:24,color:"#3C2010",marginBottom:8}}>You're connected</p>
-                <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#7A5840"}}>Both devices are ready</p>
-              </div>
-              <TextureButton style={{width:"100%"}} onClick={()=>{
-                if(roomState?.currentQuestion){setCurrent(roomState.currentQuestion);setNextCard(roomState.nextQuestion);}
-                setScreen("connected-play");
-              }}>Start playing</TextureButton>
-            </div>
-          )}
-          <button onClick={()=>{leaveRoom();setScreen("home");}} style={{background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#B8A888",marginTop:24}}>← Back</button>
-        </div>
-      )}
-
-      
-
     </div>
   );
 }
 
-// ── Info icon ────────────────────────────────────────────────
 function InfoIcon({ color="#A08868" }) {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
@@ -1402,6 +1192,11 @@ export default function App() {
               </div>
             ))}
           </div>
+          {relationshipType && (currentStage?.spicyMax||0) > 0 && (
+            <div style={{display:"flex",justifyContent:"center",marginTop:6,flexShrink:0}}>
+              <SpicyToggle level={spicyLevel} onCycle={()=>{const max=RELATIONSHIP_TYPES.find(r=>r.id===relationshipType)?.spicyMax||0;setSpicyLevel(l=>(l>=max?0:l+1));}} stageId={relationshipType}/>
+            </div>
+          )}
           {/* 50px gap pills to card */}
           <div style={{height:50,flexShrink:0}}/>
           {/* Card — fixed vh height so it never pushes stats off screen */}
@@ -1598,6 +1393,11 @@ export default function App() {
               </div>
             ))}
           </div>
+          {relationshipType && (currentStage?.spicyMax||0) > 0 && (
+            <div style={{display:"flex",justifyContent:"center",marginTop:6,flexShrink:0}}>
+              <SpicyToggle level={spicyLevel} onCycle={()=>{const max=RELATIONSHIP_TYPES.find(r=>r.id===relationshipType)?.spicyMax||0;setSpicyLevel(l=>(l>=max?0:l+1));}} stageId={relationshipType}/>
+            </div>
+          )}
           <div style={{height:50,flexShrink:0}}/>
           {/* Synced card with swipe */}
           {(()=>{
