@@ -8,7 +8,6 @@ function generateCode() {
   return Math.floor(1000 + Math.random() * 9000).toString();
 }
 
-// Persist player ID across sessions so rejoin works
 function getOrCreatePlayerId() {
   let id = localStorage.getItem(PLAYER_ID_KEY);
   if (!id) {
@@ -26,7 +25,6 @@ export function useRoom() {
   const [error, setError] = useState(null);
   const [status, setStatus] = useState("idle");
   const listenerRef = useRef(null);
-  const lastSentRef = useRef(null);
 
   useEffect(() => {
     return () => {
@@ -46,18 +44,14 @@ export function useRoom() {
         setStatus("error");
         return;
       }
-      // Ignore our own echoes to prevent re-render loop fighting drag state
-      if (lastSentRef.current &&
-          data.lastActionBy === playerId &&
-          data.lastAction === lastSentRef.current) {
-        return;
-      }
+      // Always apply all updates -- no echo filtering
+      // Drag state is kept local so Firebase updates don't fight swipe gestures
       setRoomState(data);
       if (data.guestId && data.status === "connected") {
         setStatus("connected");
       }
     });
-  }, [playerId]);
+  }, []);
 
   const createRoom = useCallback(async (deckConfig) => {
     setStatus("creating");
@@ -119,7 +113,7 @@ export function useRoom() {
       return true;
     }
 
-    // New guest -- room already has someone else
+    // Room already has a different guest
     if (data.guestId && data.guestId !== playerId) {
       setError("Code expired. Ask them to create a new room.");
       setStatus("error");
@@ -137,11 +131,9 @@ export function useRoom() {
 
   const syncAction = useCallback(async (updates) => {
     if (!roomCode) return;
-    const ts = Date.now();
-    lastSentRef.current = ts;
     await update(ref(db, `rooms/${roomCode}`), {
       ...updates,
-      lastAction: ts,
+      lastAction: Date.now(),
       lastActionBy: playerId,
     });
   }, [roomCode, playerId]);
