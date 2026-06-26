@@ -1420,11 +1420,11 @@ export default function App() {
                 <div style={{position:"relative",width:"100%",maxWidth:340,height:"55vh",maxHeight:460,flexShrink:0,marginBottom:8}}
                   onMouseDown={e=>{if(!syncedFlipped)return;dragStartX.current=e.clientX;hasDragged.current=false;setIsDragging(true);}}
                   onMouseMove={e=>{if(!isDragging||dragStartX.current===null)return;const x=e.clientX-dragStartX.current;if(Math.abs(x)>4)hasDragged.current=true;setDragX(x);}}
-                  onMouseUp={()=>{if(!isDragging)return;setIsDragging(false);if(Math.abs(dragX)>80){setGoneDir(dragX>0?1:-1);setGone(true);setTimeout(()=>{setGone(false);setDragX(0);advanceRoom();},300);}else{setDragX(0);setTimeout(()=>{hasDragged.current=false;},50);}dragStartX.current=null;}}
+                  onMouseUp={()=>{if(!isDragging)return;setIsDragging(false);if(Math.abs(dragX)>80){setGoneDir(dragX>0?1:-1);setGone(true);setTimeout(async()=>{await advanceRoom();setGone(false);setDragX(0);},300);}else{setDragX(0);setTimeout(()=>{hasDragged.current=false;},50);}dragStartX.current=null;}}
                   onMouseLeave={()=>{if(!isDragging)return;setIsDragging(false);setDragX(0);dragStartX.current=null;}}
                   onTouchStart={e=>{if(!syncedFlipped)return;dragStartX.current=e.touches[0].clientX;hasDragged.current=false;setIsDragging(true);}}
                   onTouchMove={e=>{if(!isDragging||dragStartX.current===null)return;const x=e.touches[0].clientX-dragStartX.current;if(Math.abs(x)>4)hasDragged.current=true;setDragX(x);}}
-                  onTouchEnd={()=>{if(!isDragging)return;setIsDragging(false);if(Math.abs(dragX)>80){setGoneDir(dragX>0?1:-1);setGone(true);setTimeout(()=>{setGone(false);setDragX(0);advanceRoom();},300);}else{setDragX(0);setTimeout(()=>{hasDragged.current=false;},50);}dragStartX.current=null;}}
+                  onTouchEnd={()=>{if(!isDragging)return;setIsDragging(false);if(Math.abs(dragX)>80){setGoneDir(dragX>0?1:-1);setGone(true);setTimeout(async()=>{await advanceRoom();setGone(false);setDragX(0);},300);}else{setDragX(0);setTimeout(()=>{hasDragged.current=false;},50);}dragStartX.current=null;}}
                 >
                   <div style={{position:"absolute",inset:0,zIndex:2,
                     transform:gone?`translateX(${goneDir*110}vw) rotate(${goneDir*18}deg)`:`translateX(${dragX}px) rotate(${dragX*0.025}deg)`,
