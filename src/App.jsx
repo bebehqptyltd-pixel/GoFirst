@@ -813,9 +813,9 @@ function TexturePill({cat, isOn, onClick, size="normal", disabled=false}) {
       position:"relative", overflow:"hidden",
       border: `1.5px solid ${isOn ? "transparent" : disabled ? "#E8E0D5" : d.pillBg}`,
       borderRadius:100,
-      padding: small ? "5px 12px" : "7px 15px",
+      padding: "4px 10px",
       cursor: disabled ? "default" : "pointer", display:"inline-flex", alignItems:"center", justifyContent:"center",
-      fontFamily:"'DM Sans',sans-serif", fontSize: small ? 11 : 12,
+      fontFamily:"'DM Sans',sans-serif", fontSize: 11,
       fontWeight:500, letterSpacing:"0.04em", whiteSpace:"nowrap",
       color: disabled ? "#C8BEB2" : isOn ? d.pillText : "#5C4030",
       background: disabled ? "transparent" : isOn ? d.pillBg : "transparent",
@@ -1179,9 +1179,13 @@ export default function App() {
             </button>
           </div>
           {/* Category pills — lowered 5mm, 2mm extra row gap */}
-          <div style={{display:"flex",flexWrap:"wrap",gap:6,justifyContent:"center",width:"100%",flexShrink:0}}>
-            {CATEGORY_ORDER.map(cat=>(
-              <TexturePill key={cat} cat={cat} isOn={activeCats.includes(cat)} onClick={()=>toggleCat(cat)}/>
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,width:"100%",flexShrink:0}}>
+            {Array.from({length:Math.ceil(CATEGORY_ORDER.length/3)}).map((_,rowIdx)=>(
+              <div key={rowIdx} style={{display:"flex",gap:6,justifyContent:"center"}}>
+                {CATEGORY_ORDER.slice(rowIdx*3,(rowIdx+1)*3).map(cat=>(
+                  <TexturePill key={cat} cat={cat} isOn={activeCats.includes(cat)} onClick={()=>toggleCat(cat)}/>
+                ))}
+              </div>
             ))}
           </div>
           {/* 50px gap pills to card */}
@@ -1227,7 +1231,7 @@ export default function App() {
                     </div>
                     <SpicyBadge level={current.spicy}/>
                   </div>
-                  <p style={{...GF_TITLE,fontSize:displayQuestion.length>90?19:displayQuestion.length>65?22:25,lineHeight:1.55,color:"#2C1808",flex:1,display:"flex",alignItems:"center",paddingTop:10}}>
+                  <p style={{...GF_TITLE,fontSize:20,lineHeight:1.6,color:"#2C1808",flex:1,display:"flex",alignItems:"center",paddingTop:10,textAlign:"left"}}>
                     {displayQuestion}
                   </p>
                   {showPerspectiveToggle&&(
