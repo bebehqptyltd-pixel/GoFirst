@@ -127,86 +127,7 @@ function CardBack() {
         </div>
       )}
 
-      {/* ── CONNECTED PLAY ── */}
-      {screen==="connected-play"&&(
-        <div style={{display:"flex",flexDirection:"column",alignItems:"center",width:"100%",maxWidth:460,height:"100vh",maxHeight:"100vh",boxSizing:"border-box",paddingLeft:12,paddingRight:12,paddingTop:"calc(env(safe-area-inset-top) + 8px)",paddingBottom:"calc(env(safe-area-inset-bottom) + 10px)"}}>
-          {/* Header */}
-          <div style={{width:"100%",paddingBottom:8,display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
-            <button className="btn-back-arrow" onClick={()=>{leaveRoom();setScreen("deck");}}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A08868" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M19 12H5M12 5l-7 7 7 7"/>
-              </svg>
-            </button>
-            <div style={{display:"flex",alignItems:"center",gap:6}}>
-              <div style={{width:7,height:7,borderRadius:"50%",background:roomStatus==="connected"?"#5A8A5A":"#C4A882"}}/>
-              <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#7A5840",letterSpacing:"0.04em"}}>
-                {roomStatus==="connected"?"Connected":roomStatus==="waiting"?"Waiting...":"Disconnected"} · Room {roomCode}
-              </span>
-            </div>
-            <div style={{width:28}}/>
-          </div>
-          {/* Use roomState for the question when connected */}
-          {(() => {
-            const syncedQ = roomState?.currentQuestion || current;
-            const syncedFlipped = roomState?.flipped || false;
-            const syncedPerspective = roomState?.perspectiveFlipped || false;
-            const syncedDisplay = syncedQ ? (syncedPerspective && syncedQ.perspectiveQ ? syncedQ.perspectiveQ : syncedQ.question) : "";
-            const syncedCatData = syncedQ ? CATEGORIES[syncedQ.category] : null;
-            const syncedBg = syncedCatData?.cardBg||"#F5EDE0";
-            const syncedBorder = syncedCatData?.cardBorder||"#E8DDD0";
-            return (
-              <>
-                <div style={{position:"relative",width:"100%",maxWidth:340,height:"55vh",maxHeight:460,flexShrink:0,marginBottom:8}}>
-                  <div style={{position:"absolute",inset:0,zIndex:2}}>
-                    <div style={{position:"absolute",inset:0,opacity:syncedFlipped?0:1,transform:syncedFlipped?"scale(0.94)":"scale(1)",transition:"opacity 0.22s ease, transform 0.22s ease",pointerEvents:syncedFlipped?"none":"auto",cursor:"pointer"}}
-                      onClick={async()=>{await syncAction({flipped:true});}}>
-                      <CardBack/>
-                    </div>
-                    <div style={{position:"absolute",inset:0,opacity:syncedFlipped?1:0,transform:syncedFlipped?"scale(1)":"scale(0.94)",
-                      transition:"opacity 0.22s ease 0.08s, transform 0.22s ease 0.08s",
-                      background:syncedBg,border:`1.5px solid ${syncedBorder}`,borderRadius:20,padding:"24px 22px",
-                      display:"flex",flexDirection:"column",justifyContent:"space-between",
-                      boxShadow:"-4px 12px 40px rgba(54,28,8,0.16)",pointerEvents:syncedFlipped?"auto":"none"}}>
-                      <div style={{position:"absolute",inset:10,border:"1px solid rgba(180,160,140,0.25)",borderRadius:12,pointerEvents:"none"}}/>
-                      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                        <div style={{display:"flex",alignItems:"center",gap:8}}>
-                          <div style={{width:5,height:5,borderRadius:"50%",background:"#3C2410",flexShrink:0}}/>
-                          <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:9,letterSpacing:"0.18em",textTransform:"uppercase",color:"#3C2410",opacity:0.6}}>{syncedQ?.category}</p>
-                        </div>
-                        <SpicyBadge level={syncedQ?.spicy}/>
-                      </div>
-                      <p style={{...GF_TITLE,fontSize:20,lineHeight:1.6,color:"#2C1808",flex:1,display:"flex",alignItems:"center",paddingTop:10,textAlign:"left"}}>
-                        {syncedDisplay}
-                      </p>
-                      {syncedQ?.canFlip && (
-                        <div style={{display:"flex",justifyContent:"flex-end",paddingTop:8}}>
-                          <button onClick={async()=>{await syncAction({perspectiveFlipped:!syncedPerspective});}} style={{background:syncedPerspective?"#3C2410":"transparent",border:"1px solid #C4A882",borderRadius:100,padding:"4px 14px",cursor:"pointer",transition:"all 0.2s"}}>
-                            <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:10,letterSpacing:"0.12em",textTransform:"uppercase",color:syncedPerspective?"#F5EDD9":"#8B6445",fontWeight:500}}>Flip</span>
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                {/* Next button -- either player can advance */}
-                <div style={{flexShrink:0,textAlign:"center",marginTop:"auto"}}>
-                  {syncedFlipped && (
-                    <TextureButton variant="ghost" style={{padding:"10px 32px",marginBottom:8}} onClick={async()=>{
-                      const pool=buildPool(activeCats,relationshipType,spicyLevel);
-                      const newSeen=[...(roomState?.seenQuestions||[]),syncedQ?.question].filter(Boolean);
-                      const upcoming=pickNextUnseen(pool,new Set(newSeen),roomState?.nextQuestion?.question||"");
-                      await syncAction({currentQuestion:roomState?.nextQuestion||null,nextQuestion:upcoming,seenQuestions:newSeen,flipped:false,perspectiveFlipped:false});
-                    }}>Next question →</TextureButton>
-                  )}
-                  <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#A08868",letterSpacing:"0.03em",minHeight:16}}>
-                    {!syncedFlipped?"Tap to reveal":"Either of you can go next"}
-                  </p>
-                </div>
-              </>
-            );
-          })()}
-        </div>
-      )}
+      
 
     </div>
   );
@@ -332,86 +253,7 @@ function SpicyBadge({ level }) {
         </div>
       )}
 
-      {/* ── CONNECTED PLAY ── */}
-      {screen==="connected-play"&&(
-        <div style={{display:"flex",flexDirection:"column",alignItems:"center",width:"100%",maxWidth:460,height:"100vh",maxHeight:"100vh",boxSizing:"border-box",paddingLeft:12,paddingRight:12,paddingTop:"calc(env(safe-area-inset-top) + 8px)",paddingBottom:"calc(env(safe-area-inset-bottom) + 10px)"}}>
-          {/* Header */}
-          <div style={{width:"100%",paddingBottom:8,display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
-            <button className="btn-back-arrow" onClick={()=>{leaveRoom();setScreen("deck");}}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A08868" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M19 12H5M12 5l-7 7 7 7"/>
-              </svg>
-            </button>
-            <div style={{display:"flex",alignItems:"center",gap:6}}>
-              <div style={{width:7,height:7,borderRadius:"50%",background:roomStatus==="connected"?"#5A8A5A":"#C4A882"}}/>
-              <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#7A5840",letterSpacing:"0.04em"}}>
-                {roomStatus==="connected"?"Connected":roomStatus==="waiting"?"Waiting...":"Disconnected"} · Room {roomCode}
-              </span>
-            </div>
-            <div style={{width:28}}/>
-          </div>
-          {/* Use roomState for the question when connected */}
-          {(() => {
-            const syncedQ = roomState?.currentQuestion || current;
-            const syncedFlipped = roomState?.flipped || false;
-            const syncedPerspective = roomState?.perspectiveFlipped || false;
-            const syncedDisplay = syncedQ ? (syncedPerspective && syncedQ.perspectiveQ ? syncedQ.perspectiveQ : syncedQ.question) : "";
-            const syncedCatData = syncedQ ? CATEGORIES[syncedQ.category] : null;
-            const syncedBg = syncedCatData?.cardBg||"#F5EDE0";
-            const syncedBorder = syncedCatData?.cardBorder||"#E8DDD0";
-            return (
-              <>
-                <div style={{position:"relative",width:"100%",maxWidth:340,height:"55vh",maxHeight:460,flexShrink:0,marginBottom:8}}>
-                  <div style={{position:"absolute",inset:0,zIndex:2}}>
-                    <div style={{position:"absolute",inset:0,opacity:syncedFlipped?0:1,transform:syncedFlipped?"scale(0.94)":"scale(1)",transition:"opacity 0.22s ease, transform 0.22s ease",pointerEvents:syncedFlipped?"none":"auto",cursor:"pointer"}}
-                      onClick={async()=>{await syncAction({flipped:true});}}>
-                      <CardBack/>
-                    </div>
-                    <div style={{position:"absolute",inset:0,opacity:syncedFlipped?1:0,transform:syncedFlipped?"scale(1)":"scale(0.94)",
-                      transition:"opacity 0.22s ease 0.08s, transform 0.22s ease 0.08s",
-                      background:syncedBg,border:`1.5px solid ${syncedBorder}`,borderRadius:20,padding:"24px 22px",
-                      display:"flex",flexDirection:"column",justifyContent:"space-between",
-                      boxShadow:"-4px 12px 40px rgba(54,28,8,0.16)",pointerEvents:syncedFlipped?"auto":"none"}}>
-                      <div style={{position:"absolute",inset:10,border:"1px solid rgba(180,160,140,0.25)",borderRadius:12,pointerEvents:"none"}}/>
-                      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                        <div style={{display:"flex",alignItems:"center",gap:8}}>
-                          <div style={{width:5,height:5,borderRadius:"50%",background:"#3C2410",flexShrink:0}}/>
-                          <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:9,letterSpacing:"0.18em",textTransform:"uppercase",color:"#3C2410",opacity:0.6}}>{syncedQ?.category}</p>
-                        </div>
-                        <SpicyBadge level={syncedQ?.spicy}/>
-                      </div>
-                      <p style={{...GF_TITLE,fontSize:20,lineHeight:1.6,color:"#2C1808",flex:1,display:"flex",alignItems:"center",paddingTop:10,textAlign:"left"}}>
-                        {syncedDisplay}
-                      </p>
-                      {syncedQ?.canFlip && (
-                        <div style={{display:"flex",justifyContent:"flex-end",paddingTop:8}}>
-                          <button onClick={async()=>{await syncAction({perspectiveFlipped:!syncedPerspective});}} style={{background:syncedPerspective?"#3C2410":"transparent",border:"1px solid #C4A882",borderRadius:100,padding:"4px 14px",cursor:"pointer",transition:"all 0.2s"}}>
-                            <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:10,letterSpacing:"0.12em",textTransform:"uppercase",color:syncedPerspective?"#F5EDD9":"#8B6445",fontWeight:500}}>Flip</span>
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                {/* Next button -- either player can advance */}
-                <div style={{flexShrink:0,textAlign:"center",marginTop:"auto"}}>
-                  {syncedFlipped && (
-                    <TextureButton variant="ghost" style={{padding:"10px 32px",marginBottom:8}} onClick={async()=>{
-                      const pool=buildPool(activeCats,relationshipType,spicyLevel);
-                      const newSeen=[...(roomState?.seenQuestions||[]),syncedQ?.question].filter(Boolean);
-                      const upcoming=pickNextUnseen(pool,new Set(newSeen),roomState?.nextQuestion?.question||"");
-                      await syncAction({currentQuestion:roomState?.nextQuestion||null,nextQuestion:upcoming,seenQuestions:newSeen,flipped:false,perspectiveFlipped:false});
-                    }}>Next question →</TextureButton>
-                  )}
-                  <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#A08868",letterSpacing:"0.03em",minHeight:16}}>
-                    {!syncedFlipped?"Tap to reveal":"Either of you can go next"}
-                  </p>
-                </div>
-              </>
-            );
-          })()}
-        </div>
-      )}
+      
 
     </div>
   );
@@ -1728,11 +1570,11 @@ export default function App() {
         </div>
       )}
 
-      {/* ── CONNECTED PLAY ── */}
+            {/* ── CONNECTED PLAY ── */}
       {screen==="connected-play"&&(
         <div style={{display:"flex",flexDirection:"column",alignItems:"center",width:"100%",maxWidth:460,height:"100vh",maxHeight:"100vh",boxSizing:"border-box",paddingLeft:12,paddingRight:12,paddingTop:"calc(env(safe-area-inset-top) + 8px)",paddingBottom:"calc(env(safe-area-inset-bottom) + 10px)"}}>
           {/* Header */}
-          <div style={{width:"100%",paddingBottom:8,display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
+          <div style={{width:"100%",paddingBottom:6,display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
             <button className="btn-back-arrow" onClick={()=>{leaveRoom();setScreen("deck");}}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A08868" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M19 12H5M12 5l-7 7 7 7"/>
@@ -1746,28 +1588,59 @@ export default function App() {
             </div>
             <div style={{width:28}}/>
           </div>
-          {/* Use roomState for the question when connected */}
-          {(() => {
-            const syncedQ = roomState?.currentQuestion || current;
-            const syncedFlipped = roomState?.flipped || false;
-            const syncedPerspective = roomState?.perspectiveFlipped || false;
-            const syncedDisplay = syncedQ ? (syncedPerspective && syncedQ.perspectiveQ ? syncedQ.perspectiveQ : syncedQ.question) : "";
-            const syncedCatData = syncedQ ? CATEGORIES[syncedQ.category] : null;
-            const syncedBg = syncedCatData?.cardBg||"#F5EDE0";
-            const syncedBorder = syncedCatData?.cardBorder||"#E8DDD0";
-            return (
+          {/* Category pills */}
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,width:"100%",flexShrink:0}}>
+            {Array.from({length:Math.ceil(CATEGORY_ORDER.length/3)}).map((_,rowIdx)=>(
+              <div key={rowIdx} style={{display:"flex",gap:6,justifyContent:"center"}}>
+                {CATEGORY_ORDER.slice(rowIdx*3,(rowIdx+1)*3).map(cat=>(
+                  <TexturePill key={cat} cat={cat} isOn={activeCats.includes(cat)} onClick={()=>toggleCat(cat)}/>
+                ))}
+              </div>
+            ))}
+          </div>
+          <div style={{height:50,flexShrink:0}}/>
+          {/* Synced card with swipe */}
+          {(()=>{
+            const syncedQ=roomState?.currentQuestion||current;
+            const syncedFlipped=roomState?.flipped||false;
+            const syncedPerspective=roomState?.perspectiveFlipped||false;
+            const syncedDisplay=syncedQ?(syncedPerspective&&syncedQ.perspectiveQ?syncedQ.perspectiveQ:syncedQ.question):"";
+            const syncedCatData=syncedQ?CATEGORIES[syncedQ.category]:null;
+            const syncedBg=syncedCatData?.cardBg||"#F5EDE0";
+            const syncedBorder=syncedCatData?.cardBorder||"#E8DDD0";
+            const advanceRoom=async()=>{
+              audio.resume();audio.swipe();
+              const pool=buildPool(activeCats,relationshipType,spicyLevel);
+              const newSeen=[...(roomState?.seenQuestions||[]),syncedQ?.question].filter(Boolean);
+              const upcoming=pickNextUnseen(pool,new Set(newSeen),roomState?.nextQuestion?.question||"");
+              await syncAction({currentQuestion:roomState?.nextQuestion||null,nextQuestion:upcoming,seenQuestions:newSeen,flipped:false,perspectiveFlipped:false});
+            };
+            return(
               <>
-                <div style={{position:"relative",width:"100%",maxWidth:340,height:"55vh",maxHeight:460,flexShrink:0,marginBottom:8}}>
-                  <div style={{position:"absolute",inset:0,zIndex:2}}>
-                    <div style={{position:"absolute",inset:0,opacity:syncedFlipped?0:1,transform:syncedFlipped?"scale(0.94)":"scale(1)",transition:"opacity 0.22s ease, transform 0.22s ease",pointerEvents:syncedFlipped?"none":"auto",cursor:"pointer"}}
-                      onClick={async()=>{await syncAction({flipped:true});}}>
+                <div style={{position:"relative",width:"100%",maxWidth:340,height:"55vh",maxHeight:460,flexShrink:0,marginBottom:8}}
+                  onMouseDown={e=>{if(!syncedFlipped)return;dragStartX.current=e.clientX;hasDragged.current=false;setIsDragging(true);}}
+                  onMouseMove={e=>{if(!isDragging||dragStartX.current===null)return;const x=e.clientX-dragStartX.current;if(Math.abs(x)>4)hasDragged.current=true;setDragX(x);}}
+                  onMouseUp={()=>{if(!isDragging)return;setIsDragging(false);if(Math.abs(dragX)>80){setGoneDir(dragX>0?1:-1);setGone(true);setTimeout(()=>{setGone(false);setDragX(0);advanceRoom();},300);}else{setDragX(0);setTimeout(()=>{hasDragged.current=false;},50);}dragStartX.current=null;}}
+                  onMouseLeave={()=>{if(!isDragging)return;setIsDragging(false);setDragX(0);dragStartX.current=null;}}
+                  onTouchStart={e=>{if(!syncedFlipped)return;dragStartX.current=e.touches[0].clientX;hasDragged.current=false;setIsDragging(true);}}
+                  onTouchMove={e=>{if(!isDragging||dragStartX.current===null)return;const x=e.touches[0].clientX-dragStartX.current;if(Math.abs(x)>4)hasDragged.current=true;setDragX(x);}}
+                  onTouchEnd={()=>{if(!isDragging)return;setIsDragging(false);if(Math.abs(dragX)>80){setGoneDir(dragX>0?1:-1);setGone(true);setTimeout(()=>{setGone(false);setDragX(0);advanceRoom();},300);}else{setDragX(0);setTimeout(()=>{hasDragged.current=false;},50);}dragStartX.current=null;}}
+                >
+                  <div style={{position:"absolute",inset:0,zIndex:2,
+                    transform:gone?`translateX(${goneDir*110}vw) rotate(${goneDir*18}deg)`:`translateX(${dragX}px) rotate(${dragX*0.025}deg)`,
+                    transition:isDragging?"none":gone?"transform 0.28s ease-in":"transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94)",
+                    touchAction:"pan-y",
+                  }}>
+                    <div style={{position:"absolute",inset:0,opacity:syncedFlipped?0:1,transform:syncedFlipped?"scale(0.94)":"scale(1)",transition:isDragging?"none":"opacity 0.22s ease, transform 0.22s ease",pointerEvents:syncedFlipped?"none":"auto",cursor:"pointer"}}
+                      onClick={async()=>{if(!hasDragged.current){audio.resume();audio.flip();await syncAction({flipped:true});}}}>
                       <CardBack/>
                     </div>
                     <div style={{position:"absolute",inset:0,opacity:syncedFlipped?1:0,transform:syncedFlipped?"scale(1)":"scale(0.94)",
-                      transition:"opacity 0.22s ease 0.08s, transform 0.22s ease 0.08s",
+                      transition:isDragging?"none":"opacity 0.22s ease 0.08s, transform 0.22s ease 0.08s",
                       background:syncedBg,border:`1.5px solid ${syncedBorder}`,borderRadius:20,padding:"24px 22px",
                       display:"flex",flexDirection:"column",justifyContent:"space-between",
-                      boxShadow:"-4px 12px 40px rgba(54,28,8,0.16)",pointerEvents:syncedFlipped?"auto":"none"}}>
+                      boxShadow:"-4px 12px 40px rgba(54,28,8,0.16), -2px 4px 12px rgba(54,28,8,0.10)",
+                      pointerEvents:syncedFlipped?"auto":"none",cursor:syncedFlipped?"grab":"default"}}>
                       <div style={{position:"absolute",inset:10,border:"1px solid rgba(180,160,140,0.25)",borderRadius:12,pointerEvents:"none"}}/>
                       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
                         <div style={{display:"flex",alignItems:"center",gap:8}}>
@@ -1779,9 +1652,9 @@ export default function App() {
                       <p style={{...GF_TITLE,fontSize:20,lineHeight:1.6,color:"#2C1808",flex:1,display:"flex",alignItems:"center",paddingTop:10,textAlign:"left"}}>
                         {syncedDisplay}
                       </p>
-                      {syncedQ?.canFlip && (
+                      {syncedQ?.canFlip&&(
                         <div style={{display:"flex",justifyContent:"flex-end",paddingTop:8}}>
-                          <button onClick={async()=>{await syncAction({perspectiveFlipped:!syncedPerspective});}} style={{background:syncedPerspective?"#3C2410":"transparent",border:"1px solid #C4A882",borderRadius:100,padding:"4px 14px",cursor:"pointer",transition:"all 0.2s"}}>
+                          <button onClick={async(e)=>{e.stopPropagation();await syncAction({perspectiveFlipped:!syncedPerspective});}} style={{background:syncedPerspective?"#3C2410":"transparent",border:"1px solid #C4A882",borderRadius:100,padding:"4px 14px",cursor:"pointer",transition:"all 0.2s"}}>
                             <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:10,letterSpacing:"0.12em",textTransform:"uppercase",color:syncedPerspective?"#F5EDD9":"#8B6445",fontWeight:500}}>Flip</span>
                           </button>
                         </div>
@@ -1789,18 +1662,9 @@ export default function App() {
                     </div>
                   </div>
                 </div>
-                {/* Next button -- either player can advance */}
-                <div style={{flexShrink:0,textAlign:"center",marginTop:"auto"}}>
-                  {syncedFlipped && (
-                    <TextureButton variant="ghost" style={{padding:"10px 32px",marginBottom:8}} onClick={async()=>{
-                      const pool=buildPool(activeCats,relationshipType,spicyLevel);
-                      const newSeen=[...(roomState?.seenQuestions||[]),syncedQ?.question].filter(Boolean);
-                      const upcoming=pickNextUnseen(pool,new Set(newSeen),roomState?.nextQuestion?.question||"");
-                      await syncAction({currentQuestion:roomState?.nextQuestion||null,nextQuestion:upcoming,seenQuestions:newSeen,flipped:false,perspectiveFlipped:false});
-                    }}>Next question →</TextureButton>
-                  )}
+                <div style={{flexShrink:0,textAlign:"center",marginTop:12}}>
                   <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#A08868",letterSpacing:"0.03em",minHeight:16}}>
-                    {!syncedFlipped?"Tap to reveal":"Either of you can go next"}
+                    {!syncedFlipped?"Tap to reveal":Math.abs(dragX)>40?"Let go to move on":"Swipe when you're both done"}
                   </p>
                 </div>
               </>
