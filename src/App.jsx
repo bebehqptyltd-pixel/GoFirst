@@ -948,6 +948,19 @@ export default function App() {
   const [showInfo, setShowInfo] = useState(false);
   const dragStartX = useRef(null);
   const hasDragged = useRef(false);
+
+  // Reset all local play state when entering a new room or game
+  const resetPlayState = useCallback(() => {
+    setFlipped(false);
+    setDragX(0);
+    setGone(false);
+    setGoneDir(1);
+    setIsDragging(false);
+    setPerspectiveFlipped(false);
+    setDeckExhausted(false);
+    hasDragged.current = false;
+    dragStartX.current = null;
+  }, []);
   const { roomCode, roomState, isHost, status: roomStatus, error: roomError, createRoom, joinRoom, syncAction, leaveRoom } = useRoom();
   const [joinCodeInput, setJoinCodeInput] = useState("");
   const [playerName, setPlayerName] = useState("");
@@ -1308,6 +1321,7 @@ export default function App() {
                   if(!playerName.trim()||joinCodeInput.length!==4)return;
                   const ok=await joinRoom(joinCodeInput);
                   if(ok){
+                    resetPlayState();
                     setCurrent(roomState?.currentQuestion||null);
                     setNextCard(roomState?.nextQuestion||null);
                     setScreen("connected-play");
@@ -1356,6 +1370,7 @@ export default function App() {
                 <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#7A5840"}}>Both devices are ready</p>
               </div>
               <TextureButton style={{width:"100%"}} onClick={()=>{
+                resetPlayState();
                 if(roomState?.currentQuestion){setCurrent(roomState.currentQuestion);setNextCard(roomState.nextQuestion);}
                 setScreen("connected-play");
               }}>Start playing</TextureButton>
