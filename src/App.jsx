@@ -973,15 +973,15 @@ export default function App() {
     }
   },[roomState?.currentQuestion?.question]);
 
-  // Guest inherits the host's deck configuration from the room
-  // so their cards, pills and pool all match the host's setup
+  // Both players apply the room's deck configuration so category and
+  // spicy toggles stay in sync no matter who changes them
   useEffect(()=>{
-    if(roomState && !isHost){
+    if(roomState && roomCode){
       if(roomState.stage) setRelationshipType(roomState.stage);
       if(Array.isArray(roomState.activeCats)) setActiveCats(roomState.activeCats);
       if(typeof roomState.spicyLevel==="number") setSpicyLevel(roomState.spicyLevel);
     }
-  },[roomState?.stage, JSON.stringify(roomState?.activeCats), roomState?.spicyLevel, isHost]);
+  },[roomState?.stage, JSON.stringify(roomState?.activeCats), roomState?.spicyLevel, roomCode]);
   const [joinCodeInput, setJoinCodeInput] = useState("");
   const [playerName, setPlayerName] = useState("");
   const [togetherMode, setTogetherMode] = useState(false);
@@ -1448,19 +1448,30 @@ export default function App() {
             </div>
             <div style={{width:28}}/>
           </div>
-          {/* Category pills */}
+          {/* Category pills -- synced to room */}
           <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,width:"100%",flexShrink:0}}>
             {Array.from({length:Math.ceil(CATEGORY_ORDER.length/3)}).map((_,rowIdx)=>(
               <div key={rowIdx} style={{display:"flex",gap:6,justifyContent:"center"}}>
                 {CATEGORY_ORDER.slice(rowIdx*3,(rowIdx+1)*3).map(cat=>(
-                  <TexturePill key={cat} cat={cat} isOn={activeCats.includes(cat)} onClick={()=>toggleCat(cat)}/>
+                  <TexturePill key={cat} cat={cat} isOn={activeCats.includes(cat)} onClick={()=>{
+                    const next = activeCats.includes(cat)
+                      ? (activeCats.length<=1 ? activeCats : activeCats.filter(c=>c!==cat))
+                      : [...activeCats, cat];
+                    setActiveCats(next);
+                    syncAction({activeCats:next});
+                  }}/>
                 ))}
               </div>
             ))}
           </div>
           {relationshipType && (currentStage?.spicyMax||0) > 0 && (
             <div style={{display:"flex",justifyContent:"center",marginTop:6,flexShrink:0}}>
-              <SpicyToggle level={spicyLevel} onCycle={()=>{const max=RELATIONSHIP_TYPES.find(r=>r.id===relationshipType)?.spicyMax||0;setSpicyLevel(l=>(l>=max?0:l+1));}} stageId={relationshipType}/>
+              <SpicyToggle level={spicyLevel} onCycle={()=>{
+                const max=RELATIONSHIP_TYPES.find(r=>r.id===relationshipType)?.spicyMax||0;
+                const next = spicyLevel>=max ? 0 : spicyLevel+1;
+                setSpicyLevel(next);
+                syncAction({spicyLevel:next});
+              }} stageId={relationshipType}/>
             </div>
           )}
           <div style={{height:50,flexShrink:0}}/>
