@@ -1022,6 +1022,7 @@ export default function App() {
   const [showSavedGames, setShowSavedGames] = useState(false);
   const [deleteSaveTarget, setDeleteSaveTarget] = useState(null); // {id, name} pending deletion
   const [namePromptOpen, setNamePromptOpen] = useState(false);   // naming dialog
+  const [namingSaveId, setNamingSaveId] = useState(LAST_GAME_ID); // which save is being named
   const [nameInput, setNameInput] = useState("");
   const [overwritePromptOpen, setOverwritePromptOpen] = useState(false); // unnamed-overwrite warning
   // Persist saves whenever they change
@@ -1074,8 +1075,10 @@ export default function App() {
     const second = pickNextUnseen(p, seenSet, first?.question||"");
     setCurrent(first); setNextCard(second);
     resetPlayState(); setCount(1); setScreen("play");
-    // First time restoring the unnamed Last game -- offer to name it
-    if(id===LAST_GAME_ID){
+    // First time restoring an unnamed game (Last game or a Play Together
+    // save) -- offer to name it
+    if(id===LAST_GAME_ID || s.isUnnamed){
+      setNamingSaveId(id);
       setNameInput("");
       setNamePromptOpen(true);
     }
@@ -1093,22 +1096,85 @@ export default function App() {
     setDeleteSaveTarget(null);
   },[]);
 
-  // Graduate the unnamed Last game into a named permanent save.
-  // Returns the new save's id so the caller can make it active.
-  const nameAndKeep = useCallback((rawName)=>{
+  // Name a save. For the unnamed Last game this graduates it to a new
+  // permanent id (freeing the Last game slot). For any other unnamed save
+  // (e.g. a Play Together save) it renames in place. Returns the save id.
+  const nameSave = useCallback((rawName, targetId)=>{
     const name = (rawName||"").trim();
     if(!name) return null;
-    const newId = makeSaveId();
+    const tid = targetId||LAST_GAME_ID;
+    if(tid===LAST_GAME_ID){
+      const newId = makeSaveId();
+      setSaves(prev=>{
+        const lg = prev[LAST_GAME_ID];
+        if(!lg) return prev;
+        const named = {...lg, id:newId, name, isUnnamed:false, updatedAt:Date.now()};
+        const next = {...prev, [newId]:named};
+        delete next[LAST_GAME_ID];
+        return next;
+      });
+      return newId;
+    }
     setSaves(prev=>{
-      const lg = prev[LAST_GAME_ID];
-      if(!lg) return prev;
-      const named = {...lg, id:newId, name, isUnnamed:false, updatedAt:Date.now()};
-      const next = {...prev, [newId]:named};
-      delete next[LAST_GAME_ID];
-      return next;
+      const s = prev[tid];
+      if(!s) return prev;
+      return {...prev, [tid]:{...s, name, isUnnamed:false, updatedAt:Date.now()}};
     });
-    return newId;
+    return tid;
   },[]);
+
+  // Save a Play Together session's shared progress into local saves,
+  // union-merging with any existing save for the same partner so
+  // alternating-host sessions never lose history. Runs on both devices.
+  const saveTogetherProgress = useCallback(()=>{
+    if(!roomState) return;
+    const partnerId = isHost ? roomState.guestId : roomState.hostId;
+    const roomSeen = roomState.seenQuestions || [];
+    if(!roomSeen.length) return; // nothing played, nothing to save
+    setSaves(prev=>{
+      const existing = Object.values(prev).find(s=>s && s.partnerId===partnerId && partnerId);
+      const mergedSeen = Array.from(new Set([...(existing?.seen||[]), ...roomSeen]));
+      const id = existing?.id || makeSaveId();
+      const dateLabel = new Date().toLocaleDateString(undefined,{day:"numeric",month:"short"});
+      return {
+        ...prev,
+        [id]:{
+          id,
+          name: existing?.name || `Play Together · ${dateLabel}`,
+          isUnnamed: existing ? existing.isUnnamed : true,
+          partnerId: partnerId||null,
+          fromTogether: true,
+          stage: roomState.stage||null,
+          activeCats: roomState.activeCats||[],
+          spicyLevel: roomState.spicyLevel||0,
+          seen: mergedSeen,
+          totalPlayed: mergedSeen.length,
+          updatedAt: Date.now(),
+        }
+      };
+    });
+  },[roomState,isHost]);
+
+  // Seed a connected room from local saved progress for this partner, once
+  // per session. Both devices merge their own saved history into the room,
+  // so the union of past play carries forward.
+  const seededRef = useRef(false);
+  useEffect(()=>{
+    if(roomStatus!=="connected"){ seededRef.current=false; return; }
+    if(seededRef.current || !roomState || !roomCode) return;
+    const partnerId = isHost ? roomState.guestId : roomState.hostId;
+    if(!partnerId) return;
+    seededRef.current = true;
+    const localSave = Object.values(saves).find(s=>s && s.partnerId===partnerId);
+    if(localSave?.seen?.length){
+      const current = roomState.seenQuestions||[];
+      const merged = Array.from(new Set([...current, ...localSave.seen]));
+      if(merged.length > current.length){
+        syncAction({seenQuestions:merged});
+      }
+    }
+  },[roomStatus,roomState,roomCode,isHost,saves,syncAction]);
+
 
 
   const GF_TITLE = {fontFamily:"'Cormorant Garamond',serif",fontWeight:400,fontStyle:"normal"};
@@ -1353,7 +1419,7 @@ export default function App() {
               style={{width:"100%",boxSizing:"border-box",border:"1.5px solid #DDD0BC",borderRadius:12,padding:"12px 16px",fontFamily:"'DM Sans',sans-serif",fontSize:16,color:"#3C2010",background:"#FFFFFF",outline:"none",marginBottom:16,textAlign:"center"}}
             />
             <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#A08868",lineHeight:1.6,marginBottom:20}}>Games you save while playing on one device are stored on that device only. Play Together sessions save to both phones automatically. To continue a solo save later, start from this same device.</p>
-            <TextureButton style={{width:"100%",marginBottom:10}} onClick={()=>{if(nameInput.trim()){const newId=nameAndKeep(nameInput);if(newId)setActiveSaveId(newId);}setNamePromptOpen(false);}}>Save</TextureButton>
+            <TextureButton style={{width:"100%",marginBottom:10}} onClick={()=>{if(nameInput.trim()){const newId=nameSave(nameInput,namingSaveId);if(newId)setActiveSaveId(newId);}setNamePromptOpen(false);}}>Save</TextureButton>
             <TextureButton variant="ghost" style={{width:"100%",padding:"12px 32px"}} onClick={()=>setNamePromptOpen(false)}>Skip for now</TextureButton>
           </div>
         </div>
@@ -1372,7 +1438,7 @@ export default function App() {
               style={{width:"100%",boxSizing:"border-box",border:"1.5px solid #DDD0BC",borderRadius:12,padding:"12px 16px",fontFamily:"'DM Sans',sans-serif",fontSize:16,color:"#3C2010",background:"#FFFFFF",outline:"none",marginBottom:16,textAlign:"center"}}
             />
             <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#A08868",lineHeight:1.6,marginBottom:20}}>Games you save while playing on one device are stored on that device only. Play Together sessions save to both phones automatically. To continue a solo save later, start from this same device.</p>
-            <TextureButton disabled={!nameInput.trim()} style={{width:"100%",marginBottom:10}} onClick={()=>{nameAndKeep(nameInput);doResetFresh();}}>Name & keep</TextureButton>
+            <TextureButton disabled={!nameInput.trim()} style={{width:"100%",marginBottom:10}} onClick={()=>{nameSave(nameInput,LAST_GAME_ID);doResetFresh();}}>Name & keep</TextureButton>
             <TextureButton variant="ghost" style={{width:"100%",padding:"12px 32px"}} onClick={()=>doResetFresh()}>Continue, replace it</TextureButton>
           </div>
         </div>
@@ -1717,7 +1783,7 @@ export default function App() {
         <div style={{display:"flex",flexDirection:"column",alignItems:"center",width:"100%",maxWidth:460,height:"100vh",maxHeight:"100vh",boxSizing:"border-box",paddingLeft:12,paddingRight:12,paddingTop:"calc(env(safe-area-inset-top) + 8px)",paddingBottom:"calc(env(safe-area-inset-bottom) + 10px)"}}>
           {/* Header */}
           <div style={{width:"100%",paddingBottom:6,display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
-            <button className="btn-back-arrow" onClick={()=>{leaveRoom();setScreen("deck");}}>
+            <button className="btn-back-arrow" onClick={()=>{saveTogetherProgress();leaveRoom();setScreen("deck");}}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A08868" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M19 12H5M12 5l-7 7 7 7"/>
               </svg>
