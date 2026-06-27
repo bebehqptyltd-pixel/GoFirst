@@ -1148,14 +1148,39 @@ export default function App() {
     const cats = catsForStage(stageId);
     const max = RELATIONSHIP_TYPES.find(r=>r.id===stageId)?.spicyMax||0;
     const p = buildPool(cats, stageId, max);
-    return p.filter(q=>!seenQuestions.has(q.question)).length;
-  },[catsForStage,seenQuestions]);
+    const seen = (screen==="connected-play" && roomState)
+      ? new Set(roomState.seenQuestions||[])
+      : seenQuestions;
+    return p.filter(q=>!seen.has(q.question)).length;
+  },[catsForStage,seenQuestions,screen,roomState]);
 
   // Switch relationship stage mid-game, preserving seen history so crossover
   // questions are skipped and only genuinely new ones appear.
   const changeRelationship = useCallback((stageId)=>{
     const cats = catsForStage(stageId);
     const stageMax = RELATIONSHIP_TYPES.find(r=>r.id===stageId)?.spicyMax||0;
+    // Connected Play Together: push the change through the room so BOTH
+    // players' decks update. The room-config effect applies stage/cats/spicy
+    // on each device, and the new current/next come from the shared seen list.
+    if(screen==="connected-play" && roomCode && roomState){
+      const newSpicy = Math.min(roomState.spicyLevel||0, stageMax);
+      const p = buildPool(cats, stageId, newSpicy);
+      const seenSet = new Set(roomState.seenQuestions||[]);
+      const first = pickNextUnseen(p, seenSet, "");
+      const second = pickNextUnseen(p, seenSet, first?.question||"");
+      syncAction({
+        stage:stageId,
+        activeCats:cats,
+        spicyLevel:newSpicy,
+        currentQuestion:first||null,
+        nextQuestion:second||null,
+        flipped:false,
+        perspectiveFlipped:false,
+      });
+      setShowChangeRel(false); setShowInfo(false);
+      return;
+    }
+    // Solo
     const newSpicy = Math.min(spicyLevel, stageMax);
     setRelationshipType(stageId);
     setActiveCats(cats);
@@ -1169,7 +1194,7 @@ export default function App() {
     setDeckExhausted(!first);
     setCount(c=>c+1);
     setShowChangeRel(false); setShowInfo(false);
-  },[catsForStage,spicyLevel,seenQuestions]);
+  },[catsForStage,spicyLevel,seenQuestions,screen,roomCode,roomState,syncAction]);
 
   // Replay the current deck from scratch (clears seen for this configuration)
   const replayCurrent = useCallback(()=>{
@@ -1992,6 +2017,48 @@ export default function App() {
               const upcoming=pickNextUnseen(pool,new Set(newSeen),roomState?.nextQuestion?.question||"");
               await syncAction({currentQuestion:roomState?.nextQuestion||null,nextQuestion:upcoming,seenQuestions:newSeen,flipped:false,perspectiveFlipped:false});
             };
+
+            // Deck exhausted together -- show a synced prompt so both players
+            // advance (or wrap up) in unison
+            const roomExhausted = roomStatus==="connected" && !roomState?.currentQuestion;
+            if(roomExhausted){
+              const idx=STAGE_ORDER.indexOf(relationshipType);
+              const nextId=STAGE_ORDER[idx+1];
+              const nextStage=RELATIONSHIP_TYPES.find(r=>r.id===nextId);
+              const replayRoom=async()=>{
+                const pool2=buildPool(activeCats,relationshipType,spicyLevel);
+                const f=pickNextUnseen(pool2,new Set(),"");
+                const s2=pickNextUnseen(pool2,new Set(),f?.question||"");
+                await syncAction({seenQuestions:[],currentQuestion:f||null,nextQuestion:s2||null,flipped:false,perspectiveFlipped:false});
+              };
+              const doneOut=()=>{saveTogetherProgress();leaveRoom();setScreen("deck");};
+              const headingC=(t)=><p style={{...GF_TITLE,fontSize:26,color:"#3C2010",lineHeight:1.3,marginBottom:12}}>{t}</p>;
+              const bodyC=(t)=><p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#A08868",lineHeight:1.7,marginBottom:26,maxWidth:260}}>{t}</p>;
+              const ghostRowC=(
+                <div style={{display:"flex",gap:10,marginTop:4}}>
+                  <button onClick={replayRoom} style={{background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#8B6445",letterSpacing:"0.02em"}}>Replay these</button>
+                  <span style={{color:"#D8C9B4"}}>·</span>
+                  <button onClick={doneOut} style={{background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#B8A888",letterSpacing:"0.02em"}}>Done</button>
+                </div>
+              );
+              let inner;
+              if(!relationshipType){
+                inner=<>{headingC("You've asked it all")}{bodyC("Every question in your deck has been asked. The conversations you've had are the ones worth having.")}{ghostRowC}</>;
+              } else if(relationshipType==="friends"){
+                inner=<>{headingC("You've explored everything here")}{bodyC("Ready to go deeper as a couple? There's a whole deck waiting.")}<TextureButton style={{padding:"13px 30px",marginBottom:6}} onClick={()=>changeRelationship("just_together")}>Explore couple questions</TextureButton>{ghostRowC}</>;
+              } else if(!nextStage){
+                inner=<>{headingC("You've been through them all")}{bodyC("You've explored every Long-term connection question together, that's hundreds of conversations. New questions are on the way. Until then, you can revisit any of these.")}{ghostRowC}</>;
+              } else {
+                inner=<>{headingC("Ready to go deeper?")}{bodyC(`You've been through every ${currentStage?.label} question together. There's more waiting at ${nextStage.label}.`)}<TextureButton style={{padding:"13px 30px",marginBottom:6}} onClick={()=>changeRelationship(nextId)}>Move to {nextStage.label}</TextureButton>{ghostRowC}</>;
+              }
+              return(
+                <div style={{position:"relative",width:"100%",maxWidth:340,minHeight:"55vh",maxHeight:460,flexShrink:0,marginBottom:8,background:"#F5EDE0",border:"1.5px solid #E8DDD0",borderRadius:20,padding:"32px 24px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",boxShadow:"-4px 12px 40px rgba(54,28,8,0.16)"}}>
+                  <div style={{position:"absolute",inset:10,border:"1px solid rgba(180,160,140,0.25)",borderRadius:12,pointerEvents:"none"}}/>
+                  {inner}
+                </div>
+              );
+            }
+
             return(
               <>
                 <div style={{position:"relative",width:"100%",maxWidth:340,height:"55vh",maxHeight:460,flexShrink:0,marginBottom:8}}
