@@ -1020,6 +1020,7 @@ export default function App() {
   const [saves, setSaves] = useState(()=>loadSaves());
   const [activeSaveId, setActiveSaveId] = useState(LAST_GAME_ID);
   const [showSavedGames, setShowSavedGames] = useState(false);
+  const [deleteSaveTarget, setDeleteSaveTarget] = useState(null); // {id, name} pending deletion
   const [namePromptOpen, setNamePromptOpen] = useState(false);   // naming dialog
   const [nameInput, setNameInput] = useState("");
   const [overwritePromptOpen, setOverwritePromptOpen] = useState(false); // unnamed-overwrite warning
@@ -1079,6 +1080,18 @@ export default function App() {
       setNamePromptOpen(true);
     }
   },[saves,activeCats,relationshipType,resetPlayState]);
+
+  // Delete a saved game
+  const deleteSave = useCallback((id)=>{
+    setSaves(prev=>{
+      const next={...prev};
+      delete next[id];
+      return next;
+    });
+    // If we deleted the active save, fall back to a fresh Last game
+    setActiveSaveId(prev=>prev===id?LAST_GAME_ID:prev);
+    setDeleteSaveTarget(null);
+  },[]);
 
   // Graduate the unnamed Last game into a named permanent save.
   // Returns the new save's id so the caller can make it active.
@@ -1277,25 +1290,52 @@ export default function App() {
                   const st = RELATIONSHIP_TYPES.find(r=>r.id===s.stage);
                   const seenN = s.seen?.length||0;
                   return(
-                    <button key={s.id} onClick={()=>restoreSave(s.id)} style={{
-                      display:"flex",alignItems:"center",justifyContent:"space-between",width:"100%",
-                      background:"#FFFFFF",border:"1.5px solid #E8DDD0",borderRadius:14,padding:"14px 18px",cursor:"pointer",textAlign:"left",
+                    <div key={s.id} style={{
+                      display:"flex",alignItems:"center",width:"100%",
+                      background:"#FFFFFF",border:"1.5px solid #E8DDD0",borderRadius:14,overflow:"hidden",
                     }}>
-                      <div>
-                        <p style={{...GF_TITLE,fontSize:18,color:"#3C2010",lineHeight:1.2}}>{s.name||"Last game"}</p>
-                        <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#A08868",marginTop:3}}>
-                          {st?`${st.label} · `:""}{seenN} played
-                        </p>
-                      </div>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C4A882" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M5 12h14M12 5l7 7-7 7"/>
-                      </svg>
-                    </button>
+                      <button onClick={()=>restoreSave(s.id)} style={{
+                        flex:1,display:"flex",alignItems:"center",justifyContent:"space-between",
+                        background:"none",border:"none",padding:"14px 16px",cursor:"pointer",textAlign:"left",
+                      }}>
+                        <div>
+                          <p style={{...GF_TITLE,fontSize:18,color:"#3C2010",lineHeight:1.2}}>{s.name||"Last game"}</p>
+                          <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#A08868",marginTop:3}}>
+                            {st?`${st.label} · `:""}{seenN} played
+                          </p>
+                        </div>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C4A882" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                      </button>
+                      <button onClick={()=>setDeleteSaveTarget({id:s.id,name:s.name||"Last game"})} aria-label="Delete" style={{
+                        background:"none",border:"none",borderLeft:"1px solid #F0E8DC",padding:"14px 16px",cursor:"pointer",flexShrink:0,
+                      }}>
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#C49A8A" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="3 6 5 6 21 6"/>
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                          <line x1="10" y1="11" x2="10" y2="17"/>
+                          <line x1="14" y1="11" x2="14" y2="17"/>
+                        </svg>
+                      </button>
+                    </div>
                   );
                 })}
             </div>
             <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#B0A090",textAlign:"center",lineHeight:1.6,marginTop:20}}>Saved games live on the device they were played on.</p>
             <button onClick={()=>setShowSavedGames(false)} style={{background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#B8A888",marginTop:16,width:"100%"}}>Close</button>
+          </div>
+        </div>
+      )}
+
+      {/* ── DELETE SAVE CONFIRM ── */}
+      {deleteSaveTarget&&(
+        <div style={{position:"fixed",inset:0,background:"rgba(44,35,24,0.6)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:120,padding:24}}>
+          <div style={{background:"#FBF5EC",borderRadius:20,padding:"36px 28px",width:"100%",maxWidth:320,textAlign:"center"}}>
+            <p style={{...GF_TITLE,fontSize:22,color:"#3C2010",marginBottom:10}}>Delete this game?</p>
+            <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#7A5840",lineHeight:1.6,marginBottom:24}}>"{deleteSaveTarget.name}" and its progress will be removed from this device. This can't be undone.</p>
+            <TextureButton style={{width:"100%",marginBottom:10}} onClick={()=>deleteSave(deleteSaveTarget.id)}>Delete</TextureButton>
+            <TextureButton variant="ghost" style={{width:"100%",padding:"12px 32px"}} onClick={()=>setDeleteSaveTarget(null)}>Keep it</TextureButton>
           </div>
         </div>
       )}
@@ -1310,7 +1350,7 @@ export default function App() {
               value={nameInput}
               onChange={e=>setNameInput(e.target.value)}
               placeholder="Who are you playing with?"
-              style={{width:"100%",boxSizing:"border-box",border:"1.5px solid #DDD0BC",borderRadius:12,padding:"12px 16px",fontFamily:"'DM Sans',sans-serif",fontSize:14,color:"#3C2010",background:"#FFFFFF",outline:"none",marginBottom:16,textAlign:"center"}}
+              style={{width:"100%",boxSizing:"border-box",border:"1.5px solid #DDD0BC",borderRadius:12,padding:"12px 16px",fontFamily:"'DM Sans',sans-serif",fontSize:16,color:"#3C2010",background:"#FFFFFF",outline:"none",marginBottom:16,textAlign:"center"}}
             />
             <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#A08868",lineHeight:1.6,marginBottom:20}}>Games you save while playing on one device are stored on that device only. Play Together sessions save to both phones automatically. To continue a solo save later, start from this same device.</p>
             <TextureButton style={{width:"100%",marginBottom:10}} onClick={()=>{if(nameInput.trim()){const newId=nameAndKeep(nameInput);if(newId)setActiveSaveId(newId);}setNamePromptOpen(false);}}>Save</TextureButton>
@@ -1329,7 +1369,7 @@ export default function App() {
               value={nameInput}
               onChange={e=>setNameInput(e.target.value)}
               placeholder="Name to keep it"
-              style={{width:"100%",boxSizing:"border-box",border:"1.5px solid #DDD0BC",borderRadius:12,padding:"12px 16px",fontFamily:"'DM Sans',sans-serif",fontSize:14,color:"#3C2010",background:"#FFFFFF",outline:"none",marginBottom:16,textAlign:"center"}}
+              style={{width:"100%",boxSizing:"border-box",border:"1.5px solid #DDD0BC",borderRadius:12,padding:"12px 16px",fontFamily:"'DM Sans',sans-serif",fontSize:16,color:"#3C2010",background:"#FFFFFF",outline:"none",marginBottom:16,textAlign:"center"}}
             />
             <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#A08868",lineHeight:1.6,marginBottom:20}}>Games you save while playing on one device are stored on that device only. Play Together sessions save to both phones automatically. To continue a solo save later, start from this same device.</p>
             <TextureButton disabled={!nameInput.trim()} style={{width:"100%",marginBottom:10}} onClick={()=>{nameAndKeep(nameInput);doResetFresh();}}>Name & keep</TextureButton>
@@ -1582,7 +1622,7 @@ export default function App() {
                 value={playerName}
                 onChange={e=>setPlayerName(e.target.value)}
                 placeholder="So they know you're there"
-                style={{width:"100%",border:"1.5px solid #DDD0BC",borderRadius:12,padding:"12px 16px",fontFamily:"'DM Sans',sans-serif",fontSize:14,color:"#3C2010",background:"#FBF5EC",outline:"none"}}
+                style={{width:"100%",border:"1.5px solid #DDD0BC",borderRadius:12,padding:"12px 16px",fontFamily:"'DM Sans',sans-serif",fontSize:16,color:"#3C2010",background:"#FBF5EC",outline:"none"}}
               />
             </div>
           )}
