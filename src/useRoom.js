@@ -44,8 +44,6 @@ export function useRoom() {
         setStatus("error");
         return;
       }
-      // Always apply all updates -- no echo filtering
-      // Drag state is kept local so Firebase updates don't fight swipe gestures
       setRoomState(data);
       if (data.guestId && data.status === "connected") {
         setStatus("connected");
@@ -61,6 +59,8 @@ export function useRoom() {
     await set(roomRef, {
       hostId: playerId,
       guestId: null,
+      hostPresent: true,
+      guestPresent: false,
       status: "waiting",
       stage: deckConfig.stage || null,
       spicyLevel: deckConfig.spicyLevel || 0,
@@ -96,16 +96,17 @@ export function useRoom() {
 
     // Rejoin as host
     if (data.hostId === playerId) {
+      await update(roomRef, { hostPresent: true });
       setRoomCode(code);
       setIsHost(true);
-      setStatus(data.status === "connected" ? "connected" : "waiting");
+      setStatus(data.guestId ? "connected" : "waiting");
       subscribeToRoom(code);
       return true;
     }
 
     // Rejoin as guest
     if (data.guestId === playerId) {
-      await update(roomRef, { status: "connected" });
+      await update(roomRef, { guestPresent: true, status: "connected" });
       setRoomCode(code);
       setIsHost(false);
       setStatus("connected");
@@ -115,13 +116,13 @@ export function useRoom() {
 
     // Room already has a different guest
     if (data.guestId && data.guestId !== playerId) {
-      setError("Code expired. Ask them to create a new room.");
+      setError("That room is already full.");
       setStatus("error");
       return false;
     }
 
-    // Fresh join
-    await update(roomRef, { guestId: playerId, status: "connected" });
+    // Fresh join as guest
+    await update(roomRef, { guestId: playerId, guestPresent: true, status: "connected" });
     setRoomCode(code);
     setIsHost(false);
     setStatus("connected");
@@ -138,25 +139,40 @@ export function useRoom() {
     });
   }, [roomCode, playerId]);
 
+  // Leaving never deletes the room outright -- it marks the leaver as away.
+  // The room is only removed once BOTH players are gone, so either can rejoin
+  // with the same code.
   const leaveRoom = useCallback(async () => {
     if (listenerRef.current) {
       off(listenerRef.current);
       listenerRef.current = null;
     }
-    if (roomCode && isHost) {
-      await remove(ref(db, `rooms/${roomCode}`));
-    } else if (roomCode) {
-      await update(ref(db, `rooms/${roomCode}`), {
-        guestId: null,
-        status: "waiting",
-      });
+    if (roomCode) {
+      try {
+        const roomRef = ref(db, `rooms/${roomCode}`);
+        const snapshot = await get(roomRef);
+        const data = snapshot.val();
+        if (data) {
+          const iAmHost = data.hostId === playerId;
+          const otherPresent = iAmHost ? data.guestPresent : data.hostPresent;
+          if (otherPresent) {
+            // Other player still here -- just mark myself away, keep room alive
+            await update(roomRef, iAmHost ? { hostPresent: false } : { guestPresent: false, status: "waiting" });
+          } else {
+            // Nobody left -- safe to delete
+            await remove(roomRef);
+          }
+        }
+      } catch (e) {
+        // best effort -- if cleanup fails, room will simply linger
+      }
     }
     setRoomCode(null);
     setRoomState(null);
     setIsHost(false);
     setStatus("idle");
     setError(null);
-  }, [roomCode, isHost]);
+  }, [roomCode, playerId]);
 
   return {
     roomCode,
