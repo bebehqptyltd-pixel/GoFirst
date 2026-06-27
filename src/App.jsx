@@ -826,8 +826,7 @@ function buildPool(activeCats, stageId, spicyLevel) {
 function pickNextUnseen(pool,seenSet,excludeQ){
   const unseen=pool.filter(q=>!seenSet.has(q.question)&&q.question!==excludeQ);
   if(unseen.length>0)return unseen[Math.floor(Math.random()*unseen.length)];
-  const fallback=pool.filter(q=>q.question!==excludeQ);
-  return fallback.length>0?fallback[Math.floor(Math.random()*fallback.length)]:pool[0];
+  return null; // nothing left unseen -- signals the deck is exhausted
 }
 
 function TexturePill({cat, isOn, onClick, size="normal", disabled=false}) {
@@ -1084,7 +1083,7 @@ export default function App() {
     const first = pickNextUnseen(p, seenSet, "");
     const second = pickNextUnseen(p, seenSet, first?.question||"");
     setCurrent(first); setNextCard(second);
-    resetPlayState(); setCount(1); setScreen("play");
+    resetPlayState(); setCount(1); setDeckExhausted(!first); setScreen("play");
     // First time restoring an unnamed game (Last game or a Play Together
     // save) -- offer to name it
     if(id===LAST_GAME_ID || s.isUnnamed){
@@ -1143,16 +1142,19 @@ export default function App() {
     }));
   },[]);
 
-  // How many unseen questions a stage would offer right now
+  // How many unseen questions a stage would offer right now. Counts at the
+  // spicy level that will actually apply after switching (current level,
+  // clamped to the stage's max) so the number matches the deck you land in.
   const newCountForStage = useCallback((stageId)=>{
     const cats = catsForStage(stageId);
-    const max = RELATIONSHIP_TYPES.find(r=>r.id===stageId)?.spicyMax||0;
-    const p = buildPool(cats, stageId, max);
-    const seen = (screen==="connected-play" && roomState)
-      ? new Set(roomState.seenQuestions||[])
-      : seenQuestions;
+    const stageMax = RELATIONSHIP_TYPES.find(r=>r.id===stageId)?.spicyMax||0;
+    const connected = screen==="connected-play" && roomState;
+    const curSpicy = connected ? (roomState.spicyLevel||0) : spicyLevel;
+    const applied = Math.min(curSpicy, stageMax);
+    const p = buildPool(cats, stageId, applied);
+    const seen = connected ? new Set(roomState.seenQuestions||[]) : seenQuestions;
     return p.filter(q=>!seen.has(q.question)).length;
-  },[catsForStage,seenQuestions,screen,roomState]);
+  },[catsForStage,seenQuestions,screen,roomState,spicyLevel]);
 
   // Switch relationship stage mid-game, preserving seen history so crossover
   // questions are skipped and only genuinely new ones appear.
@@ -1305,7 +1307,7 @@ export default function App() {
     if(!p.length)return;
     const first=pickNextUnseen(p,seenQuestions,"");
     const second=pickNextUnseen(p,seenQuestions,first?.question||"");
-    setCurrent(first);setNextCard(second);setFlipped(false);setCount(1);setDragX(0);setGone(false);setIsDragging(false);setDeckExhausted(false);setScreen("play");
+    setCurrent(first);setNextCard(second);setFlipped(false);setCount(1);setDragX(0);setGone(false);setIsDragging(false);setDeckExhausted(!first);setScreen("play");
   },[activeCats,seenQuestions,relationshipType,spicyLevel]);
 
   // Starting a game from the deck builder always plays the unnamed Last game,
@@ -1322,7 +1324,7 @@ export default function App() {
       const first = pickNextUnseen(p, lgSeen, "");
       const second = pickNextUnseen(p, lgSeen, first?.question||"");
       setCurrent(first); setNextCard(second);
-      setFlipped(false); setCount(1); setDragX(0); setGone(false); setIsDragging(false); setDeckExhausted(false);
+      setFlipped(false); setCount(1); setDragX(0); setGone(false); setIsDragging(false); setDeckExhausted(!first);
       setScreen("play");
     } else {
       initPlay();
@@ -1330,13 +1332,16 @@ export default function App() {
   },[activeSaveId,saves,activeCats,relationshipType,spicyLevel,initPlay]);
 
   const advance = useCallback(()=>{
-    if(!nextCard)return;
-    if(current)markSeen(current.question);
+    if(!current)return;
+    markSeen(current.question);
     const p=buildPool(activeCats,relationshipType,spicyLevel);
     const newSeen=new Set(seenQuestions);
-    if(current)newSeen.add(current.question);
-    const allSeen=p.every(q=>newSeen.has(q.question));
-    if(allSeen){setCurrent(nextCard);setNextCard(null);setFlipped(false);setCount(c=>c+1);setDragX(0);setGone(false);setIsDragging(false);hasDragged.current=false;setPerspectiveFlipped(false);setDeckExhausted(true);return;}
+    newSeen.add(current.question);
+    // No card queued behind this one -- the deck is exhausted
+    if(!nextCard){
+      setCurrent(null);setNextCard(null);setFlipped(false);setDragX(0);setGone(false);setIsDragging(false);hasDragged.current=false;setPerspectiveFlipped(false);setDeckExhausted(true);
+      return;
+    }
     const upcoming=pickNextUnseen(p,newSeen,nextCard.question);
     setCurrent(nextCard);setNextCard(upcoming);setFlipped(false);setCount(c=>c+1);setDragX(0);setGone(false);setIsDragging(false);hasDragged.current=false;setPerspectiveFlipped(false);
   },[nextCard,current,activeCats,seenQuestions,markSeen,relationshipType,spicyLevel]);
