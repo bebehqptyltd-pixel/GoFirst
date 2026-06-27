@@ -761,10 +761,10 @@ const REL_ICONS = {
 };
 
 const RELATIONSHIP_TYPES = [
-  {id:"friends",       label:"Friends",       description:"Deepen a friendship",  cats:["Light & Fun","Story Questions","Honest Impressions","Life & Values"],                    spicyMax:0},
-  {id:"just_together", label:"Just Together", description:"Early days",            cats:["Light & Fun","Attraction & Chemistry","Honest Impressions","Story Questions","Life & Values"],           spicyMax:1},
-  {id:"were_a_thing",  label:"We're a Thing", description:"In a relationship",     cats:["Attraction & Chemistry","Emotional Intimacy","Life & Values","Nostalgia","Honest Impressions"],           spicyMax:2},
-  {id:"committed",     label:"Committed",     description:"Long term or married",  cats:["Emotional Intimacy","Life & Values","Late Night","Nostalgia","Honest Impressions","Attraction & Chemistry"], spicyMax:3},
+  {id:"friends",       label:"Friends",      description:"Friends & groups",            cats:["Light & Fun","Story Questions","Honest Impressions","Life & Values"],                    spicyMax:0},
+  {id:"just_together", label:"Dating",       description:"Getting to know each other",   cats:["Light & Fun","Attraction & Chemistry","Honest Impressions","Story Questions","Life & Values"],           spicyMax:1},
+  {id:"were_a_thing",  label:"Relationship", description:"Building your relationship",    cats:["Attraction & Chemistry","Emotional Intimacy","Life & Values","Nostalgia","Honest Impressions"],           spicyMax:2},
+  {id:"committed",     label:"Committed",    description:"Long term or married",          cats:["Emotional Intimacy","Life & Values","Late Night","Nostalgia","Honest Impressions","Attraction & Chemistry"], spicyMax:3},
 ];
 
 const TUTORIAL_STEPS = [
@@ -1178,7 +1178,7 @@ export default function App() {
           </div>
           {/* Heading with generous space */}
           <div style={{width:"100%",textAlign:"center",paddingTop:32,paddingBottom:32}}>
-            <p style={{...GF_TITLE,fontSize:30,color:"#3C2010",lineHeight:1.3,marginBottom:10}}>Who are you playing with?</p>
+            <p style={{...GF_TITLE,fontSize:30,color:"#3C2010",lineHeight:1.3,marginBottom:10}}>Where are you in your relationship?</p>
             <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#A08868"}}>We'll suggest the right questions</p>
           </div>
           <div style={{display:"flex",gap:10,width:"100%",marginBottom:32}}>
@@ -1542,6 +1542,17 @@ export default function App() {
                   <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#A08868",letterSpacing:"0.03em",minHeight:16}}>
                     {!syncedFlipped?"Tap to reveal":Math.abs(dragX)>40?"Let go to move on":"Swipe when you're both done"}
                   </p>
+                  {(()=>{
+                    const roomPool=buildPool(activeCats,relationshipType,spicyLevel);
+                    const seenSet=new Set(roomState?.seenQuestions||[]);
+                    const unseen=roomPool.filter(q=>!seenSet.has(q.question)).length;
+                    const played=(roomState?.seenQuestions||[]).length;
+                    return(
+                      <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#C8B8A0",letterSpacing:"0.04em",marginTop:4}}>
+                        {unseen} unseen · {played} played
+                      </p>
+                    );
+                  })()}
                 </div>
               </>
             );
