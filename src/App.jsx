@@ -2,16 +2,43 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { useRoom } from "./useRoom";
 
 // ── Audio ────────────────────────────────────────────────────
+// Real sound files live in public/sounds/ (served at /sounds/ by Vite).
+// flip  → card reveal, swipe → card change, click → button presses.
+const MUTE_KEY = "gofirst_muted_v1";
 function createAudio() {
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint:"interactive" });
-    function playTone(f,d,g,type="sine"){const o=ctx.createOscillator(),gain=ctx.createGain();o.connect(gain);gain.connect(ctx.destination);o.type=type;o.frequency.setValueAtTime(f,ctx.currentTime);gain.gain.setValueAtTime(0,ctx.currentTime);gain.gain.linearRampToValueAtTime(g,ctx.currentTime+0.01);gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+d);o.start(ctx.currentTime);o.stop(ctx.currentTime+d);}
-    return {
-      resume:()=>{if(ctx.state==="suspended")ctx.resume();},
-      flip:()=>{playTone(480,0.08,0.06);setTimeout(()=>playTone(380,0.12,0.04),60);},
-      swipe:()=>{const o=ctx.createOscillator(),g=ctx.createGain(),f=ctx.createBiquadFilter();o.connect(f);f.connect(g);g.connect(ctx.destination);o.type="sawtooth";f.type="bandpass";f.frequency.setValueAtTime(800,ctx.currentTime);f.frequency.exponentialRampToValueAtTime(200,ctx.currentTime+0.15);o.frequency.setValueAtTime(300,ctx.currentTime);g.gain.setValueAtTime(0.04,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.15);o.start(ctx.currentTime);o.stop(ctx.currentTime+0.15);}
-    };
-  } catch(e){return{resume:()=>{},flip:()=>{},swipe:()=>{}};}
+  let muted = false;
+  try { muted = localStorage.getItem(MUTE_KEY) === "1"; } catch {}
+  function make(src, vol){
+    try { const a = new Audio(src); a.preload = "auto"; a.volume = vol; return a; }
+    catch { return null; }
+  }
+  // Keep volumes low and tasteful. Click is the most frequent, so it's the quietest.
+  const els = {
+    swipe: make("/sounds/swipe.m4a", 0.3),
+    flip:  make("/sounds/flip.m4a", 0.3),
+    click: make("/sounds/click.m4a", 0.22),
+  };
+  function play(el){
+    if (muted || !el) return;
+    try {
+      el.currentTime = 0;
+      const p = el.play();
+      if (p && p.catch) p.catch(()=>{}); // ignore autoplay/gesture rejections
+    } catch {}
+  }
+  return {
+    // resume() is kept for call-site compatibility. HTMLAudioElement playback
+    // started inside a user gesture satisfies iOS, so this is a no-op now.
+    resume: () => {},
+    flip:  () => play(els.flip),
+    swipe: () => play(els.swipe),
+    click: () => play(els.click),
+    isMuted: () => muted,
+    setMuted: (v) => {
+      muted = !!v;
+      try { localStorage.setItem(MUTE_KEY, muted ? "1" : "0"); } catch {}
+    },
+  };
 }
 const audio = createAudio();
 
@@ -864,8 +891,9 @@ function TexturePill({cat, isOn, onClick, size="normal", disabled=false}) {
 function TextureButton({onClick, disabled, children, style={}, variant="dark"}) {
   const bg = variant === "dark" ? "#5C3418" : "#F5EDE0";
   const color = variant === "dark" ? "#F5EDD9" : "#5C3418";
+  const handleClick = onClick ? (e)=>{audio.click();onClick(e);} : undefined;
   return (
-    <button onClick={onClick} disabled={disabled} className="texture-btn" style={{
+    <button onClick={handleClick} disabled={disabled} className="texture-btn" style={{
       position:"relative", overflow:"hidden",
       background: variant === "ghost" ? "transparent" : bg, color,
       border: variant === "ghost" ? "1.5px solid #C4A882" : "none",
@@ -974,6 +1002,7 @@ export default function App() {
   const [deckExhausted, setDeckExhausted] = useState(false);
   const [showReset, setShowReset] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
+  const [muted, setMuted] = useState(() => audio.isMuted());
   const dragStartX = useRef(null);
   const hasDragged = useRef(false);
 
@@ -1413,6 +1442,19 @@ export default function App() {
             <p style={{...GF_TITLE,fontSize:24,color:"#3C2010",marginBottom:8}}>Go First</p>
             <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#7A5840",lineHeight:1.7,marginBottom:28}}>Need a reminder of how it works, or want to start fresh?</p>
             <TextureButton style={{width:"100%",marginBottom:12}} onClick={replayTutorial}>How to play</TextureButton>
+            <button onClick={()=>{const next=!muted;audio.setMuted(next);setMuted(next);if(!next)audio.click();}} style={{
+              display:"flex",alignItems:"center",justifyContent:"space-between",width:"100%",
+              background:"#FFFFFF",border:"1.5px solid #E8DDD0",borderRadius:14,padding:"13px 18px",
+              cursor:"pointer",textAlign:"left",marginBottom:12,
+            }}>
+              <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,fontWeight:500,color:"#5C3418"}}>Sound</span>
+              <span style={{display:"flex",alignItems:"center",gap:8}}>
+                <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#A08868",letterSpacing:"0.04em"}}>{muted?"Off":"On"}</span>
+                <span style={{position:"relative",width:38,height:22,borderRadius:11,background:muted?"#E0D5C4":"#5C3418",transition:"background 0.18s",flexShrink:0}}>
+                  <span style={{position:"absolute",top:2,left:muted?2:18,width:18,height:18,borderRadius:9,background:"#FBF5EC",transition:"left 0.18s",boxShadow:"0 1px 2px rgba(54,28,8,0.25)"}}/>
+                </span>
+              </span>
+            </button>
             {relationshipType&&(
               <TextureButton variant="ghost" style={{width:"100%",padding:"14px 32px",marginBottom:12}} onClick={()=>{setShowInfo(false);setShowChangeRel(true);}}>
                 Change relationship
