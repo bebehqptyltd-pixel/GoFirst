@@ -972,8 +972,19 @@ export default function App() {
       setIsDragging(false);
     }
   },[roomState?.currentQuestion?.question]);
+
+  // Guest inherits the host's deck configuration from the room
+  // so their cards, pills and pool all match the host's setup
+  useEffect(()=>{
+    if(roomState && !isHost){
+      if(roomState.stage) setRelationshipType(roomState.stage);
+      if(Array.isArray(roomState.activeCats)) setActiveCats(roomState.activeCats);
+      if(typeof roomState.spicyLevel==="number") setSpicyLevel(roomState.spicyLevel);
+    }
+  },[roomState?.stage, JSON.stringify(roomState?.activeCats), roomState?.spicyLevel, isHost]);
   const [joinCodeInput, setJoinCodeInput] = useState("");
   const [playerName, setPlayerName] = useState("");
+  const [togetherMode, setTogetherMode] = useState(false);
   const [partnerName, setPartnerName] = useState("");
 
   useEffect(()=>{saveMemory({seen:[...seenQuestions],totalPlayed,activeCats,hasSeenTutorial});},[seenQuestions,totalPlayed,activeCats,hasSeenTutorial]);
@@ -991,6 +1002,20 @@ export default function App() {
       }))
     : CATEGORY_ORDER;
   const currentStage = RELATIONSHIP_TYPES.find(r=>r.id===relationshipType);
+  // Build a readable deck preview string for the connected screen
+  const spicyLabels = ["", "Mild", "Medium", "Hot"];
+  const deckPreview = (()=>{
+    const parts = [];
+    if(roomState?.stage){
+      const st = RELATIONSHIP_TYPES.find(r=>r.id===roomState.stage);
+      if(st) parts.push(st.label);
+    }
+    const cats = roomState?.activeCats || [];
+    if(cats.length===1) parts.push(cats[0]);
+    else if(cats.length>1) parts.push(`${cats.length} categories`);
+    if(roomState?.spicyLevel>0) parts.push(spicyLabels[roomState.spicyLevel]);
+    return parts.join(" · ");
+  })();
   const showPerspectiveToggle = !!(current?.canFlip && (relationshipType==="were_a_thing"||relationshipType==="committed"));
   const displayQuestion = current ? (perspectiveFlipped && current.perspectiveQ ? current.perspectiveQ : current.question) : "";
   const catData = current ? CATEGORIES[current.category] : null;
@@ -1113,7 +1138,7 @@ export default function App() {
           {/* CTA */}
           <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:10}}>
             <TextureButton onClick={()=>setScreen("deck")}>Build your deck</TextureButton>
-            <TextureButton variant="ghost" style={{padding:"12px 48px"}} onClick={()=>setScreen("together")}>Play together →</TextureButton>
+            <TextureButton variant="ghost" style={{padding:"12px 48px"}} onClick={()=>{setTogetherMode(false);setScreen("together");}}>Play together →</TextureButton>
             {totalPlayed>0&&<p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#C8B8A0",letterSpacing:"0.04em"}}>{totalPlayed} question{totalPlayed!==1?"s":""} asked so far</p>}
           </div>
         </div>
@@ -1145,7 +1170,7 @@ export default function App() {
         <div style={{display:"flex",flexDirection:"column",alignItems:"center",padding:"0 20px 80px",width:"100%",maxWidth:460}}>
           {/* Back arrow aligned with persistent ⓘ */}
           <div style={{width:"100%",paddingTop:14,paddingBottom:0,display:"flex",alignItems:"center",justifyContent:"flex-start"}}>
-            <button className="btn-back-arrow" onClick={()=>setScreen("home")}>
+            <button className="btn-back-arrow" onClick={()=>{if(togetherMode){setTogetherMode(false);setScreen("together");}else{setScreen("home");}}}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A08868" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M19 12H5M12 5l-7 7 7 7"/>
               </svg>
@@ -1188,8 +1213,21 @@ export default function App() {
               {activeCats.length>4&&<div style={{width:26,height:34,borderRadius:4,background:"#C0A888",border:"2px solid #F0EAE0",marginLeft:-8,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"-1px 2px 6px rgba(54,28,8,0.18)"}}><span style={{fontSize:9,color:"white",fontFamily:"'DM Sans',sans-serif",fontWeight:500}}>+{activeCats.length-4}</span></div>}
             </div>
           </div>
-          <TextureButton disabled={pool.length===0} onClick={()=>{if(!hasSeenTutorial){setTutStep(0);setTutorialFrom("deck");setScreen("tutorial");}else{initPlay();}}}>
-            Play · {unseenCount} new questions
+          <TextureButton disabled={pool.length===0} onClick={async()=>{
+            if(togetherMode){
+              // Building deck for Play Together -- create room with this config
+              const first=pickNextUnseen(pool,seenQuestions,"");
+              const second=pickNextUnseen(pool,seenQuestions,first?.question||"");
+              await createRoom({stage:relationshipType,spicyLevel,activeCats,currentQuestion:first,nextQuestion:second,seenQuestions:[],hostName:playerName.trim()});
+              setCurrent(first);setNextCard(second);
+              setScreen("together");
+            } else if(!hasSeenTutorial){
+              setTutStep(0);setTutorialFrom("deck");setScreen("tutorial");
+            } else {
+              initPlay();
+            }
+          }}>
+            {togetherMode ? "Create room" : `Play · ${unseenCount} new questions`}
           </TextureButton>
         </div>
       )}
@@ -1308,13 +1346,10 @@ export default function App() {
           )}
           {!roomCode && (
             <div style={{width:"100%",display:"flex",flexDirection:"column",gap:12}}>
-              <TextureButton style={{width:"100%"}} onClick={async()=>{
+              <TextureButton style={{width:"100%"}} onClick={()=>{
                 if(!playerName.trim())return;
-                const pool=buildPool(activeCats,relationshipType,spicyLevel);
-                const first=pickNextUnseen(pool,seenQuestions,"");
-                const second=pickNextUnseen(pool,seenQuestions,first?.question||"");
-                const code=await createRoom({stage:relationshipType,spicyLevel,activeCats,currentQuestion:first,nextQuestion:second,seenQuestions:[],hostName:playerName.trim()});
-                setCurrent(first);setNextCard(second);
+                setTogetherMode(true);
+                setScreen("deck");
               }}>
                 Create a room
               </TextureButton>
@@ -1332,9 +1367,8 @@ export default function App() {
                   const ok=await joinRoom(joinCodeInput);
                   if(ok){
                     resetPlayState();
-                    setCurrent(roomState?.currentQuestion||null);
-                    setNextCard(roomState?.nextQuestion||null);
-                    setScreen("connected-play");
+                    // Stay on together screen -- the connected state will show
+                    // deck preview and Start Playing button for the guest
                   }
                 }}>Join</TextureButton>
               </div>
@@ -1372,12 +1406,18 @@ export default function App() {
               <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#A08868"}}>Waiting for them to join...</p>
             </div>
           )}
-          {/* Connected -- go to play */}
+          {/* Connected -- both players see this, with deck preview */}
           {roomCode && roomStatus==="connected" && (
             <div style={{textAlign:"center",width:"100%"}}>
               <div style={{background:"#FBF5EC",border:"1.5px solid #DDD0BC",borderRadius:20,padding:"32px",marginBottom:24}}>
                 <p style={{...GF_TITLE,fontSize:24,color:"#3C2010",marginBottom:8}}>You're connected</p>
-                <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#7A5840"}}>Both devices are ready</p>
+                <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#7A5840",marginBottom:deckPreview?16:0}}>Both devices are ready</p>
+                {deckPreview && (
+                  <div style={{marginTop:8,paddingTop:16,borderTop:"1px solid #EADFD0"}}>
+                    <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:10,letterSpacing:"0.14em",textTransform:"uppercase",color:"#A08868",marginBottom:6}}>{isHost?"Your deck":"You're joining"}</p>
+                    <p style={{...GF_TITLE,fontSize:17,color:"#5A4030"}}>{deckPreview}</p>
+                  </div>
+                )}
               </div>
               <TextureButton style={{width:"100%"}} onClick={()=>{
                 resetPlayState();
@@ -1386,7 +1426,7 @@ export default function App() {
               }}>Start playing</TextureButton>
             </div>
           )}
-          <button onClick={()=>{leaveRoom();setScreen("home");}} style={{background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#B8A888",marginTop:24}}>← Back</button>
+          <button onClick={()=>{leaveRoom();setTogetherMode(false);setScreen("home");}} style={{background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#B8A888",marginTop:24}}>← Back</button>
         </div>
       )}
 
@@ -1490,9 +1530,6 @@ export default function App() {
                 <div style={{flexShrink:0,textAlign:"center",marginTop:12}}>
                   <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#A08868",letterSpacing:"0.03em",minHeight:16}}>
                     {!syncedFlipped?"Tap to reveal":Math.abs(dragX)>40?"Let go to move on":"Swipe when you're both done"}
-                  </p>
-                  <p style={{fontFamily:"monospace",fontSize:10,color:"#B84A1A",marginTop:8,letterSpacing:"0.02em"}}>
-                    DEBUG → hasDragged:{String(hasDragged.current)} · isDragging:{String(isDragging)} · fbFlipped:{String(roomState?.flipped||false)} · host:{String(isHost)}
                   </p>
                 </div>
               </>
