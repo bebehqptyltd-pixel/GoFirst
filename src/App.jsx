@@ -20,6 +20,33 @@ const STORAGE_KEY = "gofirst_v2";
 function loadMemory(){try{const r=localStorage.getItem(STORAGE_KEY);if(!r)return{seen:[],totalPlayed:0,activeCats:null,hasSeenTutorial:false};return JSON.parse(r);}catch{return{seen:[],totalPlayed:0,activeCats:null,hasSeenTutorial:false};}}
 function saveMemory(m){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(m));}catch{}}
 
+// ── Saved games storage ──
+// Each save: { id, name, isUnnamed, stage, activeCats, spicyLevel, seen:[], totalPlayed, updatedAt }
+// The single unnamed slot has id "last_game".
+const SAVES_KEY = "gofirst_saves_v1";
+const LAST_GAME_ID = "last_game";
+function loadSaves(){
+  try{
+    const r=localStorage.getItem(SAVES_KEY);
+    if(r) return JSON.parse(r);
+  }catch{}
+  // Migration: fold any existing anonymous history into a "Last game" save
+  const old=loadMemory();
+  if(old && (old.seen?.length || old.totalPlayed)){
+    return {
+      [LAST_GAME_ID]:{
+        id:LAST_GAME_ID, name:"Last game", isUnnamed:true,
+        stage:null, activeCats:old.activeCats||null, spicyLevel:0,
+        seen:old.seen||[], totalPlayed:old.totalPlayed||0, updatedAt:Date.now(),
+      }
+    };
+  }
+  return {};
+}
+function persistSaves(saves){try{localStorage.setItem(SAVES_KEY,JSON.stringify(saves));}catch{}}
+function makeSaveId(){return "save_"+Math.random().toString(36).slice(2,9);}
+
+
 // ── Card back ────────────────────────────────────────────────
 function CardBack() {
   return (
@@ -761,10 +788,10 @@ const REL_ICONS = {
 };
 
 const RELATIONSHIP_TYPES = [
-  {id:"friends",       label:"Friends",      description:"Friends & groups",            cats:["Light & Fun","Story Questions","Honest Impressions","Life & Values"],                    spicyMax:0},
-  {id:"just_together", label:"Dating",       description:"Getting to know each other",   cats:["Light & Fun","Attraction & Chemistry","Honest Impressions","Story Questions","Life & Values"],           spicyMax:1},
-  {id:"were_a_thing",  label:"Relationship", description:"Building your relationship",    cats:["Attraction & Chemistry","Emotional Intimacy","Life & Values","Nostalgia","Honest Impressions"],           spicyMax:2},
-  {id:"committed",     label:"Committed",    description:"Long term or married",          cats:["Emotional Intimacy","Life & Values","Late Night","Nostalgia","Honest Impressions","Attraction & Chemistry"], spicyMax:3},
+  {id:"friends",       label:"Friends & groups",      description:"",          cats:["Light & Fun","Story Questions","Honest Impressions","Life & Values"],                    spicyMax:0},
+  {id:"just_together", label:"Learning each other",    description:"< 6 mo",     cats:["Light & Fun","Attraction & Chemistry","Honest Impressions","Story Questions","Life & Values"],           spicyMax:1},
+  {id:"were_a_thing",  label:"Building on history",    description:"6-24 mo",    cats:["Attraction & Chemistry","Emotional Intimacy","Life & Values","Nostalgia","Honest Impressions"],           spicyMax:2},
+  {id:"committed",     label:"Long-term connection",   description:"2 yr+",      cats:["Emotional Intimacy","Life & Values","Late Night","Nostalgia","Honest Impressions","Attraction & Chemistry"], spicyMax:3},
 ];
 
 const TUTORIAL_STEPS = [
@@ -882,7 +909,9 @@ function RelTile({rel, isActive, onClick}) {
         {REL_ICONS[rel.id]?.(isActive?"#F5EDD9":"#5C3418")}
       </span>
       <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,fontWeight:500,color:isActive?"#F5EDD9":"#3C2010",letterSpacing:"0.02em",textAlign:"center",lineHeight:1.25,position:"relative"}}>{rel.label}</p>
-      <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:9,color:isActive?"#D4B882":"#6B4A30",position:"relative",fontWeight:400,textAlign:"center"}}>{rel.description}</p>
+      {rel.description && (
+        <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:9,color:isActive?"#D4B882":"#A0805C",position:"relative",fontWeight:500,textAlign:"center",letterSpacing:"0.04em"}}>{rel.description}</p>
+      )}
     </button>
   );
 }
@@ -987,7 +1016,87 @@ export default function App() {
   const [togetherMode, setTogetherMode] = useState(false);
   const [partnerName, setPartnerName] = useState("");
 
+  // ── Saved games ──
+  const [saves, setSaves] = useState(()=>loadSaves());
+  const [activeSaveId, setActiveSaveId] = useState(LAST_GAME_ID);
+  const [showSavedGames, setShowSavedGames] = useState(false);
+  const [namePromptOpen, setNamePromptOpen] = useState(false);   // naming dialog
+  const [nameInput, setNameInput] = useState("");
+  const [overwritePromptOpen, setOverwritePromptOpen] = useState(false); // unnamed-overwrite warning
+  // Persist saves whenever they change
+  useEffect(()=>{persistSaves(saves);},[saves]);
+  // Does an unnamed "Last game" with real progress exist?
+  const lastGameHasProgress = !!(saves[LAST_GAME_ID]?.seen?.length);
+  // Are there any saves worth showing in the list?
+  const hasAnySaves = Object.values(saves).some(s=>s && (s.seen?.length || s.totalPlayed));
+
   useEffect(()=>{saveMemory({seen:[...seenQuestions],totalPlayed,activeCats,hasSeenTutorial});},[seenQuestions,totalPlayed,activeCats,hasSeenTutorial]);
+
+  // Auto-save live progress to the active save slot during solo play.
+  // (Connected play tracks progress in the room, not local saves.)
+  useEffect(()=>{
+    if(screen!=="play") return;
+    setSaves(prev=>{
+      const existing = prev[activeSaveId] || {id:activeSaveId, name:activeSaveId===LAST_GAME_ID?"Last game":"", isUnnamed:activeSaveId===LAST_GAME_ID};
+      return {
+        ...prev,
+        [activeSaveId]:{
+          ...existing,
+          id:activeSaveId,
+          stage:relationshipType,
+          activeCats,
+          spicyLevel,
+          seen:[...seenQuestions],
+          totalPlayed,
+          updatedAt:Date.now(),
+        }
+      };
+    });
+  },[seenQuestions,totalPlayed,screen,activeSaveId,relationshipType,activeCats,spicyLevel]);
+
+  // Restore a saved game into live play
+  const restoreSave = useCallback((id)=>{
+    const s = saves[id];
+    if(!s) return;
+    setActiveSaveId(id);
+    setSeenQuestions(new Set(s.seen||[]));
+    setTotalPlayed(s.totalPlayed||0);
+    if(s.stage) setRelationshipType(s.stage);
+    if(Array.isArray(s.activeCats)&&s.activeCats.length) setActiveCats(s.activeCats);
+    setSpicyLevel(typeof s.spicyLevel==="number"?s.spicyLevel:0);
+    setShowSavedGames(false);
+    // Build the pool from the restored config and start playing
+    const cats = (Array.isArray(s.activeCats)&&s.activeCats.length)?s.activeCats:activeCats;
+    const p = buildPool(cats, s.stage||relationshipType, typeof s.spicyLevel==="number"?s.spicyLevel:0);
+    const seenSet = new Set(s.seen||[]);
+    const first = pickNextUnseen(p, seenSet, "");
+    const second = pickNextUnseen(p, seenSet, first?.question||"");
+    setCurrent(first); setNextCard(second);
+    resetPlayState(); setCount(1); setScreen("play");
+    // First time restoring the unnamed Last game -- offer to name it
+    if(id===LAST_GAME_ID){
+      setNameInput("");
+      setNamePromptOpen(true);
+    }
+  },[saves,activeCats,relationshipType,resetPlayState]);
+
+  // Graduate the unnamed Last game into a named permanent save.
+  // Returns the new save's id so the caller can make it active.
+  const nameAndKeep = useCallback((rawName)=>{
+    const name = (rawName||"").trim();
+    if(!name) return null;
+    const newId = makeSaveId();
+    setSaves(prev=>{
+      const lg = prev[LAST_GAME_ID];
+      if(!lg) return prev;
+      const named = {...lg, id:newId, name, isUnnamed:false, updatedAt:Date.now()};
+      const next = {...prev, [newId]:named};
+      delete next[LAST_GAME_ID];
+      return next;
+    });
+    return newId;
+  },[]);
+
 
   const GF_TITLE = {fontFamily:"'Cormorant Garamond',serif",fontWeight:400,fontStyle:"normal"};
 
@@ -1034,6 +1143,27 @@ export default function App() {
     setCurrent(first);setNextCard(second);setFlipped(false);setCount(1);setDragX(0);setGone(false);setIsDragging(false);setDeckExhausted(false);setScreen("play");
   },[activeCats,seenQuestions,relationshipType,spicyLevel]);
 
+  // Starting a game from the deck builder always plays the unnamed Last game,
+  // so named saves are never overwritten. If returning from a named save,
+  // reload the Last game's own history first.
+  const startFromDeck = useCallback(()=>{
+    if(activeSaveId!==LAST_GAME_ID){
+      const lg = saves[LAST_GAME_ID];
+      const lgSeen = new Set(lg?.seen||[]);
+      setActiveSaveId(LAST_GAME_ID);
+      setSeenQuestions(lgSeen);
+      setTotalPlayed(lg?.totalPlayed||0);
+      const p = buildPool(activeCats, relationshipType, spicyLevel);
+      const first = pickNextUnseen(p, lgSeen, "");
+      const second = pickNextUnseen(p, lgSeen, first?.question||"");
+      setCurrent(first); setNextCard(second);
+      setFlipped(false); setCount(1); setDragX(0); setGone(false); setIsDragging(false); setDeckExhausted(false);
+      setScreen("play");
+    } else {
+      initPlay();
+    }
+  },[activeSaveId,saves,activeCats,relationshipType,spicyLevel,initPlay]);
+
   const advance = useCallback(()=>{
     if(!nextCard)return;
     if(current)markSeen(current.question);
@@ -1046,7 +1176,29 @@ export default function App() {
     setCurrent(nextCard);setNextCard(upcoming);setFlipped(false);setCount(c=>c+1);setDragX(0);setGone(false);setIsDragging(false);hasDragged.current=false;setPerspectiveFlipped(false);
   },[nextCard,current,activeCats,seenQuestions,markSeen,relationshipType,spicyLevel]);
 
-  const handleReset=()=>{setSeenQuestions(new Set());setTotalPlayed(0);setShowReset(false);setDeckExhausted(false);initPlay();};
+  // Start a clean game in a fresh unnamed "Last game" slot
+  const doResetFresh=()=>{
+    setActiveSaveId(LAST_GAME_ID);
+    setSeenQuestions(new Set());
+    setTotalPlayed(0);
+    setSaves(prev=>({...prev,[LAST_GAME_ID]:{id:LAST_GAME_ID,name:"Last game",isUnnamed:true,stage:relationshipType,activeCats,spicyLevel,seen:[],totalPlayed:0,updatedAt:Date.now()}}));
+    setShowReset(false);
+    setOverwritePromptOpen(false);
+    setDeckExhausted(false);
+    initPlay();
+  };
+  // Entry point for any "start fresh" action -- warns if an unnamed
+  // Last game with progress would be overwritten
+  const requestReset=()=>{
+    setShowReset(false);
+    if(lastGameHasProgress){
+      setNameInput("");
+      setOverwritePromptOpen(true);
+    } else {
+      doResetFresh();
+    }
+  };
+  const handleReset=requestReset;
   const handleCardTap=()=>{if(!flipped&&!hasDragged.current){audio.resume();audio.flip();setFlipped(true);}};
   const onPointerDown=(e)=>{if(!flipped)return;dragStartX.current=e.touches?e.touches[0].clientX:e.clientX;hasDragged.current=false;setIsDragging(true);};
   const onPointerMove=(e)=>{if(!isDragging||dragStartX.current===null)return;const x=(e.touches?e.touches[0].clientX:e.clientX)-dragStartX.current;if(Math.abs(x)>4)hasDragged.current=true;setDragX(x);};
@@ -1107,6 +1259,81 @@ export default function App() {
             <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#7A5840",lineHeight:1.7,marginBottom:28}}>You've asked {seenQuestions.size} question{seenQuestions.size!==1?"s":""}. Reset will let you experience them all again.</p>
             <TextureButton style={{width:"100%",marginBottom:12}} onClick={handleReset}>Yes, start fresh</TextureButton>
             <TextureButton variant="ghost" style={{width:"100%",padding:"14px 32px"}} onClick={()=>setShowReset(false)}>Keep my progress</TextureButton>
+          </div>
+        </div>
+      )}
+
+      {/* ── SAVED GAMES LIST ── */}
+      {showSavedGames&&(
+        <div style={{position:"fixed",inset:0,background:"rgba(44,35,24,0.6)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:100,padding:24}} onClick={()=>setShowSavedGames(false)}>
+          <div style={{background:"#FBF5EC",borderRadius:20,padding:"32px 24px",width:"100%",maxWidth:360,maxHeight:"80vh",overflowY:"auto"}} onClick={e=>e.stopPropagation()}>
+            <p style={{...GF_TITLE,fontSize:24,color:"#3C2010",textAlign:"center",marginBottom:4}}>Saved games</p>
+            <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#A08868",textAlign:"center",marginBottom:24}}>Pick up where you left off</p>
+            <div style={{display:"flex",flexDirection:"column",gap:10}}>
+              {Object.values(saves)
+                .filter(s=>s && (s.seen?.length || s.totalPlayed))
+                .sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0))
+                .map(s=>{
+                  const st = RELATIONSHIP_TYPES.find(r=>r.id===s.stage);
+                  const seenN = s.seen?.length||0;
+                  return(
+                    <button key={s.id} onClick={()=>restoreSave(s.id)} style={{
+                      display:"flex",alignItems:"center",justifyContent:"space-between",width:"100%",
+                      background:"#FFFFFF",border:"1.5px solid #E8DDD0",borderRadius:14,padding:"14px 18px",cursor:"pointer",textAlign:"left",
+                    }}>
+                      <div>
+                        <p style={{...GF_TITLE,fontSize:18,color:"#3C2010",lineHeight:1.2}}>{s.name||"Last game"}</p>
+                        <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#A08868",marginTop:3}}>
+                          {st?`${st.label} · `:""}{seenN} played
+                        </p>
+                      </div>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C4A882" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                      </svg>
+                    </button>
+                  );
+                })}
+            </div>
+            <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#B0A090",textAlign:"center",lineHeight:1.6,marginTop:20}}>Saved games live on the device they were played on.</p>
+            <button onClick={()=>setShowSavedGames(false)} style={{background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#B8A888",marginTop:16,width:"100%"}}>Close</button>
+          </div>
+        </div>
+      )}
+
+      {/* ── NAME PROMPT (after restoring Last game) ── */}
+      {namePromptOpen&&(
+        <div style={{position:"fixed",inset:0,background:"rgba(44,35,24,0.6)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:110,padding:24}}>
+          <div style={{background:"#FBF5EC",borderRadius:20,padding:"36px 28px",width:"100%",maxWidth:340,textAlign:"center"}}>
+            <p style={{...GF_TITLE,fontSize:22,color:"#3C2010",marginBottom:8}}>Name this game?</p>
+            <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#7A5840",lineHeight:1.6,marginBottom:20}}>Give it a name to keep it separate from other games you play.</p>
+            <input
+              value={nameInput}
+              onChange={e=>setNameInput(e.target.value)}
+              placeholder="Who are you playing with?"
+              style={{width:"100%",boxSizing:"border-box",border:"1.5px solid #DDD0BC",borderRadius:12,padding:"12px 16px",fontFamily:"'DM Sans',sans-serif",fontSize:14,color:"#3C2010",background:"#FFFFFF",outline:"none",marginBottom:16,textAlign:"center"}}
+            />
+            <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#A08868",lineHeight:1.6,marginBottom:20}}>Games you save while playing on one device are stored on that device only. Play Together sessions save to both phones automatically. To continue a solo save later, start from this same device.</p>
+            <TextureButton style={{width:"100%",marginBottom:10}} onClick={()=>{if(nameInput.trim()){const newId=nameAndKeep(nameInput);if(newId)setActiveSaveId(newId);}setNamePromptOpen(false);}}>Save</TextureButton>
+            <TextureButton variant="ghost" style={{width:"100%",padding:"12px 32px"}} onClick={()=>setNamePromptOpen(false)}>Skip for now</TextureButton>
+          </div>
+        </div>
+      )}
+
+      {/* ── OVERWRITE PROTECTION (reset would replace unnamed Last game) ── */}
+      {overwritePromptOpen&&(
+        <div style={{position:"fixed",inset:0,background:"rgba(44,35,24,0.6)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:110,padding:24}}>
+          <div style={{background:"#FBF5EC",borderRadius:20,padding:"36px 28px",width:"100%",maxWidth:340,textAlign:"center"}}>
+            <p style={{...GF_TITLE,fontSize:22,color:"#3C2010",marginBottom:8}}>Keep your last game?</p>
+            <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#7A5840",lineHeight:1.6,marginBottom:20}}>Starting fresh will overwrite "Last game". Name it to keep it, or continue and it'll be replaced.</p>
+            <input
+              value={nameInput}
+              onChange={e=>setNameInput(e.target.value)}
+              placeholder="Name to keep it"
+              style={{width:"100%",boxSizing:"border-box",border:"1.5px solid #DDD0BC",borderRadius:12,padding:"12px 16px",fontFamily:"'DM Sans',sans-serif",fontSize:14,color:"#3C2010",background:"#FFFFFF",outline:"none",marginBottom:16,textAlign:"center"}}
+            />
+            <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#A08868",lineHeight:1.6,marginBottom:20}}>Games you save while playing on one device are stored on that device only. Play Together sessions save to both phones automatically. To continue a solo save later, start from this same device.</p>
+            <TextureButton disabled={!nameInput.trim()} style={{width:"100%",marginBottom:10}} onClick={()=>{nameAndKeep(nameInput);doResetFresh();}}>Name & keep</TextureButton>
+            <TextureButton variant="ghost" style={{width:"100%",padding:"12px 32px"}} onClick={()=>doResetFresh()}>Continue, replace it</TextureButton>
           </div>
         </div>
       )}
@@ -1181,6 +1408,21 @@ export default function App() {
             <p style={{...GF_TITLE,fontSize:30,color:"#3C2010",lineHeight:1.3,marginBottom:10}}>Where are you in your relationship?</p>
             <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#A08868"}}>We'll suggest the right questions</p>
           </div>
+          {/* Continue a saved game -- only when saves exist */}
+          {hasAnySaves && (
+            <button onClick={()=>setShowSavedGames(true)} style={{
+              display:"flex",alignItems:"center",justifyContent:"center",gap:10,width:"100%",
+              background:"#FBF5EC",border:"1.5px solid #DDD0BC",borderRadius:14,padding:"14px 20px",
+              cursor:"pointer",marginBottom:28,
+            }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B6445" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                <polyline points="17 21 17 13 7 13 7 21"/>
+                <polyline points="7 3 7 8 15 8"/>
+              </svg>
+              <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,fontWeight:500,color:"#5A4030",letterSpacing:"0.03em"}}>Continue a saved game</span>
+            </button>
+          )}
           <div style={{display:"flex",gap:10,width:"100%",marginBottom:32}}>
             {RELATIONSHIP_TYPES.map(rel=>(
               <RelTile key={rel.id} rel={rel} isActive={relationshipType===rel.id} onClick={()=>{if(relationshipType===rel.id){setRelationshipType(null);setActiveCats([...CATEGORY_ORDER]);setSpicyLevel(0);}else{const validCats=CATEGORY_ORDER.filter(cat=>ALL_QUESTIONS.some(q=>{const si=STAGE_ORDER.indexOf(rel.id);const mi=STAGE_ORDER.indexOf(q.stageMin);const mx=q.stageMax?STAGE_ORDER.indexOf(q.stageMax):3;return q.category===cat&&si>=mi&&si<=mx;}));setRelationshipType(rel.id);setActiveCats(validCats);setSpicyLevel(0);}}}/>
@@ -1224,7 +1466,7 @@ export default function App() {
             } else if(!hasSeenTutorial){
               setTutStep(0);setTutorialFrom("deck");setScreen("tutorial");
             } else {
-              initPlay();
+              startFromDeck();
             }
           }}>
             {togetherMode ? "Create room" : `Play · ${unseenCount} new questions`}
