@@ -1481,6 +1481,9 @@ export default function App() {
                   <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#A08868",letterSpacing:"0.03em",minHeight:16}}>
                     {!syncedFlipped?"Tap to reveal":Math.abs(dragX)>40?"Let go to move on":"Swipe when you're both done"}
                   </p>
+                  <p style={{fontFamily:"monospace",fontSize:10,color:"#B84A1A",marginTop:8,letterSpacing:"0.02em"}}>
+                    DEBUG → hasDragged:{String(hasDragged.current)} · isDragging:{String(isDragging)} · fbFlipped:{String(roomState?.flipped||false)} · host:{String(isHost)}
+                  </p>
                 </div>
               </>
             );
