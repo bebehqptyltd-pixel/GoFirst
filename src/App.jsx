@@ -1014,6 +1014,8 @@ export default function App() {
   const [joinCodeInput, setJoinCodeInput] = useState("");
   const [playerName, setPlayerName] = useState("");
   const [togetherMode, setTogetherMode] = useState(false);
+  const [togetherSeedSeen, setTogetherSeedSeen] = useState([]); // seen list to seed a room when continuing a save together
+  const [showChangeRel, setShowChangeRel] = useState(false);    // change-relationship picker
   const [partnerName, setPartnerName] = useState("");
 
   // ── Saved games ──
@@ -1067,7 +1069,15 @@ export default function App() {
     if(Array.isArray(s.activeCats)&&s.activeCats.length) setActiveCats(s.activeCats);
     setSpicyLevel(typeof s.spicyLevel==="number"?s.spicyLevel:0);
     setShowSavedGames(false);
-    // Build the pool from the restored config and start playing
+    // In Play Together: continue this game into a room. Load its config and
+    // history, seed the room from its seen list, and stay in the deck builder
+    // so the user can create a room rather than dropping into solo play.
+    if(togetherMode){
+      setTogetherSeedSeen(s.seen||[]);
+      setScreen("deck");
+      return;
+    }
+    // Solo: build the pool from the restored config and start playing
     const cats = (Array.isArray(s.activeCats)&&s.activeCats.length)?s.activeCats:activeCats;
     const p = buildPool(cats, s.stage||relationshipType, typeof s.spicyLevel==="number"?s.spicyLevel:0);
     const seenSet = new Set(s.seen||[]);
@@ -1082,7 +1092,7 @@ export default function App() {
       setNameInput("");
       setNamePromptOpen(true);
     }
-  },[saves,activeCats,relationshipType,resetPlayState]);
+  },[saves,activeCats,relationshipType,resetPlayState,togetherMode]);
 
   // Delete a saved game
   const deleteSave = useCallback((id)=>{
@@ -1123,7 +1133,58 @@ export default function App() {
     return tid;
   },[]);
 
-  // Save a Play Together session's shared progress into local saves,
+  // Valid categories for a given stage
+  const catsForStage = useCallback((stageId)=>{
+    return CATEGORY_ORDER.filter(cat=>ALL_QUESTIONS.some(q=>{
+      const si=STAGE_ORDER.indexOf(stageId);
+      const mi=STAGE_ORDER.indexOf(q.stageMin);
+      const mx=q.stageMax?STAGE_ORDER.indexOf(q.stageMax):3;
+      return q.category===cat && si>=mi && si<=mx;
+    }));
+  },[]);
+
+  // How many unseen questions a stage would offer right now
+  const newCountForStage = useCallback((stageId)=>{
+    const cats = catsForStage(stageId);
+    const max = RELATIONSHIP_TYPES.find(r=>r.id===stageId)?.spicyMax||0;
+    const p = buildPool(cats, stageId, max);
+    return p.filter(q=>!seenQuestions.has(q.question)).length;
+  },[catsForStage,seenQuestions]);
+
+  // Switch relationship stage mid-game, preserving seen history so crossover
+  // questions are skipped and only genuinely new ones appear.
+  const changeRelationship = useCallback((stageId)=>{
+    const cats = catsForStage(stageId);
+    const stageMax = RELATIONSHIP_TYPES.find(r=>r.id===stageId)?.spicyMax||0;
+    const newSpicy = Math.min(spicyLevel, stageMax);
+    setRelationshipType(stageId);
+    setActiveCats(cats);
+    setSpicyLevel(newSpicy);
+    const p = buildPool(cats, stageId, newSpicy);
+    const first = pickNextUnseen(p, seenQuestions, "");
+    const second = pickNextUnseen(p, seenQuestions, first?.question||"");
+    setCurrent(first); setNextCard(second);
+    setFlipped(false); setDragX(0); setGone(false); setIsDragging(false);
+    hasDragged.current=false; setPerspectiveFlipped(false);
+    setDeckExhausted(!first);
+    setCount(c=>c+1);
+    setShowChangeRel(false); setShowInfo(false);
+  },[catsForStage,spicyLevel,seenQuestions]);
+
+  // Replay the current deck from scratch (clears seen for this configuration)
+  const replayCurrent = useCallback(()=>{
+    setSeenQuestions(new Set());
+    setTotalPlayed(0);
+    const p = buildPool(activeCats, relationshipType, spicyLevel);
+    const empty = new Set();
+    const first = pickNextUnseen(p, empty, "");
+    const second = pickNextUnseen(p, empty, first?.question||"");
+    setCurrent(first); setNextCard(second);
+    setFlipped(false); setDragX(0); setGone(false); setIsDragging(false);
+    hasDragged.current=false; setPerspectiveFlipped(false);
+    setDeckExhausted(false); setCount(1);
+  },[activeCats,relationshipType,spicyLevel]);
+
   // union-merging with any existing save for the same partner so
   // alternating-host sessions never lose history. Runs on both devices.
   const saveTogetherProgress = useCallback(()=>{
@@ -1322,10 +1383,51 @@ export default function App() {
             <p style={{...GF_TITLE,fontSize:24,color:"#3C2010",marginBottom:8}}>Go First</p>
             <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#7A5840",lineHeight:1.7,marginBottom:28}}>Need a reminder of how it works, or want to start fresh?</p>
             <TextureButton style={{width:"100%",marginBottom:12}} onClick={replayTutorial}>How to play</TextureButton>
+            {relationshipType&&(
+              <TextureButton variant="ghost" style={{width:"100%",padding:"14px 32px",marginBottom:12}} onClick={()=>{setShowInfo(false);setShowChangeRel(true);}}>
+                Change relationship
+              </TextureButton>
+            )}
             <TextureButton variant="ghost" style={{width:"100%",padding:"14px 32px",marginBottom:12}} onClick={()=>{setShowInfo(false);setShowReset(true);}}>
               Reset progress{seenQuestions.size>0?` · ${seenQuestions.size} seen`:""}
             </TextureButton>
             <button onClick={()=>setShowInfo(false)} style={{background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#B8A888",marginTop:4,display:"block",width:"100%"}}>Close</button>
+          </div>
+        </div>
+      )}
+
+      {/* ── CHANGE RELATIONSHIP PICKER ── */}
+      {showChangeRel&&(
+        <div style={{position:"fixed",inset:0,background:"rgba(44,35,24,0.6)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:110,padding:24}} onClick={()=>setShowChangeRel(false)}>
+          <div style={{background:"#FBF5EC",borderRadius:20,padding:"36px 28px",width:"100%",maxWidth:360,textAlign:"center"}} onClick={e=>e.stopPropagation()}>
+            <p style={{...GF_TITLE,fontSize:24,color:"#3C2010",marginBottom:6}}>Change relationship</p>
+            <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#7A5840",lineHeight:1.6,marginBottom:22}}>Your history carries over, so you'll only see questions you haven't answered yet.</p>
+            <div style={{display:"flex",flexDirection:"column",gap:10}}>
+              {RELATIONSHIP_TYPES.map(rel=>{
+                const isCurrent = rel.id===relationshipType;
+                const newCount = newCountForStage(rel.id);
+                return(
+                  <button key={rel.id} disabled={isCurrent} onClick={()=>changeRelationship(rel.id)} style={{
+                    display:"flex",alignItems:"center",justifyContent:"space-between",width:"100%",
+                    background:isCurrent?"#EFE6D8":"#FFFFFF",border:`1.5px solid ${isCurrent?"#D8C9B4":"#E8DDD0"}`,
+                    borderRadius:14,padding:"13px 18px",cursor:isCurrent?"default":"pointer",textAlign:"left",opacity:isCurrent?0.7:1,
+                  }}>
+                    <div>
+                      <p style={{...GF_TITLE,fontSize:18,color:"#3C2010",lineHeight:1.2}}>{rel.label}</p>
+                      <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#A08868",marginTop:3}}>
+                        {isCurrent?"Current stage":`${newCount} new ${newCount===1?"question":"questions"}`}
+                      </p>
+                    </div>
+                    {!isCurrent&&(
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C4A882" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                      </svg>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+            <button onClick={()=>setShowChangeRel(false)} style={{background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#B8A888",marginTop:18,width:"100%"}}>Cancel</button>
           </div>
         </div>
       )}
@@ -1563,10 +1665,12 @@ export default function App() {
           </div>
           <TextureButton disabled={pool.length===0} onClick={async()=>{
             if(togetherMode){
-              // Building deck for Play Together -- create room with this config
-              const first=pickNextUnseen(pool,seenQuestions,"");
-              const second=pickNextUnseen(pool,seenQuestions,first?.question||"");
-              await createRoom({stage:relationshipType,spicyLevel,activeCats,currentQuestion:first,nextQuestion:second,seenQuestions:[],hostName:playerName.trim()});
+              // Building deck for Play Together -- create room with this config.
+              // Seed seen-history from the continued save (empty for a fresh game).
+              const seedSet=new Set(togetherSeedSeen);
+              const first=pickNextUnseen(pool,seedSet,"");
+              const second=pickNextUnseen(pool,seedSet,first?.question||"");
+              await createRoom({stage:relationshipType,spicyLevel,activeCats,currentQuestion:first,nextQuestion:second,seenQuestions:togetherSeedSeen,hostName:playerName.trim()});
               setCurrent(first);setNextCard(second);
               setScreen("together");
             } else if(!hasSeenTutorial){
@@ -1615,14 +1719,62 @@ export default function App() {
                 <CardBack/>
               </div>
             )}
-            {deckExhausted&&(
-              <div style={{position:"absolute",inset:0,zIndex:2,background:"#F5EDE0",border:"1.5px solid #E8DDD0",borderRadius:20,padding:"32px 24px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",boxShadow:"-4px 12px 40px rgba(54,28,8,0.16)"}}>
-                <div style={{position:"absolute",inset:10,border:"1px solid rgba(180,160,140,0.25)",borderRadius:12,pointerEvents:"none"}}/>
-                <p style={{...GF_TITLE,fontSize:26,color:"#3C2010",lineHeight:1.4,marginBottom:12}}>You've asked it all.</p>
-                <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#A08868",lineHeight:1.7,marginBottom:28}}>Every question in your deck has been asked. The conversations you've had are the ones worth having.</p>
-                <TextureButton variant="ghost" style={{padding:"12px 32px"}} onClick={()=>setShowReset(true)}>Start fresh</TextureButton>
-              </div>
-            )}
+            {deckExhausted&&(()=>{
+              const idx = STAGE_ORDER.indexOf(relationshipType);
+              const nextId = STAGE_ORDER[idx+1];
+              const nextStage = RELATIONSHIP_TYPES.find(r=>r.id===nextId);
+              const wrap = (children)=>(
+                <div style={{position:"absolute",inset:0,zIndex:2,background:"#F5EDE0",border:"1.5px solid #E8DDD0",borderRadius:20,padding:"32px 24px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",boxShadow:"-4px 12px 40px rgba(54,28,8,0.16)"}}>
+                  <div style={{position:"absolute",inset:10,border:"1px solid rgba(180,160,140,0.25)",borderRadius:12,pointerEvents:"none"}}/>
+                  {children}
+                </div>
+              );
+              const heading=(t)=><p style={{...GF_TITLE,fontSize:26,color:"#3C2010",lineHeight:1.3,marginBottom:12}}>{t}</p>;
+              const body=(t)=><p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#A08868",lineHeight:1.7,marginBottom:26,maxWidth:260}}>{t}</p>;
+              const ghostRow=(
+                <div style={{display:"flex",gap:10,marginTop:4}}>
+                  <button onClick={replayCurrent} style={{background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#8B6445",letterSpacing:"0.02em"}}>Replay these</button>
+                  <span style={{color:"#D8C9B4"}}>·</span>
+                  <button onClick={()=>setScreen("home")} style={{background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#B8A888",letterSpacing:"0.02em"}}>Done</button>
+                </div>
+              );
+
+              // No stage selected (manual category deck) -- simple completion
+              if(!relationshipType){
+                return wrap(<>
+                  {heading("You've asked it all")}
+                  {body("Every question in your deck has been asked. The conversations you've had are the ones worth having.")}
+                  {ghostRow}
+                </>);
+              }
+
+              // Friends & groups -- sideways invite to the couples track
+              if(relationshipType==="friends"){
+                return wrap(<>
+                  {heading("You've explored everything here")}
+                  {body("Playing with a partner? There's a whole deck waiting for couples.")}
+                  <TextureButton style={{padding:"13px 30px",marginBottom:6}} onClick={()=>changeRelationship("just_together")}>Explore couple questions</TextureButton>
+                  {ghostRow}
+                </>);
+              }
+
+              // Long-term connection -- top stage, completion message
+              if(!nextStage){
+                return wrap(<>
+                  {heading("You've been through them all")}
+                  {body("You've explored every Long-term connection question, that's hundreds of conversations. New questions are on the way. Until then, you can revisit any of these.")}
+                  {ghostRow}
+                </>);
+              }
+
+              // Learning each other / Building on history -- guided step up
+              return wrap(<>
+                {heading("Ready to go deeper?")}
+                {body(`You've been through every ${RELATIONSHIP_TYPES.find(r=>r.id===relationshipType)?.label} question. There's more waiting at ${nextStage.label}.`)}
+                <TextureButton style={{padding:"13px 30px",marginBottom:6}} onClick={()=>changeRelationship(nextId)}>Move to {nextStage.label}</TextureButton>
+                {ghostRow}
+              </>);
+            })()}
             {current&&!deckExhausted&&(
               <div key={current.question} style={{position:"absolute",inset:0,zIndex:2,
                 transform:gone?`translateX(${goneDir*110}vw) rotate(${goneDir*18}deg)`:`translateX(${dragX}px) rotate(${dragX*0.025}deg)`,
@@ -1696,6 +1848,7 @@ export default function App() {
             <div style={{width:"100%",display:"flex",flexDirection:"column",gap:12}}>
               <TextureButton style={{width:"100%"}} onClick={()=>{
                 if(!playerName.trim())return;
+                setTogetherSeedSeen([]);
                 setTogetherMode(true);
                 setScreen("deck");
               }}>
