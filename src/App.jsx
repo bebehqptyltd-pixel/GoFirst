@@ -3,36 +3,66 @@ import { useRoom } from "./useRoom";
 
 // ── Audio ────────────────────────────────────────────────────
 // Real sound files live in public/sounds/ (served at /sounds/ by Vite).
-// flip  → card reveal, swipe → card change, click → button presses.
+// Uses the Web Audio API with pre-decoded buffers so playback is instant
+// (no per-play decode lag). flip → card reveal, swipe → card change,
+// click → button presses, tick → softer select (pills/tiles/spicy).
 const MUTE_KEY = "gofirst_muted_v1";
 function createAudio() {
   let muted = false;
   try { muted = localStorage.getItem(MUTE_KEY) === "1"; } catch {}
-  function make(src, vol){
-    try { const a = new Audio(src); a.preload = "auto"; a.volume = vol; return a; }
-    catch { return null; }
+
+  let ctx = null;
+  const buffers = {}; // name -> decoded AudioBuffer
+  // Keep volumes low and tasteful. tick (select) is the gentlest.
+  const VOL = { swipe: 0.32, flip: 0.32, click: 0.24, tick: 0.12 };
+
+  function ensureCtx() {
+    if (!ctx) {
+      try { ctx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: "interactive" }); }
+      catch { ctx = null; }
+    }
+    return ctx;
   }
-  // Keep volumes low and tasteful. Click is the most frequent, so it's the quietest.
-  const els = {
-    swipe: make("/sounds/swipe.m4a", 0.3),
-    flip:  make("/sounds/flip.m4a", 0.3),
-    click: make("/sounds/click.m4a", 0.22),
-  };
-  function play(el){
-    if (muted || !el) return;
+
+  function load(name, src) {
+    const c = ensureCtx();
+    if (!c) return;
+    fetch(src)
+      .then(r => r.arrayBuffer())
+      .then(arr => c.decodeAudioData(arr, buf => { buffers[name] = buf; }, () => {}))
+      .catch(() => {});
+  }
+  // Decode once, up front.
+  load("swipe", "/sounds/swipe.m4a");
+  load("flip",  "/sounds/flip.m4a");
+  load("click", "/sounds/click.m4a");
+
+  function play(name, vol) {
+    if (muted) return;
+    const c = ctx;
+    if (!c) return;
+    // iOS starts the context suspended until a gesture; every play happens
+    // inside one, so resuming here unlocks audio on first interaction.
+    if (c.state === "suspended") { try { c.resume(); } catch {} }
+    const buf = buffers[name];
+    if (!buf) return;
     try {
-      el.currentTime = 0;
-      const p = el.play();
-      if (p && p.catch) p.catch(()=>{}); // ignore autoplay/gesture rejections
+      const src = c.createBufferSource();
+      const g = c.createGain();
+      g.gain.value = vol;
+      src.buffer = buf;
+      src.connect(g);
+      g.connect(c.destination);
+      src.start(0);
     } catch {}
   }
+
   return {
-    // resume() is kept for call-site compatibility. HTMLAudioElement playback
-    // started inside a user gesture satisfies iOS, so this is a no-op now.
-    resume: () => {},
-    flip:  () => play(els.flip),
-    swipe: () => play(els.swipe),
-    click: () => play(els.click),
+    resume: () => { const c = ensureCtx(); if (c && c.state === "suspended") { try { c.resume(); } catch {} } },
+    flip:  () => play("flip",  VOL.flip),
+    swipe: () => play("swipe", VOL.swipe),
+    click: () => play("click", VOL.click),
+    tick:  () => play("click", VOL.tick), // softer select sound, reuses click buffer
     isMuted: () => muted,
     setMuted: (v) => {
       muted = !!v;
@@ -41,6 +71,7 @@ function createAudio() {
   };
 }
 const audio = createAudio();
+
 
 // ── Memory ───────────────────────────────────────────────────
 const STORAGE_KEY = "gofirst_v2";
@@ -860,8 +891,9 @@ function TexturePill({cat, isOn, onClick, size="normal", disabled=false}) {
   const d = CATEGORIES[cat];
   if (!d) return null;
   const small = size === "small";
+  const handleClick = onClick ? ()=>{ if(!disabled) audio.tick(); onClick(); } : undefined;
   return (
-    <button onClick={onClick} style={{
+    <button onClick={handleClick} style={{
       position:"relative", overflow:"hidden",
       border: `1.5px solid ${isOn ? "transparent" : disabled ? "#E8E0D5" : d.pillBg}`,
       borderRadius:100,
@@ -916,8 +948,9 @@ function TextureButton({onClick, disabled, children, style={}, variant="dark"}) 
 }
 
 function RelTile({rel, isActive, onClick}) {
+  const handleClick = onClick ? ()=>{ audio.tick(); onClick(); } : undefined;
   return (
-    <button onClick={onClick} style={{
+    <button onClick={handleClick} style={{
       position:"relative", overflow:"hidden",
       background: isActive ? "#3C2010" : "#FBF5EC",
       border: `1.5px solid ${isActive ? "#3C2010" : "#DDD0BC"}`,
@@ -949,8 +982,9 @@ function SpicyToggle({ level, onCycle, stageId }) {
   const LABELS = {0:"Turn up the heat", 1:"Mild", 2:"Medium", 3:"Hot"};
   const isOn = level > 0;
   const flameColor = isOn ? "#FFFFFF" : "#8B6445";
+  const handleCycle = onCycle ? ()=>{ audio.tick(); onCycle(); } : undefined;
   return (
-    <button onClick={onCycle} style={{
+    <button onClick={handleCycle} style={{
       display:"flex", alignItems:"center", gap:8,
       background: isOn ? "#3C2010" : "transparent",
       border:`1.5px solid ${isOn?"#3C2010":"#C4A882"}`,
@@ -1438,7 +1472,7 @@ export default function App() {
       {/* ── INFO MODAL ── */}
       {showInfo&&(
         <div style={{position:"fixed",inset:0,background:"rgba(44,35,24,0.6)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:100,padding:24}}>
-          <div style={{background:"#FBF5EC",borderRadius:20,padding:"40px 32px",width:"100%",maxWidth:340,textAlign:"center"}}>
+          <div style={{background:"#FBF5EC",borderRadius:20,padding:"32px 32px",width:"100%",maxWidth:340,maxHeight:"85vh",overflowY:"auto",textAlign:"center"}}>
             <p style={{...GF_TITLE,fontSize:24,color:"#3C2010",marginBottom:8}}>Go First</p>
             <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#7A5840",lineHeight:1.7,marginBottom:28}}>Need a reminder of how it works, or want to start fresh?</p>
             <TextureButton style={{width:"100%",marginBottom:12}} onClick={replayTutorial}>How to play</TextureButton>
