@@ -1473,20 +1473,15 @@ export default function App() {
       {showInfo&&(
         <div style={{position:"fixed",inset:0,background:"rgba(44,35,24,0.6)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:100,padding:24}}>
           <div style={{background:"#FBF5EC",borderRadius:20,padding:"32px 32px",width:"100%",maxWidth:340,maxHeight:"85vh",overflowY:"auto",textAlign:"center"}}>
-            <p style={{...GF_TITLE,fontSize:24,color:"#3C2010",marginBottom:8}}>Go First</p>
-            <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#7A5840",lineHeight:1.7,marginBottom:28}}>Need a reminder of how it works, or want to start fresh?</p>
             <TextureButton style={{width:"100%",marginBottom:12}} onClick={replayTutorial}>How to play</TextureButton>
             <button onClick={()=>{const next=!muted;audio.setMuted(next);setMuted(next);if(!next)audio.click();}} style={{
               display:"flex",alignItems:"center",justifyContent:"space-between",width:"100%",
-              background:"#FFFFFF",border:"1.5px solid #E8DDD0",borderRadius:14,padding:"13px 18px",
-              cursor:"pointer",textAlign:"left",marginBottom:12,
+              background:"transparent",border:"1.5px solid #C4A882",borderRadius:100,padding:"14px 32px",
+              cursor:"pointer",marginBottom:12,
             }}>
-              <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,fontWeight:500,color:"#5C3418"}}>Sound</span>
-              <span style={{display:"flex",alignItems:"center",gap:8}}>
-                <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#A08868",letterSpacing:"0.04em"}}>{muted?"Off":"On"}</span>
-                <span style={{position:"relative",width:38,height:22,borderRadius:11,background:muted?"#E0D5C4":"#5C3418",transition:"background 0.18s",flexShrink:0}}>
-                  <span style={{position:"absolute",top:2,left:muted?2:18,width:18,height:18,borderRadius:9,background:"#FBF5EC",transition:"left 0.18s",boxShadow:"0 1px 2px rgba(54,28,8,0.25)"}}/>
-                </span>
+              <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,fontWeight:500,letterSpacing:"0.14em",textTransform:"uppercase",color:"#5C3418"}}>Sound</span>
+              <span style={{position:"relative",width:38,height:22,borderRadius:11,background:muted?"#E0D5C4":"#5C3418",transition:"background 0.18s",flexShrink:0}}>
+                <span style={{position:"absolute",top:2,left:muted?2:18,width:18,height:18,borderRadius:9,background:"#FBF5EC",transition:"left 0.18s",boxShadow:"0 1px 2px rgba(54,28,8,0.25)"}}/>
               </span>
             </button>
             {relationshipType&&(
