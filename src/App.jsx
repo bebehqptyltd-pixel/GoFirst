@@ -14,7 +14,7 @@ function createAudio() {
   let ctx = null;
   const buffers = {}; // name -> decoded AudioBuffer
   // Keep volumes low and tasteful. tick (select) is the gentlest.
-  const VOL = { swipe: 0.32, flip: 0.32, click: 0.24, tick: 0.12 };
+  const VOL = { swipe: 0.24, flip: 0.24, click: 0.24, tick: 0.12 };
 
   function ensureCtx() {
     if (!ctx) {
@@ -1484,11 +1484,9 @@ export default function App() {
                 <span style={{position:"absolute",top:2,left:muted?2:18,width:18,height:18,borderRadius:9,background:"#FBF5EC",transition:"left 0.18s",boxShadow:"0 1px 2px rgba(54,28,8,0.25)"}}/>
               </span>
             </button>
-            {relationshipType&&(
-              <TextureButton variant="ghost" style={{width:"100%",padding:"14px 32px",marginBottom:12}} onClick={()=>{setShowInfo(false);setShowChangeRel(true);}}>
-                Change relationship
-              </TextureButton>
-            )}
+            <TextureButton variant="ghost" style={{width:"100%",padding:"14px 32px",marginBottom:12}} onClick={()=>{setShowInfo(false);setShowChangeRel(true);}}>
+              Change relationship
+            </TextureButton>
             <TextureButton variant="ghost" style={{width:"100%",padding:"14px 32px",marginBottom:12}} onClick={()=>{setShowInfo(false);setShowReset(true);}}>
               Reset progress{seenQuestions.size>0?` · ${seenQuestions.size} seen`:""}
             </TextureButton>
