@@ -1566,6 +1566,21 @@ export default function App() {
         </div>
       )}
 
+      {/* ── PERSISTENT BACK ARROW (mirrors the ⓘ, fixed top-left) ── */}
+      {!showInfo && !showReset && (screen==="deck"||screen==="play"||screen==="connected-play") && (
+        <div style={{position:"fixed",top:"calc(env(safe-area-inset-top) + 12px)",left:14,zIndex:50,pointerEvents:"auto"}}>
+          <button className="btn-back-arrow" onClick={()=>{
+            if(screen==="connected-play"){saveTogetherProgress();leaveRoom();setScreen("deck");}
+            else if(screen==="play"){setScreen("deck");}
+            else {if(togetherMode){setTogetherMode(false);setScreen("together");}else{setScreen("home");}}
+          }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A08868" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 12H5M12 5l-7 7 7 7"/>
+            </svg>
+          </button>
+        </div>
+      )}
+
       {/* ── INFO MODAL ── */}
       {showInfo&&(
         <div style={{position:"fixed",inset:0,background:"rgba(44,35,24,0.6)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:100,padding:24}}>
@@ -1824,14 +1839,8 @@ export default function App() {
       {/* ── DECK BUILDER ── */}
       {screen==="deck"&&(
         <div style={{display:"flex",flexDirection:"column",alignItems:"center",padding:"0 20px 80px",width:"100%",maxWidth:460}}>
-          {/* Back arrow aligned with persistent ⓘ */}
-          <div style={{width:"100%",paddingTop:14,paddingBottom:0,display:"flex",alignItems:"center",justifyContent:"flex-start"}}>
-            <button className="btn-back-arrow" onClick={()=>{if(togetherMode){setTogetherMode(false);setScreen("together");}else{setScreen("home");}}}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A08868" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M19 12H5M12 5l-7 7 7 7"/>
-              </svg>
-            </button>
-          </div>
+          {/* Spacer to clear the fixed back arrow / ⓘ */}
+          <div style={{width:"100%",height:36,flexShrink:0}}/>
           {/* Heading with generous space */}
           <div style={{width:"100%",textAlign:"center",paddingTop:32,paddingBottom:32}}>
             <p style={{...GF_TITLE,fontSize:30,color:"#3C2010",lineHeight:1.3,marginBottom:10}}>Where are you in your relationship?</p>
@@ -1908,14 +1917,8 @@ export default function App() {
       {/* ── PLAY ── */}
       {screen==="play"&&(
         <div style={{display:"flex",flexDirection:"column",alignItems:"center",width:"100%",maxWidth:460,height:"100vh",maxHeight:"100vh",boxSizing:"border-box",paddingLeft:12,paddingRight:12,paddingTop:"calc(env(safe-area-inset-top) + 8px)",paddingBottom:"calc(env(safe-area-inset-bottom) + 10px)"}}>
-          {/* Back arrow */}
-          <div style={{width:"100%",paddingBottom:6,display:"flex",alignItems:"center",justifyContent:"flex-start",flexShrink:0}}>
-            <button className="btn-back-arrow" onClick={()=>setScreen("deck")}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A08868" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M19 12H5M12 5l-7 7 7 7"/>
-              </svg>
-            </button>
-          </div>
+          {/* Spacer to clear the fixed back arrow */}
+          <div style={{width:"100%",height:30,flexShrink:0}}/>
           {/* Category pills — lowered 5mm, 2mm extra row gap */}
           <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,width:"100%",flexShrink:0}}>
             {Array.from({length:Math.ceil(CATEGORY_ORDER.length/3)}).map((_,rowIdx)=>(
@@ -1954,7 +1957,7 @@ export default function App() {
               const body=(t)=><p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#A08868",lineHeight:1.7,marginBottom:22,maxWidth:264}}>{t}</p>;
               const primaryStyle={width:"100%",maxWidth:280,padding:"13px 24px",marginBottom:10};
               const connexionBtn=<TextureButton variant="ghost" style={primaryStyle} onClick={openConnexion}>Explore other Connexion Studio apps</TextureButton>;
-              const resetLink=(label,fn)=><button onClick={fn} style={{background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#B8A888",letterSpacing:"0.04em",textDecoration:"underline",textUnderlineOffset:"3px",marginTop:6}}>{label}</button>;
+              const resetLink=(label,fn)=><button onClick={fn} style={{background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#B8A888",letterSpacing:"0.04em",marginTop:6}}>{label}</button>;
               const curLabel=RELATIONSHIP_TYPES.find(r=>r.id===relationshipType)?.label;
 
               // No stage selected (manual category deck) -- simple completion
@@ -2163,13 +2166,8 @@ export default function App() {
             {/* ── CONNECTED PLAY ── */}
       {screen==="connected-play"&&(
         <div style={{display:"flex",flexDirection:"column",alignItems:"center",width:"100%",maxWidth:460,height:"100vh",maxHeight:"100vh",boxSizing:"border-box",paddingLeft:12,paddingRight:12,paddingTop:"calc(env(safe-area-inset-top) + 8px)",paddingBottom:"calc(env(safe-area-inset-bottom) + 10px)"}}>
-          {/* Header */}
-          <div style={{width:"100%",paddingBottom:6,display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
-            <button className="btn-back-arrow" onClick={()=>{saveTogetherProgress();leaveRoom();setScreen("deck");}}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A08868" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M19 12H5M12 5l-7 7 7 7"/>
-              </svg>
-            </button>
+          {/* Header — back arrow is now the persistent fixed one (top-left) */}
+          <div style={{width:"100%",paddingBottom:6,display:"flex",alignItems:"center",justifyContent:"flex-end",flexShrink:0}}>
             <div style={{display:"flex",alignItems:"center",gap:6}}>
               <div style={{width:7,height:7,borderRadius:"50%",background:roomStatus==="connected"?"#5A8A5A":"#C4A882"}}/>
               <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#7A5840",letterSpacing:"0.04em"}}>
@@ -2239,7 +2237,7 @@ export default function App() {
               const bodyC=(t)=><p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#A08868",lineHeight:1.7,marginBottom:22,maxWidth:264}}>{t}</p>;
               const primaryStyleC={width:"100%",maxWidth:280,padding:"13px 24px",marginBottom:10};
               const connexionBtnC=<TextureButton variant="ghost" style={primaryStyleC} onClick={openConnexion}>Explore other Connexion Studio apps</TextureButton>;
-              const resetLinkC=(label,fn)=><button onClick={fn} style={{background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#B8A888",letterSpacing:"0.04em",textDecoration:"underline",textUnderlineOffset:"3px",marginTop:6}}>{label}</button>;
+              const resetLinkC=(label,fn)=><button onClick={fn} style={{background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#B8A888",letterSpacing:"0.04em",marginTop:6}}>{label}</button>;
               let inner;
               if(!relationshipType){
                 inner=<>{headingC("You've completed the deck!")}{bodyC("You've worked your way through every question in this deck. The conversations and connections you've built are what matter most.")}{connexionBtnC}{resetLinkC("Reset questions", replayRoom)}</>;
