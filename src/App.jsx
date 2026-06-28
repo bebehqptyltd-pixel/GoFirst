@@ -866,6 +866,12 @@ function flipQuestion(q){
 }
 
 const STAGE_ORDER = ['friends','just_together','were_a_thing','committed'];
+
+// Connexion Studio cross-promo. Set this URL once the coming-soon site is live;
+// until then the button renders but intentionally does nothing.
+const CONNEXION_URL = null;
+function openConnexion(){ if(CONNEXION_URL){ try{ window.open(CONNEXION_URL,"_blank","noopener"); }catch{} } }
+
 function buildPool(activeCats, stageId, spicyLevel) {
   return ALL_QUESTIONS.filter(q => {
     if (!activeCats.includes(q.category)) return false;
@@ -1056,6 +1062,9 @@ export default function App() {
   const [parkedForStage, setParkedForStage] = useState(new Set(mem.parkedForStage||[]));
   const [stageQueue, setStageQueue] = useState(Array.isArray(mem.stageQueue)?mem.stageQueue:[]);
   const [showPark, setShowPark] = useState(false);
+  // Dev-only testing shortcut: add ?dev=1 to the URL to reveal a button that
+  // jumps straight to the exhaustion screen for the current stage.
+  const DEV = typeof window!=="undefined" && new URLSearchParams(window.location.search).get("dev")==="1";
   const [flipped, setFlipped] = useState(false);
   const [current, setCurrent] = useState(null);
   const [nextCard, setNextCard] = useState(null);
@@ -1490,6 +1499,12 @@ export default function App() {
     setFlipped(false);setCount(c=>c+1);setDragX(0);setGone(false);setIsDragging(false);hasDragged.current=false;setPerspectiveFlipped(false);
   },[current,nextCard,activeCats,relationshipType,spicyLevel,seenQuestions,parkedLater,parkedForStage,stageQueue]);
 
+  // Dev shortcut: force the current deck to its exhaustion screen.
+  const devExhaust=()=>{
+    if(screen==="connected-play" && roomCode){ syncAction({currentQuestion:null,nextQuestion:null}); return; }
+    setCurrent(null); setNextCard(null); setFlipped(false); setDeckExhausted(true);
+  };
+
   // Start a clean game in a fresh unnamed "Last game" slot
   const doResetFresh=()=>{
     setActiveSaveId(LAST_GAME_ID);
@@ -1575,6 +1590,10 @@ export default function App() {
             <button onClick={()=>setShowInfo(false)} style={{background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#B8A888",marginTop:4,display:"block",width:"100%"}}>Close</button>
           </div>
         </div>
+      )}
+
+      {DEV && (screen==="play"||screen==="connected-play") && (
+        <button onClick={devExhaust} style={{position:"fixed",left:12,bottom:12,zIndex:200,background:"#3C2410",color:"#F5EDD9",border:"none",borderRadius:8,padding:"6px 11px",fontSize:11,fontWeight:600,fontFamily:"'DM Sans',sans-serif",letterSpacing:"0.04em",opacity:0.8,cursor:"pointer"}}>⏭ END</button>
       )}
 
       {/* ── PARK PROMPT ── */}
@@ -1926,55 +1945,57 @@ export default function App() {
               const nextId = STAGE_ORDER[idx+1];
               const nextStage = RELATIONSHIP_TYPES.find(r=>r.id===nextId);
               const wrap = (children)=>(
-                <div style={{position:"absolute",inset:0,zIndex:2,background:"#F5EDE0",border:"1.5px solid #E8DDD0",borderRadius:20,padding:"32px 24px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",boxShadow:"-4px 12px 40px rgba(54,28,8,0.16)"}}>
+                <div style={{position:"absolute",inset:0,zIndex:2,background:"#F5EDE0",border:"1.5px solid #E8DDD0",borderRadius:20,padding:"28px 24px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",overflowY:"auto",boxShadow:"-4px 12px 40px rgba(54,28,8,0.16)"}}>
                   <div style={{position:"absolute",inset:10,border:"1px solid rgba(180,160,140,0.25)",borderRadius:12,pointerEvents:"none"}}/>
                   {children}
                 </div>
               );
-              const heading=(t)=><p style={{...GF_TITLE,fontSize:26,color:"#3C2010",lineHeight:1.3,marginBottom:12}}>{t}</p>;
-              const body=(t)=><p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#A08868",lineHeight:1.7,marginBottom:26,maxWidth:260}}>{t}</p>;
-              const ghostRow=(
-                <div style={{display:"flex",gap:10,marginTop:4}}>
-                  <button onClick={replayCurrent} style={{background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#8B6445",letterSpacing:"0.02em"}}>Replay these</button>
-                  <span style={{color:"#D8C9B4"}}>·</span>
-                  <button onClick={()=>setScreen("home")} style={{background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#B8A888",letterSpacing:"0.02em"}}>Done</button>
-                </div>
-              );
+              const heading=(t)=><p style={{...GF_TITLE,fontSize:25,color:"#3C2010",lineHeight:1.3,marginBottom:12}}>{t}</p>;
+              const body=(t)=><p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#A08868",lineHeight:1.7,marginBottom:22,maxWidth:264}}>{t}</p>;
+              const primaryStyle={width:"100%",maxWidth:280,padding:"13px 24px",marginBottom:10};
+              const connexionBtn=<TextureButton variant="ghost" style={primaryStyle} onClick={openConnexion}>Explore other Connexion Studio apps</TextureButton>;
+              const resetLink=(label,fn)=><button onClick={fn} style={{background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#B8A888",letterSpacing:"0.04em",textDecoration:"underline",textUnderlineOffset:"3px",marginTop:6}}>{label}</button>;
+              const curLabel=RELATIONSHIP_TYPES.find(r=>r.id===relationshipType)?.label;
 
               // No stage selected (manual category deck) -- simple completion
               if(!relationshipType){
                 return wrap(<>
-                  {heading("You've asked it all")}
-                  {body("Every question in your deck has been asked. The conversations you've had are the ones worth having.")}
-                  {ghostRow}
+                  {heading("You've completed the deck!")}
+                  {body("You've worked your way through every question in this deck. The conversations and connections you've built are what matter most.")}
+                  {connexionBtn}
+                  {resetLink("Reset questions", replayCurrent)}
                 </>);
               }
 
               // Friends & groups -- sideways invite to the couples track
               if(relationshipType==="friends"){
                 return wrap(<>
-                  {heading("You've explored everything here")}
-                  {body("Playing with a partner? There's a whole deck waiting for couples.")}
-                  <TextureButton style={{padding:"13px 30px",marginBottom:6}} onClick={()=>changeRelationship("just_together")}>Explore couple questions</TextureButton>
-                  {ghostRow}
+                  {heading("You've explored it all!")}
+                  {body("Looking to go deeper? Explore the couple decks with your partner and discover a whole new level of connection.")}
+                  <TextureButton style={primaryStyle} onClick={()=>changeRelationship("just_together")}>Explore couple questions</TextureButton>
+                  {connexionBtn}
+                  {resetLink("Reset questions", replayCurrent)}
                 </>);
               }
 
               // Long-term connection -- top stage, completion message
               if(!nextStage){
                 return wrap(<>
-                  {heading("You've been through them all")}
-                  {body("You've explored every Long-term connection question, that's hundreds of conversations. New questions are on the way. Until then, you can revisit any of these.")}
-                  {ghostRow}
+                  {heading("You've shared it all… for now!")}
+                  {body("You've explored every Long-term connection question, hundreds of conversations worth having. New questions are on the way. Until then, revisit your favourites and see what feels different.")}
+                  <TextureButton style={primaryStyle} onClick={replayCurrent}>Replay Long-term connection</TextureButton>
+                  {connexionBtn}
+                  {resetLink("Reset all questions", requestReset)}
                 </>);
               }
 
               // Learning each other / Building on history -- guided step up
               return wrap(<>
                 {heading("Ready to go deeper?")}
-                {body(`You've been through every ${RELATIONSHIP_TYPES.find(r=>r.id===relationshipType)?.label} question. There's more waiting at ${nextStage.label}.`)}
-                <TextureButton style={{padding:"13px 30px",marginBottom:6}} onClick={()=>changeRelationship(nextId)}>Move to {nextStage.label}</TextureButton>
-                {ghostRow}
+                {body(`You've explored every ${curLabel} question. Continue your journey with ${nextStage.label}.`)}
+                <TextureButton style={primaryStyle} onClick={()=>changeRelationship(nextId)}>Move to {nextStage.label}</TextureButton>
+                {connexionBtn}
+                {resetLink("Reset questions", replayCurrent)}
               </>);
             })()}
             {current&&!deckExhausted&&(
@@ -2214,28 +2235,23 @@ export default function App() {
                 const s2=pickNextUnseen(pool2,new Set(),f?.question||"");
                 await syncAction({seenQuestions:[],currentQuestion:f||null,nextQuestion:s2||null,flipped:false,perspectiveFlipped:false});
               };
-              const doneOut=()=>{saveTogetherProgress();leaveRoom();setScreen("deck");};
-              const headingC=(t)=><p style={{...GF_TITLE,fontSize:26,color:"#3C2010",lineHeight:1.3,marginBottom:12}}>{t}</p>;
-              const bodyC=(t)=><p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#A08868",lineHeight:1.7,marginBottom:26,maxWidth:260}}>{t}</p>;
-              const ghostRowC=(
-                <div style={{display:"flex",gap:10,marginTop:4}}>
-                  <button onClick={replayRoom} style={{background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#8B6445",letterSpacing:"0.02em"}}>Replay these</button>
-                  <span style={{color:"#D8C9B4"}}>·</span>
-                  <button onClick={doneOut} style={{background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#B8A888",letterSpacing:"0.02em"}}>Done</button>
-                </div>
-              );
+              const headingC=(t)=><p style={{...GF_TITLE,fontSize:25,color:"#3C2010",lineHeight:1.3,marginBottom:12}}>{t}</p>;
+              const bodyC=(t)=><p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#A08868",lineHeight:1.7,marginBottom:22,maxWidth:264}}>{t}</p>;
+              const primaryStyleC={width:"100%",maxWidth:280,padding:"13px 24px",marginBottom:10};
+              const connexionBtnC=<TextureButton variant="ghost" style={primaryStyleC} onClick={openConnexion}>Explore other Connexion Studio apps</TextureButton>;
+              const resetLinkC=(label,fn)=><button onClick={fn} style={{background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#B8A888",letterSpacing:"0.04em",textDecoration:"underline",textUnderlineOffset:"3px",marginTop:6}}>{label}</button>;
               let inner;
               if(!relationshipType){
-                inner=<>{headingC("You've asked it all")}{bodyC("Every question in your deck has been asked. The conversations you've had are the ones worth having.")}{ghostRowC}</>;
+                inner=<>{headingC("You've completed the deck!")}{bodyC("You've worked your way through every question in this deck. The conversations and connections you've built are what matter most.")}{connexionBtnC}{resetLinkC("Reset questions", replayRoom)}</>;
               } else if(relationshipType==="friends"){
-                inner=<>{headingC("You've explored everything here")}{bodyC("Ready to go deeper as a couple? There's a whole deck waiting.")}<TextureButton style={{padding:"13px 30px",marginBottom:6}} onClick={()=>changeRelationship("just_together")}>Explore couple questions</TextureButton>{ghostRowC}</>;
+                inner=<>{headingC("You've explored it all!")}{bodyC("Ready to go deeper? Explore the couple decks and discover new conversations together.")}<TextureButton style={primaryStyleC} onClick={()=>changeRelationship("just_together")}>Explore couple questions</TextureButton>{connexionBtnC}{resetLinkC("Reset questions", replayRoom)}</>;
               } else if(!nextStage){
-                inner=<>{headingC("You've been through them all")}{bodyC("You've explored every Long-term connection question together, that's hundreds of conversations. New questions are on the way. Until then, you can revisit any of these.")}{ghostRowC}</>;
+                inner=<>{headingC("You've shared it all… for now!")}{bodyC("You've explored every Long-term connection question, hundreds of conversations worth having. New questions are on the way. Until then, revisit your favourites and see what feels different.")}<TextureButton style={primaryStyleC} onClick={replayRoom}>Replay Long-term connection</TextureButton>{connexionBtnC}{resetLinkC("Reset all questions", replayRoom)}</>;
               } else {
-                inner=<>{headingC("Ready to go deeper?")}{bodyC(`You've been through every ${currentStage?.label} question together. There's more waiting at ${nextStage.label}.`)}<TextureButton style={{padding:"13px 30px",marginBottom:6}} onClick={()=>changeRelationship(nextId)}>Move to {nextStage.label}</TextureButton>{ghostRowC}</>;
+                inner=<>{headingC("Ready to go deeper?")}{bodyC(`You've explored every ${currentStage?.label} question. Continue your journey with ${nextStage.label}.`)}<TextureButton style={primaryStyleC} onClick={()=>changeRelationship(nextId)}>Move to {nextStage.label}</TextureButton>{connexionBtnC}{resetLinkC("Reset questions", replayRoom)}</>;
               }
               return(
-                <div style={{position:"relative",width:"100%",maxWidth:340,minHeight:"55vh",maxHeight:460,flexShrink:0,marginBottom:8,background:"#F5EDE0",border:"1.5px solid #E8DDD0",borderRadius:20,padding:"32px 24px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",boxShadow:"-4px 12px 40px rgba(54,28,8,0.16)"}}>
+                <div style={{position:"relative",width:"100%",maxWidth:340,minHeight:"55vh",maxHeight:460,flexShrink:0,marginBottom:8,background:"#F5EDE0",border:"1.5px solid #E8DDD0",borderRadius:20,padding:"28px 24px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",overflowY:"auto",boxShadow:"-4px 12px 40px rgba(54,28,8,0.16)"}}>
                   <div style={{position:"absolute",inset:10,border:"1px solid rgba(180,160,140,0.25)",borderRadius:12,pointerEvents:"none"}}/>
                   {inner}
                 </div>
