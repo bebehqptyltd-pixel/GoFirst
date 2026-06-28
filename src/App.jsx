@@ -887,6 +887,31 @@ function pickNextUnseen(pool,seenSet,excludeQ){
   return null; // nothing left unseen -- signals the deck is exhausted
 }
 
+function findQ(text){ for(const q of ALL_QUESTIONS){ if(q.question===text) return q; } return null; }
+
+// Solo next-card picker that understands parking.
+// Priority: (1) stageQueue -- cards saved "for next stage", injected at the
+// front of the new stage; (2) fresh unseen cards (excluding both park sets);
+// (3) park-for-later cards, served once the fresh deck is spent. Returns the
+// chosen card plus the (possibly shortened) stageQueue.
+function pickSolo(pool, seenSet, laterSet, stageSet, queueArr, excludeQ){
+  const q = queueArr ? [...queueArr] : [];
+  while(q.length){
+    const t = q[0];
+    if(!seenSet.has(t) && t!==excludeQ){
+      const obj = findQ(t);
+      if(obj) return {pick:obj, queue:q.slice(1)};
+    }
+    q.shift(); // drop stale/seen entries
+  }
+  const fresh = pool.filter(x=>!seenSet.has(x.question)&&!laterSet.has(x.question)&&!stageSet.has(x.question)&&x.question!==excludeQ);
+  if(fresh.length) return {pick:fresh[Math.floor(Math.random()*fresh.length)], queue:q};
+  const later=[];
+  laterSet.forEach(t=>{ if(t!==excludeQ && pool.some(x=>x.question===t)) later.push(t); });
+  if(later.length) return {pick:findQ(later[0]), queue:q};
+  return {pick:null, queue:q};
+}
+
 function TexturePill({cat, isOn, onClick, size="normal", disabled=false}) {
   const d = CATEGORIES[cat];
   if (!d) return null;
@@ -1025,6 +1050,12 @@ export default function App() {
   const [perspectiveFlipped, setPerspectiveFlipped] = useState(false);
   const [seenQuestions, setSeenQuestions] = useState(new Set(mem.seen||[]));
   const [totalPlayed, setTotalPlayed] = useState(mem.totalPlayed||0);
+  // Parking: park-for-later returns at the end of the deck; park-for-stage is
+  // held out of the current stage and injected at the front of the next one.
+  const [parkedLater, setParkedLater] = useState(new Set(mem.parkedLater||[]));
+  const [parkedForStage, setParkedForStage] = useState(new Set(mem.parkedForStage||[]));
+  const [stageQueue, setStageQueue] = useState(Array.isArray(mem.stageQueue)?mem.stageQueue:[]);
+  const [showPark, setShowPark] = useState(false);
   const [flipped, setFlipped] = useState(false);
   const [current, setCurrent] = useState(null);
   const [nextCard, setNextCard] = useState(null);
@@ -1096,7 +1127,7 @@ export default function App() {
   // Are there any saves worth showing in the list?
   const hasAnySaves = Object.values(saves).some(s=>s && (s.seen?.length || s.totalPlayed));
 
-  useEffect(()=>{saveMemory({seen:[...seenQuestions],totalPlayed,activeCats,hasSeenTutorial});},[seenQuestions,totalPlayed,activeCats,hasSeenTutorial]);
+  useEffect(()=>{saveMemory({seen:[...seenQuestions],totalPlayed,activeCats,hasSeenTutorial,parkedLater:[...parkedLater],parkedForStage:[...parkedForStage],stageQueue});},[seenQuestions,totalPlayed,activeCats,hasSeenTutorial,parkedLater,parkedForStage,stageQueue]);
 
   // Auto-save live progress to the active save slot during solo play.
   // (Connected play tracks progress in the room, not local saves.)
@@ -1114,11 +1145,14 @@ export default function App() {
           spicyLevel,
           seen:[...seenQuestions],
           totalPlayed,
+          parkedLater:[...parkedLater],
+          parkedForStage:[...parkedForStage],
+          stageQueue,
           updatedAt:Date.now(),
         }
       };
     });
-  },[seenQuestions,totalPlayed,screen,activeSaveId,relationshipType,activeCats,spicyLevel]);
+  },[seenQuestions,totalPlayed,screen,activeSaveId,relationshipType,activeCats,spicyLevel,parkedLater,parkedForStage,stageQueue]);
 
   // Restore a saved game into live play
   const restoreSave = useCallback((id)=>{
@@ -1127,6 +1161,9 @@ export default function App() {
     setActiveSaveId(id);
     setSeenQuestions(new Set(s.seen||[]));
     setTotalPlayed(s.totalPlayed||0);
+    setParkedLater(new Set(s.parkedLater||[]));
+    setParkedForStage(new Set(s.parkedForStage||[]));
+    setStageQueue(Array.isArray(s.stageQueue)?s.stageQueue:[]);
     if(s.stage) setRelationshipType(s.stage);
     if(Array.isArray(s.activeCats)&&s.activeCats.length) setActiveCats(s.activeCats);
     setSpicyLevel(typeof s.spicyLevel==="number"?s.spicyLevel:0);
@@ -1251,20 +1288,26 @@ export default function App() {
     setActiveCats(cats);
     setSpicyLevel(newSpicy);
     const p = buildPool(cats, stageId, newSpicy);
-    const first = pickNextUnseen(p, seenQuestions, "");
-    const second = pickNextUnseen(p, seenQuestions, first?.question||"");
-    setCurrent(first); setNextCard(second);
+    // Cards saved "for next stage" surface now, at the front of the new deck.
+    const injected = [...parkedForStage, ...stageQueue];
+    const clearedStage = new Set();
+    setParkedForStage(clearedStage);
+    const r1 = pickSolo(p, seenQuestions, parkedLater, clearedStage, injected, "");
+    const r2 = pickSolo(p, seenQuestions, parkedLater, clearedStage, r1.queue, r1.pick?.question||"");
+    setStageQueue(r2.queue);
+    setCurrent(r1.pick); setNextCard(r2.pick);
     setFlipped(false); setDragX(0); setGone(false); setIsDragging(false);
     hasDragged.current=false; setPerspectiveFlipped(false);
-    setDeckExhausted(!first);
+    setDeckExhausted(!r1.pick);
     setCount(c=>c+1);
     setShowChangeRel(false); setShowInfo(false);
-  },[catsForStage,spicyLevel,seenQuestions,screen,roomCode,roomState,syncAction]);
+  },[catsForStage,spicyLevel,seenQuestions,screen,roomCode,roomState,syncAction,parkedLater,parkedForStage,stageQueue]);
 
   // Replay the current deck from scratch (clears seen for this configuration)
   const replayCurrent = useCallback(()=>{
     setSeenQuestions(new Set());
     setTotalPlayed(0);
+    setParkedLater(new Set()); setParkedForStage(new Set()); setStageQueue([]);
     const p = buildPool(activeCats, relationshipType, spicyLevel);
     const empty = new Set();
     const first = pickNextUnseen(p, empty, "");
@@ -1396,25 +1439,64 @@ export default function App() {
 
   const advance = useCallback(()=>{
     if(!current)return;
-    markSeen(current.question);
+    const cq=current.question;
+    markSeen(cq);
     const p=buildPool(activeCats,relationshipType,spicyLevel);
     const newSeen=new Set(seenQuestions);
-    newSeen.add(current.question);
+    newSeen.add(cq);
+    // A park-for-later card, once answered, leaves the parked queue for good.
+    let newLater=parkedLater;
+    if(parkedLater.has(cq)){ newLater=new Set(parkedLater); newLater.delete(cq); setParkedLater(newLater); }
     // No card queued behind this one -- the deck is exhausted
     if(!nextCard){
       setCurrent(null);setNextCard(null);setFlipped(false);setDragX(0);setGone(false);setIsDragging(false);hasDragged.current=false;setPerspectiveFlipped(false);setDeckExhausted(true);
       return;
     }
-    const upcoming=pickNextUnseen(p,newSeen,nextCard.question);
-    setCurrent(nextCard);setNextCard(upcoming);setFlipped(false);setCount(c=>c+1);setDragX(0);setGone(false);setIsDragging(false);hasDragged.current=false;setPerspectiveFlipped(false);
-  },[nextCard,current,activeCats,seenQuestions,markSeen,relationshipType,spicyLevel]);
+    const {pick,queue}=pickSolo(p,newSeen,newLater,parkedForStage,stageQueue,nextCard.question);
+    if(queue!==stageQueue) setStageQueue(queue);
+    setCurrent(nextCard);setNextCard(pick);setFlipped(false);setCount(c=>c+1);setDragX(0);setGone(false);setIsDragging(false);hasDragged.current=false;setPerspectiveFlipped(false);
+  },[nextCard,current,activeCats,seenQuestions,markSeen,relationshipType,spicyLevel,parkedLater,parkedForStage,stageQueue]);
+
+  // Park the current card without burning it as seen.
+  //  mode "later" -> comes back at the end of this deck
+  //  mode "stage" -> held out, surfaces at the front of the next stage
+  const parkCard = useCallback((mode)=>{
+    setShowPark(false);
+    if(!current) return;
+    const cq=current.question;
+    const p=buildPool(activeCats,relationshipType,spicyLevel);
+    let newLater=parkedLater, newStage=parkedForStage;
+    if(mode==="stage"){
+      newStage=new Set(parkedForStage); newStage.add(cq); setParkedForStage(newStage);
+    } else {
+      newLater=new Set(parkedLater); newLater.add(cq); setParkedLater(newLater);
+    }
+    // Move past the parked card. Excluding cq stops it reappearing immediately.
+    if(nextCard){
+      const {pick,queue}=pickSolo(p,seenQuestions,newLater,newStage,stageQueue,nextCard.question);
+      setStageQueue(queue);
+      setCurrent(nextCard);setNextCard(pick);
+    } else {
+      const r1=pickSolo(p,seenQuestions,newLater,newStage,stageQueue,cq);
+      if(!r1.pick){
+        setStageQueue(r1.queue);
+        setCurrent(null);setNextCard(null);setFlipped(false);setDragX(0);setGone(false);setIsDragging(false);hasDragged.current=false;setPerspectiveFlipped(false);setDeckExhausted(true);
+        return;
+      }
+      const r2=pickSolo(p,seenQuestions,newLater,newStage,r1.queue,r1.pick.question);
+      setStageQueue(r2.queue);
+      setCurrent(r1.pick);setNextCard(r2.pick);
+    }
+    setFlipped(false);setCount(c=>c+1);setDragX(0);setGone(false);setIsDragging(false);hasDragged.current=false;setPerspectiveFlipped(false);
+  },[current,nextCard,activeCats,relationshipType,spicyLevel,seenQuestions,parkedLater,parkedForStage,stageQueue]);
 
   // Start a clean game in a fresh unnamed "Last game" slot
   const doResetFresh=()=>{
     setActiveSaveId(LAST_GAME_ID);
     setSeenQuestions(new Set());
     setTotalPlayed(0);
-    setSaves(prev=>({...prev,[LAST_GAME_ID]:{id:LAST_GAME_ID,name:"Last game",isUnnamed:true,stage:relationshipType,activeCats,spicyLevel,seen:[],totalPlayed:0,updatedAt:Date.now()}}));
+    setParkedLater(new Set()); setParkedForStage(new Set()); setStageQueue([]);
+    setSaves(prev=>({...prev,[LAST_GAME_ID]:{id:LAST_GAME_ID,name:"Last game",isUnnamed:true,stage:relationshipType,activeCats,spicyLevel,seen:[],totalPlayed:0,parkedLater:[],parkedForStage:[],stageQueue:[],updatedAt:Date.now()}}));
     setShowReset(false);
     setOverwritePromptOpen(false);
     setDeckExhausted(false);
@@ -1494,6 +1576,27 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* ── PARK PROMPT ── */}
+      {showPark&&(()=>{
+        const idx = relationshipType ? STAGE_ORDER.indexOf(relationshipType) : -1;
+        const nextStage = (idx>=0 && idx<STAGE_ORDER.length-1) ? RELATIONSHIP_TYPES.find(r=>r.id===STAGE_ORDER[idx+1]) : null;
+        return (
+          <div style={{position:"fixed",inset:0,background:"rgba(44,35,24,0.6)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:110,padding:24}} onClick={()=>setShowPark(false)}>
+            <div style={{background:"#FBF5EC",borderRadius:20,padding:"32px 28px",width:"100%",maxWidth:340,textAlign:"center"}} onClick={e=>e.stopPropagation()}>
+              <p style={{...GF_TITLE,fontSize:23,color:"#3C2010",marginBottom:8}}>Not right now?</p>
+              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#7A5840",lineHeight:1.6,marginBottom:24}}>Set this card aside without losing it.</p>
+              <TextureButton style={{width:"100%",marginBottom:12}} onClick={()=>parkCard("later")}>Park for later</TextureButton>
+              {nextStage&&(
+                <TextureButton variant="ghost" style={{width:"100%",padding:"14px 28px",marginBottom:12}} onClick={()=>parkCard("stage")}>
+                  Save for {nextStage.label}
+                </TextureButton>
+              )}
+              <button onClick={()=>setShowPark(false)} style={{background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#B8A888",letterSpacing:"0.02em",marginTop:4}}>Cancel</button>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ── CHANGE RELATIONSHIP PICKER ── */}
       {showChangeRel&&(
@@ -1898,7 +2001,13 @@ export default function App() {
                       <div style={{width:5,height:5,borderRadius:"50%",background:"#3C2410",flexShrink:0}}/>
                       <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:9,letterSpacing:"0.18em",textTransform:"uppercase",color:"#3C2410",opacity:0.6}}>{current.category}</p>
                     </div>
-                    <SpicyBadge level={current.spicy}/>
+                    <div style={{display:"flex",alignItems:"center",gap:8}}>
+                      <SpicyBadge level={current.spicy}/>
+                      <button onClick={(e)=>{e.stopPropagation();audio.click();setShowPark(true);}} style={{background:"transparent",border:"1px solid #C4A882",borderRadius:100,padding:"4px 12px",cursor:"pointer",display:"flex",alignItems:"center",gap:5,transition:"all 0.2s"}}>
+                        <svg width="9" height="11" viewBox="0 0 9 11" fill="none" style={{flexShrink:0}}><path d="M1 1.5h7v8L4.5 7 1 9.5v-8z" stroke="#8B6445" strokeWidth="1.1" strokeLinejoin="round"/></svg>
+                        <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:10,letterSpacing:"0.12em",textTransform:"uppercase",color:"#8B6445",fontWeight:500}}>Park</span>
+                      </button>
+                    </div>
                   </div>
                   <p style={{...GF_TITLE,fontSize:20,lineHeight:1.6,color:"#2C1808",flex:1,display:"flex",alignItems:"center",paddingTop:10,textAlign:"left"}}>
                     {displayQuestion}
