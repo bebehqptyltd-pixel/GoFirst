@@ -1284,14 +1284,20 @@ export default function App() {
       const newSpicy = Math.min(roomState.spicyLevel||0, stageMax);
       const p = buildPool(cats, stageId, newSpicy);
       const seenSet = new Set(roomState.seenQuestions||[]);
-      const first = pickNextUnseen(p, seenSet, "");
-      const second = pickNextUnseen(p, seenSet, first?.question||"");
+      const later = new Set(roomState.parkedLater||[]);
+      // cards saved "for next stage" surface now, at the front of the new deck
+      const injected = [...(roomState.parkedForStage||[]), ...(Array.isArray(roomState.stageQueue)?roomState.stageQueue:[])];
+      const clearedStage = new Set();
+      const r1 = pickSolo(p, seenSet, later, clearedStage, injected, "");
+      const r2 = pickSolo(p, seenSet, later, clearedStage, r1.queue, r1.pick?.question||"");
       syncAction({
         stage:stageId,
         activeCats:cats,
         spicyLevel:newSpicy,
-        currentQuestion:first||null,
-        nextQuestion:second||null,
+        currentQuestion:r1.pick||null,
+        nextQuestion:r2.pick||null,
+        parkedForStage:[],
+        stageQueue:r2.queue,
         flipped:false,
         perspectiveFlipped:false,
       });
@@ -1427,10 +1433,12 @@ export default function App() {
     const usedCats=cats||activeCats;
     const p=buildPool(usedCats,relationshipType,spicyLevel);
     if(!p.length)return;
-    const first=pickNextUnseen(p,seenQuestions,"");
-    const second=pickNextUnseen(p,seenQuestions,first?.question||"");
+    const r1=pickSolo(p,seenQuestions,parkedLater,parkedForStage,stageQueue,"");
+    const r2=pickSolo(p,seenQuestions,parkedLater,parkedForStage,r1.queue,r1.pick?.question||"");
+    setStageQueue(r2.queue);
+    const first=r1.pick, second=r2.pick;
     setCurrent(first);setNextCard(second);setFlipped(false);setCount(1);setDragX(0);setGone(false);setIsDragging(false);setDeckExhausted(!first);setScreen("play");
-  },[activeCats,seenQuestions,relationshipType,spicyLevel]);
+  },[activeCats,seenQuestions,relationshipType,spicyLevel,parkedLater,parkedForStage,stageQueue]);
 
   // Starting a game from the deck builder always plays the unnamed Last game,
   // so named saves are never overwritten. If returning from a named save,
@@ -1439,12 +1447,18 @@ export default function App() {
     if(activeSaveId!==LAST_GAME_ID){
       const lg = saves[LAST_GAME_ID];
       const lgSeen = new Set(lg?.seen||[]);
+      const lgLater = new Set(lg?.parkedLater||[]);
+      const lgStage = new Set(lg?.parkedForStage||[]);
+      const lgQueue = Array.isArray(lg?.stageQueue)?lg.stageQueue:[];
       setActiveSaveId(LAST_GAME_ID);
       setSeenQuestions(lgSeen);
       setTotalPlayed(lg?.totalPlayed||0);
+      setParkedLater(lgLater); setParkedForStage(lgStage);
       const p = buildPool(activeCats, relationshipType, spicyLevel);
-      const first = pickNextUnseen(p, lgSeen, "");
-      const second = pickNextUnseen(p, lgSeen, first?.question||"");
+      const r1 = pickSolo(p, lgSeen, lgLater, lgStage, lgQueue, "");
+      const r2 = pickSolo(p, lgSeen, lgLater, lgStage, r1.queue, r1.pick?.question||"");
+      setStageQueue(r2.queue);
+      const first = r1.pick, second = r2.pick;
       setCurrent(first); setNextCard(second);
       setFlipped(false); setCount(1); setDragX(0); setGone(false); setIsDragging(false); setDeckExhausted(!first);
       setScreen("play");
@@ -1476,7 +1490,34 @@ export default function App() {
   // Park the current card without burning it as seen.
   //  mode "later" -> comes back at the end of this deck
   //  mode "stage" -> held out, surfaces at the front of the next stage
+  // Connected (Play Together) park -- mirrors the solo logic through the shared
+  // room state so a parked card leaves and returns for BOTH players.
+  const parkRoom = useCallback(async (mode)=>{
+    setShowPark(false);
+    const cur = roomState?.currentQuestion;
+    if(!cur) return;
+    const cq = cur.question;
+    const pool = buildPool(roomState?.activeCats||activeCats, roomState?.stage??relationshipType, roomState?.spicyLevel??spicyLevel);
+    const seen = new Set(roomState?.seenQuestions||[]);
+    const later = new Set(roomState?.parkedLater||[]);
+    const stage = new Set(roomState?.parkedForStage||[]);
+    const queue = Array.isArray(roomState?.stageQueue)?roomState.stageQueue:[];
+    if(mode==="stage"){ stage.add(cq); } else { later.add(cq); }
+    // Move past the parked card without burning it as seen.
+    const {pick,queue:q2} = pickSolo(pool, seen, later, stage, queue, roomState?.nextQuestion?.question||"");
+    await syncAction({
+      currentQuestion: roomState?.nextQuestion||null,
+      nextQuestion: pick||null,
+      parkedLater: [...later],
+      parkedForStage: [...stage],
+      stageQueue: q2,
+      flipped:false,
+      perspectiveFlipped:false,
+    });
+  },[roomState,activeCats,relationshipType,spicyLevel,syncAction]);
+
   const parkCard = useCallback((mode)=>{
+    if(screen==="connected-play"){ parkRoom(mode); return; }
     setShowPark(false);
     if(!current) return;
     const cq=current.question;
@@ -1504,7 +1545,7 @@ export default function App() {
       setCurrent(r1.pick);setNextCard(r2.pick);
     }
     setFlipped(false);setCount(c=>c+1);setDragX(0);setGone(false);setIsDragging(false);hasDragged.current=false;setPerspectiveFlipped(false);
-  },[current,nextCard,activeCats,relationshipType,spicyLevel,seenQuestions,parkedLater,parkedForStage,stageQueue]);
+  },[current,nextCard,activeCats,relationshipType,spicyLevel,seenQuestions,parkedLater,parkedForStage,stageQueue,screen,parkRoom]);
 
   // Dev shortcut: force the current deck to its exhaustion screen.
   const devExhaust=()=>{
@@ -1620,7 +1661,8 @@ export default function App() {
 
       {/* ── PARK PROMPT ── */}
       {showPark&&(()=>{
-        const idx = relationshipType ? STAGE_ORDER.indexOf(relationshipType) : -1;
+        const effStage = screen==="connected-play" ? (roomState?.stage ?? relationshipType) : relationshipType;
+        const idx = effStage ? STAGE_ORDER.indexOf(effStage) : -1;
         const nextStage = (idx>=0 && idx<STAGE_ORDER.length-1) ? RELATIONSHIP_TYPES.find(r=>r.id===STAGE_ORDER[idx+1]) : null;
         return (
           <div style={{position:"fixed",inset:0,background:"rgba(44,35,24,0.6)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:110,padding:24}} onClick={()=>setShowPark(false)}>
@@ -2221,24 +2263,31 @@ export default function App() {
             const syncedBorder=syncedCatData?.cardBorder||"#E8DDD0";
             const advanceRoom=async()=>{
               audio.resume();audio.swipe();
-              const pool=buildPool(activeCats,relationshipType,spicyLevel);
-              const newSeen=[...(roomState?.seenQuestions||[]),syncedQ?.question].filter(Boolean);
-              const upcoming=pickNextUnseen(pool,new Set(newSeen),roomState?.nextQuestion?.question||"");
-              await syncAction({currentQuestion:roomState?.nextQuestion||null,nextQuestion:upcoming,seenQuestions:newSeen,flipped:false,perspectiveFlipped:false});
+              const pool=buildPool(roomState?.activeCats||activeCats,roomState?.stage??relationshipType,roomState?.spicyLevel??spicyLevel);
+              const cq=syncedQ?.question;
+              const newSeen=[...(roomState?.seenQuestions||[]),cq].filter(Boolean);
+              // a served park-for-later card, once answered, leaves the parked queue
+              const later=new Set(roomState?.parkedLater||[]); later.delete(cq);
+              const stage=new Set(roomState?.parkedForStage||[]);
+              const queue=Array.isArray(roomState?.stageQueue)?roomState.stageQueue:[];
+              const {pick,queue:q2}=pickSolo(pool,new Set(newSeen),later,stage,queue,roomState?.nextQuestion?.question||"");
+              await syncAction({currentQuestion:roomState?.nextQuestion||null,nextQuestion:pick||null,seenQuestions:newSeen,parkedLater:[...later],parkedForStage:[...stage],stageQueue:q2,flipped:false,perspectiveFlipped:false});
             };
 
             // Deck exhausted together -- show a synced prompt so both players
             // advance (or wrap up) in unison
             const roomExhausted = roomStatus==="connected" && !roomState?.currentQuestion;
             if(roomExhausted){
-              const idx=STAGE_ORDER.indexOf(relationshipType);
+              const cStage = roomState?.stage ?? relationshipType;
+              const cStageLabel = RELATIONSHIP_TYPES.find(r=>r.id===cStage)?.label;
+              const idx=STAGE_ORDER.indexOf(cStage);
               const nextId=STAGE_ORDER[idx+1];
-              const nextStage=RELATIONSHIP_TYPES.find(r=>r.id===nextId);
+              const nextStage=(idx>=0 && idx<STAGE_ORDER.length-1)?RELATIONSHIP_TYPES.find(r=>r.id===nextId):null;
               const replayRoom=async()=>{
-                const pool2=buildPool(activeCats,relationshipType,spicyLevel);
+                const pool2=buildPool(roomState?.activeCats||activeCats,roomState?.stage??relationshipType,roomState?.spicyLevel??spicyLevel);
                 const f=pickNextUnseen(pool2,new Set(),"");
                 const s2=pickNextUnseen(pool2,new Set(),f?.question||"");
-                await syncAction({seenQuestions:[],currentQuestion:f||null,nextQuestion:s2||null,flipped:false,perspectiveFlipped:false});
+                await syncAction({seenQuestions:[],parkedLater:[],parkedForStage:[],stageQueue:[],currentQuestion:f||null,nextQuestion:s2||null,flipped:false,perspectiveFlipped:false});
               };
               const headingC=(t)=><p style={{...GF_TITLE,fontSize:25,color:"#3C2010",lineHeight:1.3,marginBottom:12}}>{t}</p>;
               const bodyC=(t)=><p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#A08868",lineHeight:1.7,marginBottom:22,maxWidth:264}}>{t}</p>;
@@ -2246,14 +2295,14 @@ export default function App() {
               const connexionBtnC=<TextureButton variant="ghost" style={primaryStyleC} onClick={openConnexion}>Explore other Connexion Studio apps</TextureButton>;
               const resetLinkC=(label,fn)=><button onClick={fn} style={{background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#B8A888",letterSpacing:"0.04em",marginTop:6}}>{label}</button>;
               let inner;
-              if(!relationshipType){
+              if(!cStage){
                 inner=<>{headingC("You've completed the deck!")}{bodyC("You've worked your way through every question in this deck. The conversations and connections you've built are what matter most.")}{connexionBtnC}{resetLinkC("Reset questions", replayRoom)}</>;
-              } else if(relationshipType==="friends"){
+              } else if(cStage==="friends"){
                 inner=<>{headingC("You've explored it all!")}{bodyC("Ready to go deeper? Explore the couple decks and discover new conversations together.")}<TextureButton style={primaryStyleC} onClick={()=>changeRelationship("just_together")}>Explore couple questions</TextureButton>{connexionBtnC}{resetLinkC("Reset questions", replayRoom)}</>;
               } else if(!nextStage){
                 inner=<>{headingC("You've shared it all… for now!")}{bodyC("You've explored every Long-term connection question, hundreds of conversations worth having. New questions are on the way. Until then, revisit your favourites and see what feels different.")}<TextureButton style={primaryStyleC} onClick={replayRoom}>Replay Long-term connection</TextureButton>{connexionBtnC}{resetLinkC("Reset all questions", replayRoom)}</>;
               } else {
-                inner=<>{headingC("Ready to go deeper?")}{bodyC(`You've explored every ${currentStage?.label} question. Continue your journey with ${nextStage.label}.`)}<TextureButton style={primaryStyleC} onClick={()=>changeRelationship(nextId)}>Move to {nextStage.label}</TextureButton>{connexionBtnC}{resetLinkC("Reset questions", replayRoom)}</>;
+                inner=<>{headingC("Ready to go deeper?")}{bodyC(`You've explored every ${cStageLabel} question. Continue your journey with ${nextStage.label}.`)}<TextureButton style={primaryStyleC} onClick={()=>changeRelationship(nextId)}>Move to {nextStage.label}</TextureButton>{connexionBtnC}{resetLinkC("Reset questions", replayRoom)}</>;
               }
               return(
                 <div style={{position:"relative",width:"100%",maxWidth:340,minHeight:"55vh",maxHeight:460,flexShrink:0,marginBottom:8,background:"#F5EDE0",border:"1.5px solid #E8DDD0",borderRadius:20,padding:"28px 24px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",overflowY:"auto",boxShadow:"-4px 12px 40px rgba(54,28,8,0.16)"}}>
@@ -2295,7 +2344,13 @@ export default function App() {
                           <div style={{width:5,height:5,borderRadius:"50%",background:"#3C2410",flexShrink:0}}/>
                           <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:9,letterSpacing:"0.18em",textTransform:"uppercase",color:"#3C2410",opacity:0.6}}>{syncedQ?.category}</p>
                         </div>
-                        <SpicyBadge level={syncedQ?.spicy}/>
+                        <div style={{display:"flex",alignItems:"center",gap:8}}>
+                          <SpicyBadge level={syncedQ?.spicy}/>
+                          <button onClick={(e)=>{e.stopPropagation();audio.click();setShowPark(true);}} style={{background:"transparent",border:"1px solid #C4A882",borderRadius:100,padding:"4px 12px",cursor:"pointer",display:"flex",alignItems:"center",gap:5,transition:"all 0.2s"}}>
+                            <svg width="9" height="11" viewBox="0 0 9 11" fill="none" style={{flexShrink:0}}><path d="M1 1.5h7v8L4.5 7 1 9.5v-8z" stroke="#8B6445" strokeWidth="1.1" strokeLinejoin="round"/></svg>
+                            <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:10,letterSpacing:"0.12em",textTransform:"uppercase",color:"#8B6445",fontWeight:500}}>Park</span>
+                          </button>
+                        </div>
                       </div>
                       <p style={{...GF_TITLE,fontSize:20,lineHeight:1.6,color:"#2C1808",flex:1,display:"flex",alignItems:"center",paddingTop:10,textAlign:"left"}}>
                         {syncedDisplay}
