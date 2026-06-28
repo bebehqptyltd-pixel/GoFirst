@@ -1037,11 +1037,17 @@ function SpicyToggle({ level, onCycle, stageId }) {
 
 function TutIcon({step}){
   const p={stroke:"#7A4A24",strokeWidth:"1.5",strokeLinecap:"round",strokeLinejoin:"round",fill:"none"};
+  // 0 Welcome, 1 Tap to flip, 2 Swipe, 3 Park, 4 Flip perspective, 5 Play it your way
   if(step===0)return<svg width="44" height="44" viewBox="0 0 44 44" fill="none"><rect x="6" y="8" width="24" height="30" rx="3" {...p}/><rect x="12" y="4" width="24" height="30" rx="3" {...p}/><line x1="18" y1="17" x2="28" y2="17" {...p}/><line x1="18" y1="22" x2="24" y2="22" {...p}/></svg>;
   if(step===1)return<svg width="44" height="44" viewBox="0 0 44 44" fill="none"><rect x="10" y="4" width="24" height="32" rx="3" {...p}/><path d="M22 14 L22 24 M17 20 L22 25 L27 20" {...p}/></svg>;
-  if(step===2)return<svg width="44" height="44" viewBox="0 0 44 44" fill="none"><path d="M6 10 Q6 6 10 6 L34 6 Q38 6 38 10 L38 24 Q38 28 34 28 L24 28 L16 36 L16 28 L10 28 Q6 28 6 24 Z" {...p}/><line x1="13" y1="15" x2="31" y2="15" {...p}/><line x1="13" y1="20" x2="24" y2="20" {...p}/></svg>;
-  if(step===3)return<svg width="44" height="44" viewBox="0 0 44 44" fill="none"><rect x="12" y="6" width="20" height="28" rx="3" {...p}/><path d="M4 20 L2 20 M6 16 L2 20 L6 24" {...p}/><path d="M40 20 L42 20 M38 16 L42 20 L38 24" {...p}/></svg>;
-  if(step===4)return<svg width="44" height="44" viewBox="0 0 44 44" fill="none"><path d="M22 8 c0 0-6 5-6 10.5C16 22.5 18.2 25 22 26.5c3.8-1.5 6-4 6-8C28 13 22 8 22 8z" {...p}/><path d="M22 26.5 c0 0-4 2-4 5.5 0 2.2 1.8 4 4 4s4-1.8 4-4 c0-3.5-4-5.5-4-5.5z" {...p}/></svg>;
+  // Swipe -- card flanked by left/right arrows
+  if(step===2)return<svg width="44" height="44" viewBox="0 0 44 44" fill="none"><rect x="12" y="6" width="20" height="28" rx="3" {...p}/><path d="M4 20 L2 20 M6 16 L2 20 L6 24" {...p}/><path d="M40 20 L42 20 M38 16 L42 20 L38 24" {...p}/></svg>;
+  // Park -- bookmark (matches the in-play PARK button)
+  if(step===3)return<svg width="44" height="44" viewBox="0 0 44 44" fill="none"><path d="M14 7 h16 v29 l-8 -7 l-8 7 z" {...p}/></svg>;
+  // Flip perspective -- horizontal spinning arrow
+  if(step===4)return<svg width="44" height="44" viewBox="0 0 44 44" fill="none"><path d="M13 19 Q22 10 31 18" {...p}/><path d="M31 18 L27 15 M31 18 L27 21" {...p}/><path d="M31 25 Q22 34 13 26" {...p}/><path d="M13 26 L17 23 M13 26 L17 29" {...p}/></svg>;
+  // Play it your way -- the Go First seed mark
+  if(step===5)return<svg width="44" height="44" viewBox="0 0 44 44" fill="none"><path d="M22 8 c0 0-6 5-6 10.5C16 22.5 18.2 25 22 26.5c3.8-1.5 6-4 6-8C28 13 22 8 22 8z" {...p}/><path d="M22 26.5 c0 0-4 2-4 5.5 0 2.2 1.8 4 4 4s4-1.8 4-4 c0-3.5-4-5.5-4-5.5z" {...p}/></svg>;
   return null;
 }
 
