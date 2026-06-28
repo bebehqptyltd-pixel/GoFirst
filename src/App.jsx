@@ -854,9 +854,10 @@ const RELATIONSHIP_TYPES = [
 
 const TUTORIAL_STEPS = [
   {title:"Welcome to Go First",    body:"A card game for people brave enough to say the things typically left unsaid. There are no wrong answers.",                                                                                                          dare:null},
-  {title:"Tap to flip",            body:"Each card starts face down. Tap it to reveal the question. Take turns answering — or answer together.",                                                                                                           dare:null},
-  {title:"Swipe to move on",       body:"Done with a question? Swipe left or right to move to the next card. You can skip anything that doesn't feel right.",                                                                                              dare:null},
-  {title:"Flip the perspective",   body:"Some cards can be flipped. Tap the toggle on the card face to hear the same question from another perspective.",                                                                                     dare:null},
+  {title:"Tap to flip",            body:"Each card starts face down. Tap it to reveal the question. Take turns answering, or answer together.",                                                                                                            dare:null},
+  {title:"Swipe to move on",       body:"Done with a question? Swipe left or right to move to the next card. Once you swipe, that card is done.",                                                                                                       dare:null},
+  {title:"Park it for later",      body:"Not feeling a question right now? Tap Park on the card to set it aside without losing it. Bring it back at the end of the deck, or save it for your next stage.",                                                dare:null},
+  {title:"Flip the perspective",   body:"Some cards can be flipped. Tap the toggle on the card face to see the same question from another perspective.",                                                                                      dare:null},
   {title:"Play it your way",       body:"Choose your relationship stage before you play. Fine-tune your categories, and turn up the heat when you're ready. Spicy questions unlock as you go deeper. Use the ⓘ at any time to revisit these instructions.", dare:"Who will Go First?"},
 ];
 
@@ -1824,7 +1825,7 @@ export default function App() {
             <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:14,color:"#7A5840",lineHeight:1.75,marginBottom:TUTORIAL_STEPS[tutStep].dare?16:32}}>{TUTORIAL_STEPS[tutStep].body}</p>
             {TUTORIAL_STEPS[tutStep].dare&&<p style={{...GF_TITLE,fontSize:20,color:"#3C2010",marginBottom:32}}>{TUTORIAL_STEPS[tutStep].dare}</p>}
             <div style={{display:"flex",gap:6,justifyContent:"center",marginBottom:28}}>
-              {TUTORIAL_STEPS.map((_,i)=>{const stepColors=["#D4C4B0","#C4A882","#B8956A","#8B6445","#3C2410"];return<div key={i} className="tut-dot" style={{width:i===tutStep?20:6,background:i<=tutStep?stepColors[i]:"#E8DDD0"}}/>;})}</div>
+              {TUTORIAL_STEPS.map((_,i)=>{const stepColors=["#D4C4B0","#C4A882","#B8956A","#A07850","#8B6445","#3C2410"];return<div key={i} className="tut-dot" style={{width:i===tutStep?20:6,background:i<=tutStep?stepColors[i]:"#E8DDD0"}}/>;})}</div>
             <TextureButton style={{width:"100%"}} onClick={()=>{
               if(tutStep<TUTORIAL_STEPS.length-1){setTutStep(t=>t+1);}
               else{setHasSeenTutorial(true);if(tutorialFrom==="info"){setScreen("home");}else{initPlay();}}
