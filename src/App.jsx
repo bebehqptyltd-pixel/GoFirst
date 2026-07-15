@@ -1136,6 +1136,9 @@ export default function App() {
   const [namingSaveId, setNamingSaveId] = useState(LAST_GAME_ID); // which save is being named
   const [nameInput, setNameInput] = useState("");
   const [overwritePromptOpen, setOverwritePromptOpen] = useState(false); // unnamed-overwrite warning
+  // What the overwrite prompt should do once the user resolves it. "reset"
+  // starts a fresh solo game; "together" continues into Play Together.
+  const [overwriteIntent, setOverwriteIntent] = useState("reset");
   // Persist saves whenever they change
   useEffect(()=>{persistSaves(saves);},[saves]);
   // Does an unnamed "Last game" with real progress exist?
@@ -1573,6 +1576,7 @@ export default function App() {
   const requestReset=()=>{
     setShowReset(false);
     if(lastGameHasProgress){
+      setOverwriteIntent("reset");
       setNameInput("");
       setOverwritePromptOpen(true);
     } else {
@@ -1580,6 +1584,26 @@ export default function App() {
     }
   };
   const handleReset=requestReset;
+  // Enter Play Together. Starting a session will move play off the unnamed
+  // Last game slot, so it gets the same overwrite protection as a reset.
+  const doGoTogether=()=>{
+    setOverwritePromptOpen(false);
+    setTogetherMode(false);
+    setShowInfo(false);
+    setScreen("together");
+  };
+  const requestGoTogether=()=>{
+    if(lastGameHasProgress){
+      setOverwriteIntent("together");
+      setNameInput("");
+      setShowInfo(false);
+      setOverwritePromptOpen(true);
+    } else {
+      doGoTogether();
+    }
+  };
+  // Resolve the overwrite prompt according to whatever opened it.
+  const resolveOverwrite=()=>{ if(overwriteIntent==="together"){ doGoTogether(); } else { doResetFresh(); } };
   const handleCardTap=()=>{if(!flipped&&!hasDragged.current){audio.resume();audio.flip();setFlipped(true);}};
   const onPointerDown=(e)=>{if(!flipped)return;dragStartX.current=e.touches?e.touches[0].clientX:e.clientX;hasDragged.current=false;setIsDragging(true);};
   const onPointerMove=(e)=>{if(!isDragging||dragStartX.current===null)return;const x=(e.touches?e.touches[0].clientX:e.clientX)-dragStartX.current;if(Math.abs(x)>4)hasDragged.current=true;setDragX(x);};
@@ -1636,17 +1660,17 @@ export default function App() {
       {showInfo&&(
         <div style={{position:"fixed",inset:0,background:"rgba(44,35,24,0.6)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:100,padding:24}}>
           <div style={{background:"#FBF5EC",borderRadius:20,padding:"32px 32px",width:"100%",maxWidth:340,maxHeight:"85vh",overflowY:"auto",textAlign:"center"}}>
-            <TextureButton style={{width:"100%",marginBottom:12}} onClick={replayTutorial}>How to play</TextureButton>
+            <TextureButton variant="ghost" style={{width:"100%",padding:"14px 32px",marginBottom:12}} onClick={replayTutorial}>How to play</TextureButton>
             {/* Play Together is a mode, not a first-run decision, so it lives
-                here rather than on the front door. Home only -- offering a mode
-                switch mid-game would abandon the deck in progress. */}
-            {screen==="home"&&(
-              <TextureButton variant="ghost" style={{width:"100%",padding:"14px 32px",marginBottom:12}} onClick={()=>{setShowInfo(false);setTogetherMode(false);setScreen("together");}}>
-                Play together (long distance)
-              </TextureButton>
-            )}
+                here rather than on the front door. Available from any screen --
+                unnamed progress is protected by the overwrite prompt. */}
+            <TextureButton variant="ghost" style={{width:"100%",padding:"14px 32px",marginBottom:12}} onClick={requestGoTogether}>
+              Play together (long distance)
+            </TextureButton>
+            {/* Label centred to match the other rows, with the toggle inline
+                beside it rather than pushed to the far edge. */}
             <button onClick={()=>{const next=!muted;audio.setMuted(next);setMuted(next);if(!next)audio.click();}} style={{
-              display:"flex",alignItems:"center",justifyContent:"space-between",width:"100%",
+              display:"flex",alignItems:"center",justifyContent:"center",gap:12,width:"100%",
               background:"transparent",border:"1.5px solid #C4A882",borderRadius:100,padding:"14px 32px",
               cursor:"pointer",marginBottom:12,
             }}>
@@ -1838,8 +1862,8 @@ export default function App() {
               style={{width:"100%",boxSizing:"border-box",border:"1.5px solid #DDD0BC",borderRadius:12,padding:"12px 16px",fontFamily:"'DM Sans',sans-serif",fontSize:16,color:"#3C2010",background:"#FFFFFF",outline:"none",marginBottom:16,textAlign:"center"}}
             />
             <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#A08868",lineHeight:1.6,marginBottom:20}}>Games you save while playing on one device are stored on that device only. Play Together sessions save to both phones automatically. To continue a solo save later, start from this same device.</p>
-            <TextureButton variant="ghost" disabled={!nameInput.trim()} style={{width:"100%",padding:"12px 32px",marginBottom:10}} onClick={()=>{nameSave(nameInput,LAST_GAME_ID);doResetFresh();}}>Name & keep</TextureButton>
-            <TextureButton variant="ghost" style={{width:"100%",padding:"12px 32px"}} onClick={()=>doResetFresh()}>Continue, replace it</TextureButton>
+            <TextureButton variant="ghost" disabled={!nameInput.trim()} style={{width:"100%",padding:"12px 32px",marginBottom:10}} onClick={()=>{nameSave(nameInput,LAST_GAME_ID);resolveOverwrite();}}>Name & keep</TextureButton>
+            <TextureButton variant="ghost" style={{width:"100%",padding:"12px 32px"}} onClick={()=>resolveOverwrite()}>Continue, replace it</TextureButton>
           </div>
         </div>
       )}
@@ -1848,7 +1872,8 @@ export default function App() {
       {screen==="home"&&(
         <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",width:"100%",maxWidth:460,minHeight:"100vh",boxSizing:"border-box",paddingLeft:24,paddingRight:24,paddingTop:"calc(env(safe-area-inset-top) + 24px)",paddingBottom:"calc(env(safe-area-inset-bottom) + 24px)"}}>
           {/* The card back carries the title and tagline, so the screen doesn't
-              repeat them. Card is the hero and is tappable, same as Begin. */}
+              repeat them. The card is the only element and the only control:
+              tapping it starts the flow. */}
           <div onClick={()=>{audio.click();setScreen("deck");}} style={{position:"relative",width:"min(86vw, 320px)",aspectRatio:"252 / 353",alignSelf:"center",cursor:"pointer"}}>
             {[
               {rot:"-7deg", top:"5.7%",  left:"-2.4%", op:0.3, w:"92.9%", h:"92.9%"},
@@ -1859,11 +1884,6 @@ export default function App() {
                 <CardBack/>
               </div>
             ))}
-          </div>
-          <div style={{height:56}}/>
-          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:14}}>
-            <TextureButton onClick={()=>setScreen("deck")}>Begin</TextureButton>
-            {totalPlayed>0&&<p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#C8B8A0",letterSpacing:"0.04em"}}>{totalPlayed} question{totalPlayed!==1?"s":""} asked so far</p>}
           </div>
         </div>
       )}
