@@ -1637,6 +1637,14 @@ export default function App() {
         <div style={{position:"fixed",inset:0,background:"rgba(44,35,24,0.6)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:100,padding:24}}>
           <div style={{background:"#FBF5EC",borderRadius:20,padding:"32px 32px",width:"100%",maxWidth:340,maxHeight:"85vh",overflowY:"auto",textAlign:"center"}}>
             <TextureButton style={{width:"100%",marginBottom:12}} onClick={replayTutorial}>How to play</TextureButton>
+            {/* Play Together is a mode, not a first-run decision, so it lives
+                here rather than on the front door. Home only -- offering a mode
+                switch mid-game would abandon the deck in progress. */}
+            {screen==="home"&&(
+              <TextureButton variant="ghost" style={{width:"100%",padding:"14px 32px",marginBottom:12}} onClick={()=>{setShowInfo(false);setTogetherMode(false);setScreen("together");}}>
+                Play together (long distance)
+              </TextureButton>
+            )}
             <button onClick={()=>{const next=!muted;audio.setMuted(next);setMuted(next);if(!next)audio.click();}} style={{
               display:"flex",alignItems:"center",justifyContent:"space-between",width:"100%",
               background:"transparent",border:"1.5px solid #C4A882",borderRadius:100,padding:"14px 32px",
@@ -1672,7 +1680,7 @@ export default function App() {
             <div style={{background:"#FBF5EC",borderRadius:20,padding:"32px 28px",width:"100%",maxWidth:340,textAlign:"center"}} onClick={e=>e.stopPropagation()}>
               <p style={{...GF_TITLE,fontSize:23,color:"#3C2010",marginBottom:8}}>Not right now?</p>
               <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#7A5840",lineHeight:1.6,marginBottom:24}}>Set this card aside without losing it.</p>
-              <TextureButton style={{width:"100%",marginBottom:12}} onClick={()=>parkCard("later")}>Park for later</TextureButton>
+              <TextureButton variant="ghost" style={{width:"100%",padding:"14px 28px",marginBottom:12}} onClick={()=>parkCard("later")}>Park for later</TextureButton>
               {nextStage&&(
                 <TextureButton variant="ghost" style={{width:"100%",padding:"14px 28px",marginBottom:12}} onClick={()=>parkCard("stage")}>
                   Save for {nextStage.label}
@@ -1726,7 +1734,7 @@ export default function App() {
           <div style={{background:"#FBF5EC",borderRadius:20,padding:"40px 32px",width:"100%",maxWidth:340,textAlign:"center"}}>
             <p style={{...GF_TITLE,fontSize:22,color:"#3C2010",marginBottom:12}}>Start fresh?</p>
             <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#7A5840",lineHeight:1.7,marginBottom:28}}>You've asked {seenQuestions.size} question{seenQuestions.size!==1?"s":""}. Reset will let you experience them all again.</p>
-            <TextureButton style={{width:"100%",marginBottom:12}} onClick={handleReset}>Yes, start fresh</TextureButton>
+            <TextureButton variant="ghost" style={{width:"100%",padding:"14px 32px",marginBottom:12}} onClick={handleReset}>Yes, start fresh</TextureButton>
             <TextureButton variant="ghost" style={{width:"100%",padding:"14px 32px"}} onClick={()=>setShowReset(false)}>Keep my progress</TextureButton>
           </div>
         </div>
@@ -1790,8 +1798,10 @@ export default function App() {
           <div style={{background:"#FBF5EC",borderRadius:20,padding:"36px 28px",width:"100%",maxWidth:320,textAlign:"center"}}>
             <p style={{...GF_TITLE,fontSize:22,color:"#3C2010",marginBottom:10}}>Delete this game?</p>
             <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#7A5840",lineHeight:1.6,marginBottom:24}}>"{deleteSaveTarget.name}" and its progress will be removed from this device. This can't be undone.</p>
-            <TextureButton style={{width:"100%",marginBottom:10}} onClick={()=>deleteSave(deleteSaveTarget.id)}>Delete</TextureButton>
-            <TextureButton variant="ghost" style={{width:"100%",padding:"12px 32px"}} onClick={()=>setDeleteSaveTarget(null)}>Keep it</TextureButton>
+            {/* Destructive and irreversible, so these are NOT equal options.
+                The safe choice is the visual and positional default. */}
+            <TextureButton style={{width:"100%",marginBottom:10}} onClick={()=>setDeleteSaveTarget(null)}>Keep it</TextureButton>
+            <TextureButton variant="ghost" style={{width:"100%",padding:"12px 32px"}} onClick={()=>deleteSave(deleteSaveTarget.id)}>Delete</TextureButton>
           </div>
         </div>
       )}
@@ -1809,7 +1819,7 @@ export default function App() {
               style={{width:"100%",boxSizing:"border-box",border:"1.5px solid #DDD0BC",borderRadius:12,padding:"12px 16px",fontFamily:"'DM Sans',sans-serif",fontSize:16,color:"#3C2010",background:"#FFFFFF",outline:"none",marginBottom:16,textAlign:"center"}}
             />
             <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#A08868",lineHeight:1.6,marginBottom:20}}>Games you save while playing on one device are stored on that device only. Play Together sessions save to both phones automatically. To continue a solo save later, start from this same device.</p>
-            <TextureButton style={{width:"100%",marginBottom:10}} onClick={()=>{if(nameInput.trim()){const newId=nameSave(nameInput,namingSaveId);if(newId)setActiveSaveId(newId);}setNamePromptOpen(false);}}>Save</TextureButton>
+            <TextureButton variant="ghost" style={{width:"100%",padding:"12px 32px",marginBottom:10}} onClick={()=>{if(nameInput.trim()){const newId=nameSave(nameInput,namingSaveId);if(newId)setActiveSaveId(newId);}setNamePromptOpen(false);}}>Save</TextureButton>
             <TextureButton variant="ghost" style={{width:"100%",padding:"12px 32px"}} onClick={()=>setNamePromptOpen(false)}>Skip for now</TextureButton>
           </div>
         </div>
@@ -1828,7 +1838,7 @@ export default function App() {
               style={{width:"100%",boxSizing:"border-box",border:"1.5px solid #DDD0BC",borderRadius:12,padding:"12px 16px",fontFamily:"'DM Sans',sans-serif",fontSize:16,color:"#3C2010",background:"#FFFFFF",outline:"none",marginBottom:16,textAlign:"center"}}
             />
             <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#A08868",lineHeight:1.6,marginBottom:20}}>Games you save while playing on one device are stored on that device only. Play Together sessions save to both phones automatically. To continue a solo save later, start from this same device.</p>
-            <TextureButton disabled={!nameInput.trim()} style={{width:"100%",marginBottom:10}} onClick={()=>{nameSave(nameInput,LAST_GAME_ID);doResetFresh();}}>Name & keep</TextureButton>
+            <TextureButton variant="ghost" disabled={!nameInput.trim()} style={{width:"100%",padding:"12px 32px",marginBottom:10}} onClick={()=>{nameSave(nameInput,LAST_GAME_ID);doResetFresh();}}>Name & keep</TextureButton>
             <TextureButton variant="ghost" style={{width:"100%",padding:"12px 32px"}} onClick={()=>doResetFresh()}>Continue, replace it</TextureButton>
           </div>
         </div>
@@ -1836,32 +1846,23 @@ export default function App() {
 
       {/* ── HOME ── */}
       {screen==="home"&&(
-        <div style={{display:"flex",flexDirection:"column",alignItems:"center",width:"100%",maxWidth:460,boxSizing:"border-box",paddingLeft:24,paddingRight:24,paddingTop:"calc(env(safe-area-inset-top) + 52px)",paddingBottom:"calc(env(safe-area-inset-bottom) + 24px)"}}>
-          {/* Title + tagline */}
-          <div style={{textAlign:"center"}}>
-            <h1 style={{...GF_TITLE,fontSize:54,color:"#3C2010",lineHeight:1}}>Go First</h1>
-            <p style={{...GF_TITLE,marginTop:8,fontSize:11,letterSpacing:"0.2em",textTransform:"uppercase",color:"#A08868"}}>Say the things we leave unsaid</p>
-          </div>
-          {/* 60px gap tagline to card */}
-          <div style={{height:60}}/>
-          {/* Card fan */}
-          <div style={{position:"relative",width:260,height:353,alignSelf:"center"}}>
+        <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",width:"100%",maxWidth:460,minHeight:"100vh",boxSizing:"border-box",paddingLeft:24,paddingRight:24,paddingTop:"calc(env(safe-area-inset-top) + 24px)",paddingBottom:"calc(env(safe-area-inset-bottom) + 24px)"}}>
+          {/* The card back carries the title and tagline, so the screen doesn't
+              repeat them. Card is the hero and is tappable, same as Begin. */}
+          <div onClick={()=>{audio.click();setScreen("deck");}} style={{position:"relative",width:"min(86vw, 320px)",aspectRatio:"252 / 353",alignSelf:"center",cursor:"pointer"}}>
             {[
-              {rot:"-7deg", top:20,  left:-6, op:0.3, w:234, h:328},
-              {rot:"4deg",  top:10,  left:2,  op:0.6, w:244, h:342},
-              {rot:"-1deg", top:0,   left:-2, op:1,   w:252, h:353},
+              {rot:"-7deg", top:"5.7%",  left:"-2.4%", op:0.3, w:"92.9%", h:"92.9%"},
+              {rot:"4deg",  top:"2.8%",  left:"0.8%",  op:0.6, w:"96.8%", h:"96.9%"},
+              {rot:"-1deg", top:"0%",    left:"-0.8%", op:1,   w:"100%",  h:"100%"},
             ].map((c,i)=>(
               <div key={i} style={{position:"absolute",top:c.top,left:c.left,width:c.w,height:c.h,transform:`rotate(${c.rot})`,transformOrigin:"top center",opacity:c.op}}>
                 <CardBack/>
               </div>
             ))}
           </div>
-          {/* 60px gap card to button */}
-          <div style={{height:60}}/>
-          {/* CTA */}
-          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:10}}>
-            <TextureButton onClick={()=>setScreen("deck")}>Build your deck</TextureButton>
-            <TextureButton variant="ghost" style={{padding:"12px 48px"}} onClick={()=>{setTogetherMode(false);setScreen("together");}}>Play together →</TextureButton>
+          <div style={{height:56}}/>
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:14}}>
+            <TextureButton onClick={()=>setScreen("deck")}>Begin</TextureButton>
             {totalPlayed>0&&<p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#C8B8A0",letterSpacing:"0.04em"}}>{totalPlayed} question{totalPlayed!==1?"s":""} asked so far</p>}
           </div>
         </div>
