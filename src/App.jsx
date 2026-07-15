@@ -854,8 +854,8 @@ const RELATIONSHIP_TYPES = [
 
 const TUTORIAL_STEPS = [
   {title:"Welcome to Go First",    body:"A card game for people brave enough to say the things typically left unsaid. There are no wrong answers.",                                                                                                          dare:null},
-  {title:"Tap to flip",            body:"Each card starts face down. Tap it to reveal the question. Take turns answering, or answer together.",                                                                                                            dare:null},
-  {title:"Swipe to move on",       body:"Done with a question? Swipe left or right to move to the next card. Once you swipe, that card is done.",                                                                                                       dare:null},
+  {title:"Tap to flip",            body:"Your first card starts face down. Tap it to reveal the question. Take turns answering, or answer together.",                                                                                                      dare:null},
+  {title:"Swipe to move on",       body:"Done with a question? Swipe left or right and the next question is revealed for you. Once you swipe, that card is done.",                                                                                     dare:null},
   {title:"Park it for later",      body:"Not feeling a question right now? Tap Park on the card to set it aside without losing it. Bring it back at the end of the deck, or save it for your next stage.",                                                dare:null},
   {title:"Flip the perspective",   body:"Some cards can be flipped. Tap the toggle on the card face to see the same question from another perspective.",                                                                                      dare:null},
   {title:"Play it your way",       body:"Choose your relationship stage before you play. Fine-tune your categories, and turn up the heat when you're ready. Spicy questions unlock as you go deeper. Use the ⓘ at any time to revisit these instructions.", dare:"Who will Go First?"},
@@ -1484,7 +1484,8 @@ export default function App() {
     }
     const {pick,queue}=pickSolo(p,newSeen,newLater,parkedForStage,stageQueue,nextCard.question);
     if(queue!==stageQueue) setStageQueue(queue);
-    setCurrent(nextCard);setNextCard(pick);setFlipped(false);setCount(c=>c+1);setDragX(0);setGone(false);setIsDragging(false);hasDragged.current=false;setPerspectiveFlipped(false);
+    // The swipe IS the transition -- the next card arrives already revealed.
+    setCurrent(nextCard);setNextCard(pick);setFlipped(true);setCount(c=>c+1);setDragX(0);setGone(false);setIsDragging(false);hasDragged.current=false;setPerspectiveFlipped(false);
   },[nextCard,current,activeCats,seenQuestions,markSeen,relationshipType,spicyLevel,parkedLater,parkedForStage,stageQueue]);
 
   // Park the current card without burning it as seen.
@@ -1511,7 +1512,8 @@ export default function App() {
       parkedLater: [...later],
       parkedForStage: [...stage],
       stageQueue: q2,
-      flipped:false,
+      // Parking moves both players on, so the replacement arrives revealed.
+      flipped:true,
       perspectiveFlipped:false,
     });
   },[roomState,activeCats,relationshipType,spicyLevel,syncAction]);
@@ -1544,7 +1546,8 @@ export default function App() {
       setStageQueue(r2.queue);
       setCurrent(r1.pick);setNextCard(r2.pick);
     }
-    setFlipped(false);setCount(c=>c+1);setDragX(0);setGone(false);setIsDragging(false);hasDragged.current=false;setPerspectiveFlipped(false);
+    // Parking moves you on, so the replacement card arrives already revealed.
+    setFlipped(true);setCount(c=>c+1);setDragX(0);setGone(false);setIsDragging(false);hasDragged.current=false;setPerspectiveFlipped(false);
   },[current,nextCard,activeCats,relationshipType,spicyLevel,seenQuestions,parkedLater,parkedForStage,stageQueue,screen,parkRoom]);
 
   // Dev shortcut: force the current deck to its exhaustion screen.
@@ -2099,7 +2102,7 @@ export default function App() {
           {/* Status — always visible */}
           <div style={{flexShrink:0,textAlign:"center",marginTop:12}}>
             <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:14,color:"#A08868",letterSpacing:"0.03em",minHeight:16}}>
-              {deckExhausted?"":!flipped?"Tap to reveal":Math.abs(dragX)>40?"Let go to discard":"Swipe left or right when you're done"}
+              {deckExhausted?"":!flipped?"Tap to reveal":Math.abs(dragX)>40?"Let go to discard":"Swipe to reveal next question"}
             </p>
             <p style={{marginTop:4,fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#B0A090",letterSpacing:"0.03em"}}>{unseenCount} unseen · {totalPlayed} played</p>
           </div>
@@ -2271,7 +2274,8 @@ export default function App() {
               const stage=new Set(roomState?.parkedForStage||[]);
               const queue=Array.isArray(roomState?.stageQueue)?roomState.stageQueue:[];
               const {pick,queue:q2}=pickSolo(pool,new Set(newSeen),later,stage,queue,roomState?.nextQuestion?.question||"");
-              await syncAction({currentQuestion:roomState?.nextQuestion||null,nextQuestion:pick||null,seenQuestions:newSeen,parkedLater:[...later],parkedForStage:[...stage],stageQueue:q2,flipped:false,perspectiveFlipped:false});
+              // Mirrors solo: the swipe reveals the next card for BOTH players.
+              await syncAction({currentQuestion:roomState?.nextQuestion||null,nextQuestion:pick||null,seenQuestions:newSeen,parkedLater:[...later],parkedForStage:[...stage],stageQueue:q2,flipped:true,perspectiveFlipped:false});
             };
 
             // Deck exhausted together -- show a synced prompt so both players
@@ -2367,7 +2371,7 @@ export default function App() {
                 </div>
                 <div style={{flexShrink:0,textAlign:"center",marginTop:12}}>
                   <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#A08868",letterSpacing:"0.03em",minHeight:16}}>
-                    {!syncedFlipped?"Tap to reveal":Math.abs(dragX)>40?"Let go to move on":"Swipe when you're both done"}
+                    {!syncedFlipped?"Tap to reveal":Math.abs(dragX)>40?"Let go to move on":"Swipe to reveal next question"}
                   </p>
                   {(()=>{
                     const roomPool=buildPool(activeCats,relationshipType,spicyLevel);
