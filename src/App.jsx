@@ -2162,14 +2162,14 @@ export default function App() {
               <div style={{display:"flex",gap:8,alignItems:"center"}}>
                 <input
                   value={joinCodeInput}
-                  onChange={e=>setJoinCodeInput(e.target.value.replace(/\D/g,"").slice(0,4))}
-                  placeholder="Enter 4-digit code"
-                  maxLength={4}
+                  onChange={e=>setJoinCodeInput(e.target.value.replace(/\D/g,"").slice(0,6))}
+                  placeholder="Enter 6-digit code"
+                  maxLength={6}
                   inputMode="numeric"
                   style={{flex:1,border:"1.5px solid #DDD0BC",borderRadius:12,padding:"12px 16px",fontFamily:"'DM Sans',sans-serif",fontSize:18,color:"#3C2010",background:"#FBF5EC",outline:"none",textAlign:"center",letterSpacing:"0.2em"}}
                 />
                 <TextureButton style={{padding:"16px 24px",flexShrink:0}} onClick={async()=>{
-                  if(!playerName.trim()||joinCodeInput.length!==4)return;
+                  if(!playerName.trim()||joinCodeInput.length!==6)return;
                   const ok=await joinRoom(joinCodeInput);
                   if(ok){
                     resetPlayState();
@@ -2186,10 +2186,10 @@ export default function App() {
             <div style={{textAlign:"center",width:"100%"}}>
               <div style={{background:"#FBF5EC",border:"1.5px solid #DDD0BC",borderRadius:20,padding:"40px 32px",marginBottom:24}}>
                 <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#A08868",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:16}}>Your room code</p>
-                <p style={{...GF_TITLE,fontSize:64,color:"#3C2010",letterSpacing:"0.2em",lineHeight:1}}>{roomCode}</p>
+                <p style={{...GF_TITLE,fontSize:"clamp(38px, 13vw, 56px)",color:"#3C2010",letterSpacing:"0.14em",lineHeight:1,whiteSpace:"nowrap"}}>{roomCode}</p>
                 <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#7A5840",marginTop:16,marginBottom:24}}>Share this with your person</p>
                 <button onClick={async()=>{
-                  const msg = `Join me on Go First! Enter code ${roomCode} at go-first-gamma.vercel.app`;
+                  const msg = `Join me on Go First! Enter code ${roomCode} at go-first.app`;
                   if(navigator.share){
                     try{ await navigator.share({title:"Go First",text:msg}); }catch(e){}
                   } else {
