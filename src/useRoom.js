@@ -5,7 +5,7 @@ import { db } from "./firebase";
 const PLAYER_ID_KEY = "gofirst_player_id";
 
 function generateCode() {
-  return Math.floor(1000 + Math.random() * 9000).toString();
+  return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
 function getOrCreatePlayerId() {
