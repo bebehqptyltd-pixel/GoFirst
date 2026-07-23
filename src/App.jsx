@@ -857,7 +857,7 @@ const TUTORIAL_STEPS = [
   {title:"Tap to flip",            body:"Your first card starts face down. Tap it to reveal the question. Take turns answering, or answer together.",                                                                                                      dare:null},
   {title:"Swipe to move on",       body:"Done with a question? Swipe left or right and the next question is revealed for you. Once you swipe, that card is done.",                                                                                     dare:null},
   {title:"Park it for later",      body:"Not feeling a question right now? Tap Park on the card to set it aside without losing it. Bring it back at the end of the deck, or save it for your next stage.",                                                dare:null},
-  {title:"Flip the perspective",   body:"Some cards can be flipped. Tap the toggle on the card face to see the same question from another perspective.",                                                                                      dare:null},
+  {title:"Switch it around",       body:"Some cards can be switched. Tap Switch on the card face to turn the question back the other way and answer for each other.",                                                                                      dare:null},
   {title:"Play it your way",       body:"Choose your relationship stage before you play. Fine-tune your categories, and turn up the heat when you're ready. Spicy questions unlock as you go deeper. Use the ⓘ at any time to revisit these instructions.", dare:"Who will Go First?"},
 ];
 
@@ -1072,7 +1072,12 @@ export default function App() {
   const [parkedForStage, setParkedForStage] = useState(new Set(mem.parkedForStage||[]));
   const [stageQueue, setStageQueue] = useState(Array.isArray(mem.stageQueue)?mem.stageQueue:[]);
   const [showPark, setShowPark] = useState(false);
+  const [parkFull, setParkFull] = useState(false); // hit the park cap
   const [showAdjust, setShowAdjust] = useState(false); // deck controls sheet
+  // Entry flow: one decision per screen, each styled as a card.
+  // "who" -> who are you playing with; "stage" -> relationship length;
+  // "style" -> together in person or long distance.
+  const [entryStep, setEntryStep] = useState("who");
   // Dev-only testing shortcut: add ?dev=1 to the URL to reveal a button that
   // jumps straight to the exhaustion screen for the current stage.
   const DEV = typeof window!=="undefined" && new URLSearchParams(window.location.search).get("dev")==="1";
@@ -1522,6 +1527,7 @@ export default function App() {
     const later = new Set(roomState?.parkedLater||[]);
     const stage = new Set(roomState?.parkedForStage||[]);
     const queue = Array.isArray(roomState?.stageQueue)?roomState.stageQueue:[];
+    if(mode!=="stage" && later.size>=5){ setParkFull(true); return; }
     if(mode==="stage"){ stage.add(cq); } else { later.add(cq); }
     // Move past the parked card without burning it as seen.
     const {pick,queue:q2} = pickSolo(pool, seen, later, stage, queue, roomState?.nextQuestion?.question||"");
@@ -1537,10 +1543,14 @@ export default function App() {
     });
   },[roomState,activeCats,relationshipType,spicyLevel,syncAction]);
 
+  const PARK_LIMIT = 5;
   const parkCard = useCallback((mode)=>{
     if(screen==="connected-play"){ parkRoom(mode); return; }
     setShowPark(false);
     if(!current) return;
+    // Parking is for the two or three cards you are not ready for right now.
+    // Past the cap the "comes back later" promise stops being credible.
+    if(mode!=="stage" && parkedLater.size>=PARK_LIMIT){ setParkFull(true); return; }
     const cq=current.question;
     const p=buildPool(activeCats,relationshipType,spicyLevel);
     let newLater=parkedLater, newStage=parkedForStage;
@@ -1628,6 +1638,28 @@ export default function App() {
   // the Play button disables until something is chosen. The Adjust sheet keeps
   // its own minimum-one guard so a deck in progress can never be emptied.
   const toggleCat=(cat)=>{setActiveCats(prev=>prev.includes(cat)?prev.filter(c=>c!==cat):[...prev,cat]);};
+  // Start a game straight from a stage choice, using that stage's own
+  // categories. The entry flow never asks about categories; they are an
+  // in-game adjustment via the Adjust the deck sheet.
+  const startStage = useCallback((stageId)=>{
+    const cats = catsForStage(stageId);
+    setRelationshipType(stageId);
+    setActiveCats(cats);
+    setSpicyLevel(0);
+    const p = buildPool(cats, stageId, 0);
+    // Open on something light where the deck allows it. A heavy opener asks
+    // for disclosure before any trust in the game has been built.
+    const light = p.filter(q=>q.category==="Light & Fun" && !seenQuestions.has(q.question));
+    const first = light.length
+      ? light[Math.floor(Math.random()*light.length)]
+      : pickNextUnseen(p, seenQuestions, "");
+    const second = pickNextUnseen(p, seenQuestions, first?.question||"");
+    setCurrent(first); setNextCard(second);
+    setStageQueue([]);
+    resetPlayState(); setFlipped(false); setCount(1); setDeckExhausted(!first);
+    setScreen("play");
+  },[catsForStage,seenQuestions,resetPlayState]);
+
   const openInfo = () => setShowInfo(true);
   const replayTutorial = () => { setShowInfo(false); setTutStep(0); setTutorialFrom("info"); setScreen("tutorial"); };
 
@@ -1647,14 +1679,16 @@ export default function App() {
         .tut-dot{height:6px;border-radius:3px;transition:all 0.3s;}
       `}</style>
 
-      {/* ── PERSISTENT INFO BUTTON ── */}
-      {!showInfo && !showReset && (
+      {/* ── PERSISTENT MENU BUTTON ── */}
+      {/* Hidden on home and during the entry flow: nothing to adjust yet, and
+          a menu icon there competes with the single decision on screen. */}
+      {!showInfo && !showReset && screen!=="home" && screen!=="entry" && (
         <div style={{position:"fixed",top:"calc(env(safe-area-inset-top) + 12px)",right:14,zIndex:50,pointerEvents:"auto"}}>
           <button className="btn-icon" onClick={openInfo}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A08868" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="9"/>
-              <line x1="12" y1="16" x2="12" y2="12"/>
-              <line x1="12" y1="8" x2="12.01" y2="8"/>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A08868" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="3" y1="7" x2="21" y2="7"/>
+              <line x1="3" y1="12" x2="21" y2="12"/>
+              <line x1="3" y1="17" x2="21" y2="17"/>
             </svg>
           </button>
         </div>
@@ -1702,7 +1736,7 @@ export default function App() {
               Change relationship
             </TextureButton>
             <TextureButton variant="ghost" style={{width:"100%",padding:"14px 32px",marginBottom:12}} onClick={()=>{setShowInfo(false);setShowReset(true);}}>
-              Reset progress{seenQuestions.size>0?` · ${seenQuestions.size} seen`:""}
+              Reset progress{seenQuestions.size>0?` · ${seenQuestions.size} played`:""}
             </TextureButton>
             <button onClick={()=>setShowInfo(false)} style={{background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#B8A888",marginTop:4,display:"block",width:"100%"}}>Close</button>
           </div>
@@ -1778,11 +1812,65 @@ export default function App() {
                   <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,fontWeight:500,color:"#8B6445",letterSpacing:"0.04em"}}>{HEAT[effSpicy]}</span>
                 </button>
               )}
+              {/* Parked cards live here so "set aside without losing it" has a
+                  visible shelf to point at. */}
+              {(()=>{
+                const parked = connected ? (roomState?.parkedLater||[]) : [...parkedLater];
+                if(!parked.length) return null;
+                const bringBack = (text)=>{
+                  audio.click();
+                  if(connected){
+                    const later=(roomState?.parkedLater||[]).filter(t=>t!==text);
+                    const q=findQ(text);
+                    syncAction({
+                      parkedLater:later,
+                      currentQuestion:q||roomState?.currentQuestion||null,
+                      nextQuestion:roomState?.currentQuestion||null,
+                      flipped:true,perspectiveFlipped:false,
+                    });
+                  } else {
+                    const next=new Set(parkedLater); next.delete(text);
+                    setParkedLater(next);
+                    const q=findQ(text);
+                    if(q){ setNextCard(current); setCurrent(q); setFlipped(true); setPerspectiveFlipped(false); setCount(c=>c+1); }
+                  }
+                  setShowAdjust(false);
+                };
+                return (
+                  <div style={{marginBottom:22}}>
+                    <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,letterSpacing:"0.12em",textTransform:"uppercase",color:"#A08868",marginBottom:10}}>Parked · {parked.length} of 5</p>
+                    <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                      {parked.map(text=>(
+                        <div key={text} style={{display:"flex",alignItems:"center",background:"#FFFFFF",border:"1.5px solid #E8DDD0",borderRadius:14,overflow:"hidden"}}>
+                          <p style={{flex:1,fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#5A4030",lineHeight:1.5,padding:"11px 14px",textAlign:"left"}}>{text.length>78?text.slice(0,78)+"…":text}</p>
+                          <button onClick={()=>bringBack(text)} aria-label="Bring back" style={{background:"none",border:"none",borderLeft:"1px solid #F0E8DC",padding:"12px 14px",cursor:"pointer",flexShrink:0}}>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B6445" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 4 3 10 9 10"/>
+                            </svg>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
               <TextureButton variant="ghost" style={{width:"100%",padding:"13px 32px"}} onClick={()=>setShowAdjust(false)}>Done</TextureButton>
             </div>
           </div>
         );
       })()}
+
+      {/* ── PARK AT CAPACITY ── */}
+      {parkFull&&(
+        <div style={{position:"fixed",inset:0,background:"rgba(44,35,24,0.6)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:120,padding:24}} onClick={()=>setParkFull(false)}>
+          <div style={{background:"#FBF5EC",borderRadius:20,padding:"32px 28px",width:"100%",maxWidth:330,textAlign:"center"}} onClick={e=>e.stopPropagation()}>
+            <p style={{...GF_TITLE,fontSize:22,color:"#3C2010",marginBottom:10}}>You have 5 parked</p>
+            <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#7A5840",lineHeight:1.6,marginBottom:22}}>Bring one back from Adjust the deck to park another.</p>
+            <TextureButton variant="ghost" style={{width:"100%",padding:"13px 28px",marginBottom:10}} onClick={()=>{setParkFull(false);setShowAdjust(true);}}>Open Adjust the deck</TextureButton>
+            <button onClick={()=>setParkFull(false)} style={{background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#B8A888",marginTop:2}}>Close</button>
+          </div>
+        </div>
+      )}
 
       {/* ── PARK PROMPT ── */}
       {showPark&&(()=>{
@@ -1964,7 +2052,7 @@ export default function App() {
           {/* The card back carries the title and tagline, so the screen doesn't
               repeat them. The card stays tappable for anyone who reaches for
               it, but Play is the explicit affordance. */}
-          <div onClick={()=>{audio.click();setScreen("deck");}} style={{position:"relative",width:"min(86vw, 320px)",aspectRatio:"252 / 353",alignSelf:"center",cursor:"pointer"}}>
+          <div onClick={()=>{audio.click();setEntryStep("who");setScreen("entry");}} style={{position:"relative",width:"min(86vw, 320px)",aspectRatio:"252 / 353",alignSelf:"center",cursor:"pointer"}}>
             {[
               {rot:"-7deg", top:"5.7%",  left:"-2.4%", op:0.3, w:"92.9%", h:"92.9%"},
               {rot:"4deg",  top:"2.8%",  left:"0.8%",  op:0.6, w:"96.8%", h:"96.9%"},
@@ -1976,9 +2064,61 @@ export default function App() {
             ))}
           </div>
           <div style={{height:48}}/>
-          <TextureButton onClick={()=>setScreen("deck")}>Play</TextureButton>
+          <TextureButton onClick={()=>{setEntryStep("who");setScreen("entry");}}>Play</TextureButton>
         </div>
       )}
+
+      {/* ── ENTRY FLOW ── */}
+      {screen==="entry"&&(()=>{
+        // Shared card frame so every decision looks like part of the game
+        // rather than a settings form.
+        const frame = (heading, sub, body, back) => (
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",width:"100%",maxWidth:460,minHeight:"100vh",boxSizing:"border-box",padding:"24px"}}>
+            <div style={{position:"relative",width:"min(88vw, 340px)",background:"#F5EDE0",border:"1.5px solid #E8DDD0",borderRadius:20,padding:"38px 26px",textAlign:"center",boxShadow:"-4px 12px 40px rgba(54,28,8,0.16), -2px 4px 12px rgba(54,28,8,0.10)"}}>
+              <div style={{position:"absolute",inset:10,border:"1px solid rgba(180,160,140,0.25)",borderRadius:12,pointerEvents:"none"}}/>
+              <p style={{...GF_TITLE,fontSize:26,color:"#2C1808",lineHeight:1.3,marginBottom:sub?8:26,position:"relative"}}>{heading}</p>
+              {sub&&<p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#A08868",lineHeight:1.6,marginBottom:26,position:"relative"}}>{sub}</p>}
+              <div style={{position:"relative",display:"flex",flexDirection:"column",gap:12}}>{body}</div>
+            </div>
+            {back&&(
+              <button onClick={back} style={{background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#B8A888",marginTop:20,letterSpacing:"0.04em"}}>← Back</button>
+            )}
+          </div>
+        );
+
+        if(entryStep==="who"){
+          return frame("Who are you playing with?", null, (
+            <>
+              <TextureButton variant="ghost" style={{width:"100%",padding:"15px 24px"}} onClick={()=>{setTogetherMode(false);startStage("friends");}}>Friends</TextureButton>
+              <TextureButton variant="ghost" style={{width:"100%",padding:"15px 24px"}} onClick={()=>setEntryStep("stage")}>Romantic connection</TextureButton>
+            </>
+          ), ()=>setScreen("home"));
+        }
+
+        if(entryStep==="stage"){
+          const romantic = RELATIONSHIP_TYPES.filter(r=>r.id!=="friends");
+          return frame("How long have you been together?", null, (
+            <div style={{display:"flex",gap:10,width:"100%"}}>
+              {romantic.map(rel=>(
+                <RelTile key={rel.id} rel={rel} isActive={false} onClick={()=>{setRelationshipType(rel.id);setEntryStep("style");}}/>
+              ))}
+            </div>
+          ), ()=>setEntryStep("who"));
+        }
+
+        // style: together in person, or long distance via a room
+        return frame("How are you playing?", "Long distance connects two phones with a code.", (
+          <>
+            <TextureButton variant="ghost" style={{width:"100%",padding:"15px 24px"}} onClick={()=>{setTogetherMode(false);startStage(relationshipType);}}>Together</TextureButton>
+            <TextureButton variant="ghost" style={{width:"100%",padding:"15px 24px"}} onClick={()=>{
+              const cats=catsForStage(relationshipType);
+              setActiveCats(cats); setSpicyLevel(0);
+              setTogetherMode(true); setTogetherSeedSeen([]);
+              setScreen("together");
+            }}>Long distance</TextureButton>
+          </>
+        ), ()=>setEntryStep("stage"));
+      })()}
 
       {/* ── TUTORIAL ── */}
       {screen==="tutorial"&&(
@@ -2087,7 +2227,7 @@ export default function App() {
           {/* Deck controls used to live here. They now sit in the "Adjust the
               deck" sheet below the card, so nothing competes with the card. */}
           <div style={{height:24,flexShrink:0}}/>
-          {/* Card — fixed vh height so it never pushes stats off screen */}
+          {/* Card: fixed vh height so it never pushes stats off screen */}
           <div style={{position:"relative",width:"100%",maxWidth:340,height:"55vh",maxHeight:460,flexShrink:0,marginBottom:8}}>
             {nextCard&&!deckExhausted&&(
               <div style={{position:"absolute",inset:0,transform:"scale(0.95) translateY(10px)",transformOrigin:"bottom center",opacity:1,pointerEvents:"none",zIndex:1}}>
@@ -2190,7 +2330,7 @@ export default function App() {
                   {showPerspectiveToggle&&(
                     <div style={{display:"flex",justifyContent:"flex-end",paddingTop:8}}>
                       <button onClick={(e)=>{e.stopPropagation();setPerspectiveFlipped(v=>!v);}} style={{background:perspectiveFlipped?"#3C2410":"transparent",border:"1px solid #C4A882",borderRadius:100,padding:"4px 14px",cursor:"pointer",display:"flex",alignItems:"center",gap:5,transition:"all 0.2s"}}>
-                        <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:10,letterSpacing:"0.12em",textTransform:"uppercase",color:perspectiveFlipped?"#F5EDD9":"#8B6445",fontWeight:500}}>Flip</span>
+                        <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:10,letterSpacing:"0.12em",textTransform:"uppercase",color:perspectiveFlipped?"#F5EDD9":"#8B6445",fontWeight:500}}>Switch</span>
                       </button>
                     </div>
                   )}
@@ -2198,12 +2338,12 @@ export default function App() {
               </div>
             )}
           </div>
-          {/* Status — always visible */}
+          {/* Status: always visible */}
           <div style={{flexShrink:0,textAlign:"center",marginTop:12}}>
             <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:14,color:"#A08868",letterSpacing:"0.03em",minHeight:16}}>
               {deckExhausted?"":!flipped?"Tap to reveal":Math.abs(dragX)>40?"Let go to discard":"Swipe to reveal next question"}
             </p>
-            <p style={{marginTop:4,fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#B0A090",letterSpacing:"0.03em"}}>{unseenCount} unseen · {totalPlayed} played</p>
+            <p style={{marginTop:4,fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#B0A090",letterSpacing:"0.03em"}}>{unseenCount} unseen · {totalPlayed} played{parkedLater.size>0?` · ${parkedLater.size} parked`:""}</p>
           </div>
           {/* Deck controls live below the card so they never compete with it */}
           {!deckExhausted&&(
@@ -2332,7 +2472,7 @@ export default function App() {
             {/* ── CONNECTED PLAY ── */}
       {screen==="connected-play"&&(
         <div style={{display:"flex",flexDirection:"column",alignItems:"center",width:"100%",maxWidth:460,height:"100vh",maxHeight:"100vh",boxSizing:"border-box",paddingLeft:12,paddingRight:12,paddingTop:"calc(env(safe-area-inset-top) + 8px)",paddingBottom:"calc(env(safe-area-inset-bottom) + 10px)"}}>
-          {/* Header — back arrow is now the persistent fixed one (top-left) */}
+          {/* Header: back arrow is now the persistent fixed one (top-left) */}
           <div style={{width:"100%",paddingBottom:6,display:"flex",alignItems:"center",justifyContent:"flex-end",flexShrink:0}}>
             <div style={{display:"flex",alignItems:"center",gap:6}}>
               <div style={{width:7,height:7,borderRadius:"50%",background:roomStatus==="connected"?"#5A8A5A":"#C4A882"}}/>
@@ -2451,7 +2591,7 @@ export default function App() {
                       {syncedQ?.canFlip&&(
                         <div style={{display:"flex",justifyContent:"flex-end",paddingTop:8}}>
                           <button onClick={async(e)=>{e.stopPropagation();await syncAction({perspectiveFlipped:!syncedPerspective});}} style={{background:syncedPerspective?"#3C2410":"transparent",border:"1px solid #C4A882",borderRadius:100,padding:"4px 14px",cursor:"pointer",transition:"all 0.2s"}}>
-                            <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:10,letterSpacing:"0.12em",textTransform:"uppercase",color:syncedPerspective?"#F5EDD9":"#8B6445",fontWeight:500}}>Flip</span>
+                            <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:10,letterSpacing:"0.12em",textTransform:"uppercase",color:syncedPerspective?"#F5EDD9":"#8B6445",fontWeight:500}}>Switch</span>
                           </button>
                         </div>
                       )}
@@ -2467,9 +2607,10 @@ export default function App() {
                     const seenSet=new Set(roomState?.seenQuestions||[]);
                     const unseen=roomPool.filter(q=>!seenSet.has(q.question)).length;
                     const played=(roomState?.seenQuestions||[]).length;
+                    const parkedN=(roomState?.parkedLater||[]).length;
                     return(
                       <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#C8B8A0",letterSpacing:"0.04em",marginTop:4}}>
-                        {unseen} unseen · {played} played
+                        {unseen} unseen · {played} played{parkedN>0?` · ${parkedN} parked`:""}
                       </p>
                     );
                   })()}
