@@ -1076,6 +1076,18 @@ export default function App() {
   // Dev-only testing shortcut: add ?dev=1 to the URL to reveal a button that
   // jumps straight to the exhaustion screen for the current stage.
   const DEV = typeof window!=="undefined" && new URLSearchParams(window.location.search).get("dev")==="1";
+  // Testing aid: ?fresh=1 wipes local storage and reloads, so a first-run
+  // state can be checked without clearing site data by hand.
+  useEffect(()=>{
+    if(typeof window==="undefined") return;
+    if(new URLSearchParams(window.location.search).get("fresh")!=="1") return;
+    try{
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(SAVES_KEY);
+      localStorage.removeItem(MUTE_KEY);
+    }catch{}
+    window.location.replace(window.location.pathname);
+  },[]);
   const [flipped, setFlipped] = useState(false);
   const [current, setCurrent] = useState(null);
   const [nextCard, setNextCard] = useState(null);
@@ -1612,7 +1624,10 @@ export default function App() {
   const onPointerDown=(e)=>{if(!flipped)return;dragStartX.current=e.touches?e.touches[0].clientX:e.clientX;hasDragged.current=false;setIsDragging(true);};
   const onPointerMove=(e)=>{if(!isDragging||dragStartX.current===null)return;const x=(e.touches?e.touches[0].clientX:e.clientX)-dragStartX.current;if(Math.abs(x)>4)hasDragged.current=true;setDragX(x);};
   const onPointerUp=()=>{if(!isDragging)return;setIsDragging(false);if(Math.abs(dragX)>80){audio.resume();audio.swipe();setGoneDir(dragX>0?1:-1);setGone(true);setTimeout(advance,300);}else{setDragX(0);setTimeout(()=>{hasDragged.current=false;},50);}dragStartX.current=null;};
-  const toggleCat=(cat)=>{setActiveCats(prev=>{if(prev.includes(cat)){if(prev.length<=1)return prev;return prev.filter(c=>c!==cat);}return[...prev,cat];});};
+  // Deck builder only. Zero categories is a legitimate starting state here:
+  // the Play button disables until something is chosen. The Adjust sheet keeps
+  // its own minimum-one guard so a deck in progress can never be emptied.
+  const toggleCat=(cat)=>{setActiveCats(prev=>prev.includes(cat)?prev.filter(c=>c!==cat):[...prev,cat]);};
   const openInfo = () => setShowInfo(true);
   const replayTutorial = () => { setShowInfo(false); setTutStep(0); setTutorialFrom("info"); setScreen("tutorial"); };
 
