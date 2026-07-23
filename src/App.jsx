@@ -1011,7 +1011,7 @@ function RelTile({rel, isActive, onClick}) {
 function SpicyToggle({ level, onCycle, stageId }) {
   const stage = RELATIONSHIP_TYPES.find(r=>r.id===stageId);
   if (!stage || stage.spicyMax === 0) return null;
-  const LABELS = {0:"Turn up the heat", 1:"Mild", 2:"Medium", 3:"Hot"};
+  const LABELS = {0:"Turn up the heat", 1:"Level 1", 2:"Level 2", 3:"Level 3"};
   const isOn = level > 0;
   const flameColor = isOn ? "#FFFFFF" : "#8B6445";
   const handleCycle = onCycle ? ()=>{ audio.tick(); onCycle(); } : undefined;
@@ -1057,7 +1057,10 @@ export default function App() {
   const [tutStep, setTutStep] = useState(0);
   const [tutorialFrom, setTutorialFrom] = useState("home");
   const [hasSeenTutorial, setHasSeenTutorial] = useState(mem.hasSeenTutorial||false);
-  const [activeCats, setActiveCats] = useState(mem.activeCats||[...CATEGORY_ORDER]);
+  // Categories start OFF so the pills visibly read as selectable rather than
+  // as static labels. Selecting a stage tile turns on that stage's categories,
+  // which demonstrates they are toggles.
+  const [activeCats, setActiveCats] = useState(mem.activeCats||[]);
   const [relationshipType, setRelationshipType] = useState(null);
   const [spicyLevel, setSpicyLevel] = useState(0);
   const [perspectiveFlipped, setPerspectiveFlipped] = useState(false);
@@ -1069,6 +1072,7 @@ export default function App() {
   const [parkedForStage, setParkedForStage] = useState(new Set(mem.parkedForStage||[]));
   const [stageQueue, setStageQueue] = useState(Array.isArray(mem.stageQueue)?mem.stageQueue:[]);
   const [showPark, setShowPark] = useState(false);
+  const [showAdjust, setShowAdjust] = useState(false); // deck controls sheet
   // Dev-only testing shortcut: add ?dev=1 to the URL to reveal a button that
   // jumps straight to the exhaustion screen for the current stage.
   const DEV = typeof window!=="undefined" && new URLSearchParams(window.location.search).get("dev")==="1";
@@ -1410,7 +1414,7 @@ export default function App() {
     : CATEGORY_ORDER;
   const currentStage = RELATIONSHIP_TYPES.find(r=>r.id===relationshipType);
   // Build a readable deck preview string for the connected screen
-  const spicyLabels = ["", "Mild", "Medium", "Hot"];
+  const spicyLabels = ["", "Level 1", "Level 2", "Level 3"];
   const deckPreview = (()=>{
     const parts = [];
     if(roomState?.stage){
@@ -1694,6 +1698,77 @@ export default function App() {
         <button onClick={devExhaust} style={{position:"fixed",left:12,bottom:12,zIndex:200,background:"#3C2410",color:"#F5EDD9",border:"none",borderRadius:8,padding:"6px 11px",fontSize:11,fontWeight:600,fontFamily:"'DM Sans',sans-serif",letterSpacing:"0.04em",opacity:0.8,cursor:"pointer"}}>⏭ END</button>
       )}
 
+      {/* ── ADJUST THE DECK ── */}
+      {showAdjust&&(()=>{
+        const connected = screen==="connected-play";
+        const effStage = connected ? (roomState?.stage ?? relationshipType) : relationshipType;
+        const effCats = connected ? (roomState?.activeCats || activeCats) : activeCats;
+        const effSpicy = connected ? (roomState?.spicyLevel ?? spicyLevel) : spicyLevel;
+        const stageMax = RELATIONSHIP_TYPES.find(r=>r.id===effStage)?.spicyMax || 0;
+        // Only offer categories that actually have questions in this stage
+        const offerable = effStage ? catsForStage(effStage) : CATEGORY_ORDER;
+        const toggle = (cat)=>{
+          audio.tick();
+          const isOn = effCats.includes(cat);
+          if(isOn && effCats.length<=1) return; // never empty the deck
+          const next = isOn ? effCats.filter(c=>c!==cat) : [...effCats, cat];
+          setActiveCats(next);
+          if(connected) syncAction({activeCats:next});
+        };
+        const cycleHeat = ()=>{
+          audio.tick();
+          const next = effSpicy>=stageMax ? 0 : effSpicy+1;
+          setSpicyLevel(next);
+          if(connected) syncAction({spicyLevel:next});
+        };
+        const HEAT = {0:"Off", 1:"Level 1", 2:"Level 2", 3:"Level 3"};
+        return (
+          <div style={{position:"fixed",inset:0,background:"rgba(44,35,24,0.6)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:110,padding:24}} onClick={()=>setShowAdjust(false)}>
+            <div style={{background:"#FBF5EC",borderRadius:20,padding:"30px 24px",width:"100%",maxWidth:360,maxHeight:"82vh",overflowY:"auto"}} onClick={e=>e.stopPropagation()}>
+              <p style={{...GF_TITLE,fontSize:24,color:"#3C2010",textAlign:"center",marginBottom:4}}>Adjust the deck</p>
+              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#A08868",textAlign:"center",marginBottom:22}}>Turn topics on or off any time</p>
+              <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:22}}>
+                {offerable.map(cat=>{
+                  const isOn = effCats.includes(cat);
+                  const d = CATEGORIES[cat];
+                  return (
+                    <button key={cat} onClick={()=>toggle(cat)} style={{
+                      display:"flex",alignItems:"center",justifyContent:"space-between",width:"100%",
+                      background:"#FFFFFF",border:"1.5px solid #E8DDD0",borderRadius:14,padding:"12px 16px",cursor:"pointer",
+                    }}>
+                      <span style={{display:"flex",alignItems:"center",gap:10,minWidth:0}}>
+                        <span style={{width:10,height:10,borderRadius:3,background:d?.pillBg||"#8B6445",flexShrink:0}}/>
+                        <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#3C2010",letterSpacing:"0.02em",textAlign:"left"}}>{cat}</span>
+                      </span>
+                      <span style={{position:"relative",width:38,height:22,borderRadius:11,background:isOn?"#5C3418":"#E0D5C4",transition:"background 0.18s",flexShrink:0}}>
+                        <span style={{position:"absolute",top:2,left:isOn?18:2,width:18,height:18,borderRadius:9,background:"#FBF5EC",transition:"left 0.18s",boxShadow:"0 1px 2px rgba(54,28,8,0.25)"}}/>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+              {stageMax>0&&(
+                <button onClick={cycleHeat} style={{
+                  display:"flex",alignItems:"center",justifyContent:"space-between",width:"100%",
+                  background:"#FFFFFF",border:"1.5px solid #E8DDD0",borderRadius:14,padding:"12px 16px",cursor:"pointer",marginBottom:22,
+                }}>
+                  <span style={{display:"flex",alignItems:"center",gap:10}}>
+                    <span style={{display:"flex",gap:2}}>
+                      {Array.from({length:Math.max(stageMax,1)}).map((_,i)=>(
+                        <FlameIcon key={i} size={13} color={i<effSpicy?"#B84A1A":"#DDD0BC"}/>
+                      ))}
+                    </span>
+                    <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#3C2010",letterSpacing:"0.02em"}}>Heat</span>
+                  </span>
+                  <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,fontWeight:500,color:"#8B6445",letterSpacing:"0.04em"}}>{HEAT[effSpicy]}</span>
+                </button>
+              )}
+              <TextureButton variant="ghost" style={{width:"100%",padding:"13px 32px"}} onClick={()=>setShowAdjust(false)}>Done</TextureButton>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* ── PARK PROMPT ── */}
       {showPark&&(()=>{
         const effStage = screen==="connected-play" ? (roomState?.stage ?? relationshipType) : relationshipType;
@@ -1872,8 +1947,8 @@ export default function App() {
       {screen==="home"&&(
         <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",width:"100%",maxWidth:460,minHeight:"100vh",boxSizing:"border-box",paddingLeft:24,paddingRight:24,paddingTop:"calc(env(safe-area-inset-top) + 24px)",paddingBottom:"calc(env(safe-area-inset-bottom) + 24px)"}}>
           {/* The card back carries the title and tagline, so the screen doesn't
-              repeat them. The card is the only element and the only control:
-              tapping it starts the flow. */}
+              repeat them. The card stays tappable for anyone who reaches for
+              it, but Play is the explicit affordance. */}
           <div onClick={()=>{audio.click();setScreen("deck");}} style={{position:"relative",width:"min(86vw, 320px)",aspectRatio:"252 / 353",alignSelf:"center",cursor:"pointer"}}>
             {[
               {rot:"-7deg", top:"5.7%",  left:"-2.4%", op:0.3, w:"92.9%", h:"92.9%"},
@@ -1885,6 +1960,8 @@ export default function App() {
               </div>
             ))}
           </div>
+          <div style={{height:48}}/>
+          <TextureButton onClick={()=>setScreen("deck")}>Play</TextureButton>
         </div>
       )}
 
@@ -1936,7 +2013,7 @@ export default function App() {
           )}
           <div style={{display:"flex",gap:10,width:"100%",marginBottom:32}}>
             {RELATIONSHIP_TYPES.map(rel=>(
-              <RelTile key={rel.id} rel={rel} isActive={relationshipType===rel.id} onClick={()=>{if(relationshipType===rel.id){setRelationshipType(null);setActiveCats([...CATEGORY_ORDER]);setSpicyLevel(0);}else{const validCats=CATEGORY_ORDER.filter(cat=>ALL_QUESTIONS.some(q=>{const si=STAGE_ORDER.indexOf(rel.id);const mi=STAGE_ORDER.indexOf(q.stageMin);const mx=q.stageMax?STAGE_ORDER.indexOf(q.stageMax):3;return q.category===cat&&si>=mi&&si<=mx;}));setRelationshipType(rel.id);setActiveCats(validCats);setSpicyLevel(0);}}}/>
+              <RelTile key={rel.id} rel={rel} isActive={relationshipType===rel.id} onClick={()=>{if(relationshipType===rel.id){setRelationshipType(null);setActiveCats([]);setSpicyLevel(0);}else{const validCats=CATEGORY_ORDER.filter(cat=>ALL_QUESTIONS.some(q=>{const si=STAGE_ORDER.indexOf(rel.id);const mi=STAGE_ORDER.indexOf(q.stageMin);const mx=q.stageMax?STAGE_ORDER.indexOf(q.stageMax):3;return q.category===cat&&si>=mi&&si<=mx;}));setRelationshipType(rel.id);setActiveCats(validCats);setSpicyLevel(0);}}}/>
             ))}
           </div>
           {relationshipType && (currentStage?.spicyMax||0) > 0 && (
@@ -1959,7 +2036,7 @@ export default function App() {
           <div style={{width:"100%",background:"#FBF5EC",border:"1px solid #DDD0BC",borderRadius:16,padding:"18px 22px",marginBottom:16,display:"flex",alignItems:"center",justifyContent:"space-between",boxShadow:"inset 0 1px 4px rgba(54,28,8,0.08), -1px 2px 8px rgba(54,28,8,0.06)"}}>
             <div>
               <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:15,fontWeight:500,color:"#3C2010",marginBottom:4,letterSpacing:"0.02em"}}>Your deck</p>
-              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#7A5840"}}>{unseenCount} unseen · {pool.length} total</p>
+              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#7A5840"}}>{activeCats.length===0?"Choose a stage or topics":`${activeCats.length} ${activeCats.length===1?"topic":"topics"} selected`}</p>
             </div>
             <div style={{display:"flex"}}>
               {activeCats.slice(0,4).map((cat,i)=><div key={cat} style={{width:26,height:34,borderRadius:4,background:CATEGORIES[cat]?.pillBg||"#8B6445",border:"2px solid #F0EAE0",marginLeft:i>0?-8:0,boxShadow:"-1px 2px 6px rgba(54,28,8,0.18)"}}/>)}
@@ -1982,7 +2059,7 @@ export default function App() {
               startFromDeck();
             }
           }}>
-            {togetherMode ? "Create room" : `Play · ${unseenCount} new questions`}
+            {togetherMode ? "Create room" : "Play"}
           </TextureButton>
         </div>
       )}
@@ -1992,23 +2069,9 @@ export default function App() {
         <div style={{display:"flex",flexDirection:"column",alignItems:"center",width:"100%",maxWidth:460,height:"100vh",maxHeight:"100vh",boxSizing:"border-box",paddingLeft:12,paddingRight:12,paddingTop:"calc(env(safe-area-inset-top) + 8px)",paddingBottom:"calc(env(safe-area-inset-bottom) + 10px)"}}>
           {/* Spacer to clear the fixed back arrow */}
           <div style={{width:"100%",height:30,flexShrink:0}}/>
-          {/* Category pills — lowered 5mm, 2mm extra row gap */}
-          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,width:"100%",flexShrink:0}}>
-            {Array.from({length:Math.ceil(CATEGORY_ORDER.length/3)}).map((_,rowIdx)=>(
-              <div key={rowIdx} style={{display:"flex",gap:6,justifyContent:"center"}}>
-                {CATEGORY_ORDER.slice(rowIdx*3,(rowIdx+1)*3).map(cat=>(
-                  <TexturePill key={cat} cat={cat} isOn={activeCats.includes(cat)} onClick={()=>toggleCat(cat)}/>
-                ))}
-              </div>
-            ))}
-          </div>
-          {relationshipType && (currentStage?.spicyMax||0) > 0 && (
-            <div style={{display:"flex",justifyContent:"center",marginTop:6,flexShrink:0}}>
-              <SpicyToggle level={spicyLevel} onCycle={()=>{const max=RELATIONSHIP_TYPES.find(r=>r.id===relationshipType)?.spicyMax||0;setSpicyLevel(l=>(l>=max?0:l+1));}} stageId={relationshipType}/>
-            </div>
-          )}
-          {/* 50px gap pills to card */}
-          <div style={{height:50,flexShrink:0}}/>
+          {/* Deck controls used to live here. They now sit in the "Adjust the
+              deck" sheet below the card, so nothing competes with the card. */}
+          <div style={{height:24,flexShrink:0}}/>
           {/* Card — fixed vh height so it never pushes stats off screen */}
           <div style={{position:"relative",width:"100%",maxWidth:340,height:"55vh",maxHeight:460,flexShrink:0,marginBottom:8}}>
             {nextCard&&!deckExhausted&&(
@@ -2127,6 +2190,21 @@ export default function App() {
             </p>
             <p style={{marginTop:4,fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#B0A090",letterSpacing:"0.03em"}}>{unseenCount} unseen · {totalPlayed} played</p>
           </div>
+          {/* Deck controls live below the card so they never compete with it */}
+          {!deckExhausted&&(
+            <button onClick={()=>{audio.click();setShowAdjust(true);}} style={{
+              flexShrink:0,marginTop:10,background:"transparent",border:"1.5px solid #C4A882",borderRadius:100,
+              padding:"11px 26px",cursor:"pointer",display:"flex",alignItems:"center",gap:8,
+            }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8B6445" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/>
+                <line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/>
+                <line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/>
+                <line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>
+              </svg>
+              <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,fontWeight:500,letterSpacing:"0.12em",textTransform:"uppercase",color:"#8B6445"}}>Adjust the deck</span>
+            </button>
+          )}
         </div>
       )}
 
@@ -2249,33 +2327,8 @@ export default function App() {
             </div>
             <div style={{width:28}}/>
           </div>
-          {/* Category pills -- synced to room */}
-          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,width:"100%",flexShrink:0}}>
-            {Array.from({length:Math.ceil(CATEGORY_ORDER.length/3)}).map((_,rowIdx)=>(
-              <div key={rowIdx} style={{display:"flex",gap:6,justifyContent:"center"}}>
-                {CATEGORY_ORDER.slice(rowIdx*3,(rowIdx+1)*3).map(cat=>(
-                  <TexturePill key={cat} cat={cat} isOn={activeCats.includes(cat)} onClick={()=>{
-                    const next = activeCats.includes(cat)
-                      ? (activeCats.length<=1 ? activeCats : activeCats.filter(c=>c!==cat))
-                      : [...activeCats, cat];
-                    setActiveCats(next);
-                    syncAction({activeCats:next});
-                  }}/>
-                ))}
-              </div>
-            ))}
-          </div>
-          {relationshipType && (currentStage?.spicyMax||0) > 0 && (
-            <div style={{display:"flex",justifyContent:"center",marginTop:6,flexShrink:0}}>
-              <SpicyToggle level={spicyLevel} onCycle={()=>{
-                const max=RELATIONSHIP_TYPES.find(r=>r.id===relationshipType)?.spicyMax||0;
-                const next = spicyLevel>=max ? 0 : spicyLevel+1;
-                setSpicyLevel(next);
-                syncAction({spicyLevel:next});
-              }} stageId={relationshipType}/>
-            </div>
-          )}
-          <div style={{height:50,flexShrink:0}}/>
+          {/* Deck controls moved into the "Adjust the deck" sheet below the card */}
+          <div style={{height:24,flexShrink:0}}/>
           {/* Synced card with swipe */}
           {(()=>{
             const syncedQ=roomState?.currentQuestion||current;
@@ -2406,6 +2459,18 @@ export default function App() {
                     );
                   })()}
                 </div>
+                <button onClick={()=>{audio.click();setShowAdjust(true);}} style={{
+                  flexShrink:0,marginTop:10,background:"transparent",border:"1.5px solid #C4A882",borderRadius:100,
+                  padding:"11px 26px",cursor:"pointer",display:"flex",alignItems:"center",gap:8,alignSelf:"center",
+                }}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8B6445" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/>
+                    <line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/>
+                    <line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/>
+                    <line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>
+                  </svg>
+                  <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,fontWeight:500,letterSpacing:"0.12em",textTransform:"uppercase",color:"#8B6445"}}>Adjust the deck</span>
+                </button>
               </>
             );
           })()}
