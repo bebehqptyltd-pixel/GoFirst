@@ -853,12 +853,14 @@ const RELATIONSHIP_TYPES = [
 ];
 
 const TUTORIAL_STEPS = [
-  {title:"Welcome to Go First",    body:"A card game for people brave enough to say the things typically left unsaid. There are no wrong answers.",                                                                                                          dare:null},
-  {title:"Tap to flip",            body:"Your first card starts face down. Tap it to reveal the question. Take turns answering, or answer together.",                                                                                                      dare:null},
-  {title:"Swipe to move on",       body:"Done with a question? Swipe left or right and the next question is revealed for you. Once you swipe, that card is done.",                                                                                     dare:null},
-  {title:"Park it for later",      body:"Not feeling a question right now? Tap Park on the card to set it aside without losing it. Bring it back at the end of the deck, or save it for your next stage.",                                                dare:null},
-  {title:"Switch it around",       body:"Some cards can be switched. Tap Switch on the card face to turn the question back the other way and answer for each other.",                                                                                      dare:null},
-  {title:"Play it your way",       body:"Choose your relationship stage before you play. Fine-tune your categories, and turn up the heat when you're ready. Spicy questions unlock as you go deeper. Use the ⓘ at any time to revisit these instructions.", dare:"Who will Go First?"},
+  {title:"Welcome to Go First", body:"A card game for people brave enough to say the things typically left unsaid. There are no wrong answers.", dare:null},
+  {title:"Tap to reveal",       body:"Your first card starts face down. Tap it to reveal the question. Take turns answering, or answer together.", dare:null},
+  {title:"Swipe to move on",    body:"Done with a question? Swipe left or right and the next question is revealed for you. Once you swipe, that card is done.", dare:null},
+  {title:"Undo a swipe",        body:"Swiped before you were ready? Undo appears below the card and brings the last one straight back. It works once per card.", dare:null},
+  {title:"Park it for later",   body:"Not feeling a question right now? Tap Park to set it aside without losing it. You can hold up to five, and bring any of them back from Adjust the deck whenever you like.", dare:null},
+  {title:"Switch it around",    body:"Some cards can be switched. Tap Switch on the card face to turn the question back the other way and answer for each other.", dare:null},
+  {title:"Adjust the deck",     body:"Sitting under every card. Turn topics on or off, and turn up the heat when you are ready. Your parked cards live here too.", dare:null},
+  {title:"The menu",            body:"Save your game, restore an earlier one, change your relationship stage or play long distance. Everything else lives behind the menu button.", dare:"Who will go first?"},
 ];
 
 function flipQuestion(q){
@@ -1037,17 +1039,21 @@ function SpicyToggle({ level, onCycle, stageId }) {
 
 function TutIcon({step}){
   const p={stroke:"#7A4A24",strokeWidth:"1.5",strokeLinecap:"round",strokeLinejoin:"round",fill:"none"};
-  // 0 Welcome, 1 Tap to flip, 2 Swipe, 3 Park, 4 Flip perspective, 5 Play it your way
+  // 0 Welcome, 1 Tap, 2 Swipe, 3 Undo, 4 Park, 5 Switch, 6 Adjust, 7 Menu
   if(step===0)return<svg width="44" height="44" viewBox="0 0 44 44" fill="none"><rect x="6" y="8" width="24" height="30" rx="3" {...p}/><rect x="12" y="4" width="24" height="30" rx="3" {...p}/><line x1="18" y1="17" x2="28" y2="17" {...p}/><line x1="18" y1="22" x2="24" y2="22" {...p}/></svg>;
   if(step===1)return<svg width="44" height="44" viewBox="0 0 44 44" fill="none"><rect x="10" y="4" width="24" height="32" rx="3" {...p}/><path d="M22 14 L22 24 M17 20 L22 25 L27 20" {...p}/></svg>;
-  // Swipe -- card flanked by left/right arrows
+  // Swipe: card flanked by left/right arrows
   if(step===2)return<svg width="44" height="44" viewBox="0 0 44 44" fill="none"><rect x="12" y="6" width="20" height="28" rx="3" {...p}/><path d="M4 20 L2 20 M6 16 L2 20 L6 24" {...p}/><path d="M40 20 L42 20 M38 16 L42 20 L38 24" {...p}/></svg>;
-  // Park -- bookmark (matches the in-play PARK button)
-  if(step===3)return<svg width="44" height="44" viewBox="0 0 44 44" fill="none"><path d="M14 7 h16 v29 l-8 -7 l-8 7 z" {...p}/></svg>;
-  // Flip perspective -- horizontal spinning arrow
-  if(step===4)return<svg width="44" height="44" viewBox="0 0 44 44" fill="none"><path d="M13 19 Q22 10 31 18" {...p}/><path d="M31 18 L27 15 M31 18 L27 21" {...p}/><path d="M31 25 Q22 34 13 26" {...p}/><path d="M13 26 L17 23 M13 26 L17 29" {...p}/></svg>;
-  // Play it your way -- the Go First seed mark
-  if(step===5)return<svg width="44" height="44" viewBox="0 0 44 44" fill="none"><path d="M22 8 c0 0-6 5-6 10.5C16 22.5 18.2 25 22 26.5c3.8-1.5 6-4 6-8C28 13 22 8 22 8z" {...p}/><path d="M22 26.5 c0 0-4 2-4 5.5 0 2.2 1.8 4 4 4s4-1.8 4-4 c0-3.5-4-5.5-4-5.5z" {...p}/></svg>;
+  // Undo: circular arrow back, matching the in-play Undo button
+  if(step===3)return<svg width="44" height="44" viewBox="0 0 44 44" fill="none"><path d="M8 22a14 14 0 1 0 4.7-10.4" {...p}/><polyline points="8 8 8 17 17 17" {...p}/></svg>;
+  // Park: bookmark, matching the in-play PARK button
+  if(step===4)return<svg width="44" height="44" viewBox="0 0 44 44" fill="none"><path d="M14 7 h16 v29 l-8 -7 l-8 7 z" {...p}/></svg>;
+  // Switch: horizontal spinning arrows
+  if(step===5)return<svg width="44" height="44" viewBox="0 0 44 44" fill="none"><path d="M13 19 Q22 10 31 18" {...p}/><path d="M31 18 L27 15 M31 18 L27 21" {...p}/><path d="M13 26 Q22 34 31 26" {...p}/><path d="M13 26 L17 23 M13 26 L17 29" {...p}/></svg>;
+  // Adjust: sliders, matching the in-play Adjust the deck button
+  if(step===6)return<svg width="44" height="44" viewBox="0 0 44 44" fill="none"><line x1="11" y1="36" x2="11" y2="25" {...p}/><line x1="11" y1="19" x2="11" y2="8" {...p}/><line x1="22" y1="36" x2="22" y2="22" {...p}/><line x1="22" y1="16" x2="22" y2="8" {...p}/><line x1="33" y1="36" x2="33" y2="29" {...p}/><line x1="33" y1="23" x2="33" y2="8" {...p}/><line x1="6" y1="25" x2="16" y2="25" {...p}/><line x1="17" y1="16" x2="27" y2="16" {...p}/><line x1="28" y1="29" x2="38" y2="29" {...p}/></svg>;
+  // Menu: three lines, matching the header button
+  if(step===7)return<svg width="44" height="44" viewBox="0 0 44 44" fill="none"><line x1="9" y1="14" x2="35" y2="14" {...p}/><line x1="9" y1="22" x2="35" y2="22" {...p}/><line x1="9" y1="30" x2="35" y2="30" {...p}/></svg>;
   return null;
 }
 
@@ -1055,7 +1061,7 @@ export default function App() {
   const mem = loadMemory();
   const [screen, setScreen] = useState("home");
   const [tutStep, setTutStep] = useState(0);
-  const [tutorialFrom, setTutorialFrom] = useState("home");
+  const [tutorialReturn, setTutorialReturn] = useState("home"); // where "How to play" was opened from
   const [hasSeenTutorial, setHasSeenTutorial] = useState(mem.hasSeenTutorial||false);
   // Categories start OFF so the pills visibly read as selectable rather than
   // as static labels. Selecting a stage tile turns on that stage's categories,
@@ -1073,6 +1079,27 @@ export default function App() {
   const [stageQueue, setStageQueue] = useState(Array.isArray(mem.stageQueue)?mem.stageQueue:[]);
   const [showPark, setShowPark] = useState(false);
   const [parkFull, setParkFull] = useState(false); // hit the park cap
+  // Single-step undo. Holds the card that was just swiped away so an
+  // accidental swipe can be taken back once. Cleared after use.
+  const [lastCard, setLastCard] = useState(null);
+  // In-context tutorial. Each hint fires once, at the moment its control first
+  // matters, rather than as a wall of instructions before play starts.
+  const COACH_KEY = "gofirst_coach_v1";
+  const [coachSeen, setCoachSeen] = useState(()=>{
+    try{ return new Set(JSON.parse(localStorage.getItem(COACH_KEY)||"[]")); }catch{ return new Set(); }
+  });
+  const [coach, setCoach] = useState(null); // id of the hint showing now
+  const markCoachSeen = useCallback((id)=>{
+    setCoachSeen(prev=>{
+      const next=new Set(prev); next.add(id);
+      try{ localStorage.setItem(COACH_KEY, JSON.stringify([...next])); }catch{}
+      return next;
+    });
+    setCoach(null);
+  },[]);
+  const fireCoach = useCallback((id)=>{
+    setCoachSeen(prev=>{ if(!prev.has(id)) setCoach(c=>c||id); return prev; });
+  },[]);
   const [showAdjust, setShowAdjust] = useState(false); // deck controls sheet
   // Entry flow: one decision per screen, each styled as a card.
   // "who" -> who are you playing with; "stage" -> relationship length;
@@ -1211,9 +1238,30 @@ export default function App() {
     // In Play Together: continue this game into a room. Load its config and
     // history, seed the room from its seen list, and stay in the deck builder
     // so the user can create a room rather than dropping into solo play.
+    // In a connected room: push this save's history into the shared room so
+    // both players continue it. No deck-building step in between.
     if(togetherMode){
+      if(roomCode && roomState){
+        const cats=(Array.isArray(s.activeCats)&&s.activeCats.length)?s.activeCats:activeCats;
+        const sp=typeof s.spicyLevel==="number"?s.spicyLevel:0;
+        const p=buildPool(cats, s.stage||relationshipType, sp);
+        const seenSet=new Set(s.seen||[]);
+        const first=pickNextUnseen(p,seenSet,"");
+        const second=pickNextUnseen(p,seenSet,first?.question||"");
+        syncAction({
+          stage:s.stage||relationshipType,
+          activeCats:cats,
+          spicyLevel:sp,
+          seenQuestions:s.seen||[],
+          currentQuestion:first||null,
+          nextQuestion:second||null,
+          flipped:false,
+          perspectiveFlipped:false,
+        });
+        setCurrent(first); setNextCard(second);
+        return;
+      }
       setTogetherSeedSeen(s.seen||[]);
-      setScreen("deck");
       return;
     }
     // Solo: build the pool from the restored config and start playing
@@ -1231,7 +1279,7 @@ export default function App() {
       setNameInput("");
       setNamePromptOpen(true);
     }
-  },[saves,activeCats,relationshipType,resetPlayState,togetherMode]);
+  },[saves,activeCats,relationshipType,resetPlayState,togetherMode,roomCode,roomState,syncAction]);
 
   // Delete a saved game
   const deleteSave = useCallback((id)=>{
@@ -1467,33 +1515,11 @@ export default function App() {
   // Starting a game from the deck builder always plays the unnamed Last game,
   // so named saves are never overwritten. If returning from a named save,
   // reload the Last game's own history first.
-  const startFromDeck = useCallback(()=>{
-    if(activeSaveId!==LAST_GAME_ID){
-      const lg = saves[LAST_GAME_ID];
-      const lgSeen = new Set(lg?.seen||[]);
-      const lgLater = new Set(lg?.parkedLater||[]);
-      const lgStage = new Set(lg?.parkedForStage||[]);
-      const lgQueue = Array.isArray(lg?.stageQueue)?lg.stageQueue:[];
-      setActiveSaveId(LAST_GAME_ID);
-      setSeenQuestions(lgSeen);
-      setTotalPlayed(lg?.totalPlayed||0);
-      setParkedLater(lgLater); setParkedForStage(lgStage);
-      const p = buildPool(activeCats, relationshipType, spicyLevel);
-      const r1 = pickSolo(p, lgSeen, lgLater, lgStage, lgQueue, "");
-      const r2 = pickSolo(p, lgSeen, lgLater, lgStage, r1.queue, r1.pick?.question||"");
-      setStageQueue(r2.queue);
-      const first = r1.pick, second = r2.pick;
-      setCurrent(first); setNextCard(second);
-      setFlipped(false); setCount(1); setDragX(0); setGone(false); setIsDragging(false); setDeckExhausted(!first);
-      setScreen("play");
-    } else {
-      initPlay();
-    }
-  },[activeSaveId,saves,activeCats,relationshipType,spicyLevel,initPlay]);
 
   const advance = useCallback(()=>{
     if(!current)return;
     const cq=current.question;
+    setLastCard(current); // one step back, for an accidental swipe
     markSeen(cq);
     const p=buildPool(activeCats,relationshipType,spicyLevel);
     const newSeen=new Set(seenQuestions);
@@ -1616,6 +1642,9 @@ export default function App() {
     setOverwritePromptOpen(false);
     setTogetherMode(false);
     setShowInfo(false);
+    // Room creation needs a stage. Coming from home there isn't one yet, so
+    // send the player through the entry flow to choose first.
+    if(!relationshipType){ setEntryStep("who"); setScreen("entry"); return; }
     setScreen("together");
   };
   const requestGoTogether=()=>{
@@ -1660,8 +1689,54 @@ export default function App() {
     setScreen("play");
   },[catsForStage,seenQuestions,resetPlayState]);
 
+  // Bring back the card that was just swiped away. Works once, then clears.
+  // In a room it syncs, so both players go back together.
+  const undoCard = useCallback(async ()=>{
+    if(!lastCard) return;
+    audio.click();
+    if(screen==="connected-play" && roomCode && roomState){
+      const seen=(roomState.seenQuestions||[]).filter(t=>t!==lastCard.question);
+      await syncAction({
+        seenQuestions:seen,
+        currentQuestion:lastCard,
+        nextQuestion:roomState.currentQuestion||null,
+        flipped:true,
+        perspectiveFlipped:false,
+      });
+      setLastCard(null);
+      return;
+    }
+    setSeenQuestions(prev=>{const n=new Set(prev);n.delete(lastCard.question);return n;});
+    setTotalPlayed(t=>Math.max(0,t-1));
+    setNextCard(current);
+    setCurrent(lastCard);
+    setFlipped(true);
+    setPerspectiveFlipped(false);
+    setDeckExhausted(false);
+    setDragX(0); setGone(false); setIsDragging(false); hasDragged.current=false;
+    setLastCard(null);
+  },[lastCard,current,screen,roomCode,roomState,syncAction]);
+
+  // Tutorial triggers, keyed to what the player is doing rather than to a
+  // fixed script. Each fires once and never returns.
+  const HEAVY_CATS = ["Honest Impressions","Life & Values","Nostalgia","Emotional Intimacy","Late Night"];
+  useEffect(()=>{
+    if(screen!=="play"&&screen!=="connected-play") return;
+    if(showAdjust||showPark||showInfo||showSavedGames||parkFull) return;
+    const q = screen==="connected-play" ? (roomState?.currentQuestion||current) : current;
+    const isFlipped = screen==="connected-play" ? (roomState?.flipped||false) : flipped;
+    if(!q) return;
+    if(!isFlipped){ if(count<=1) fireCoach("tap"); return; }
+    if(count<=1){ fireCoach("swipe"); return; }
+    if(count===2){ fireCoach("adjust"); return; }
+    // Park is explained on the first genuinely heavy card, or by card 5 if the
+    // deck has stayed light. That is the moment it becomes useful.
+    if(HEAVY_CATS.includes(q.category)||count>=5){ fireCoach("park"); }
+    if(count>=8){ fireCoach("menu"); }
+  },[screen,count,flipped,current,roomState,showAdjust,showPark,showInfo,showSavedGames,parkFull,fireCoach]);
+
   const openInfo = () => setShowInfo(true);
-  const replayTutorial = () => { setShowInfo(false); setTutStep(0); setTutorialFrom("info"); setScreen("tutorial"); };
+  const replayTutorial = () => { setShowInfo(false); setTutStep(0); setTutorialReturn(screen==="tutorial"?"home":screen); setScreen("tutorial"); };
 
   return (
     <div style={{minHeight:"100vh",background:"#F0EAE0",display:"flex",flexDirection:"column",alignItems:"center"}}>
@@ -1695,12 +1770,12 @@ export default function App() {
       )}
 
       {/* ── PERSISTENT BACK ARROW (mirrors the ⓘ, fixed top-left) ── */}
-      {!showInfo && !showReset && (screen==="deck"||screen==="play"||screen==="connected-play") && (
+      {!showInfo && !showReset && (screen==="play"||screen==="connected-play") && (
         <div style={{position:"fixed",top:"calc(env(safe-area-inset-top) + 12px)",left:14,zIndex:50,pointerEvents:"auto"}}>
           <button className="btn-back-arrow" onClick={()=>{
-            if(screen==="connected-play"){saveTogetherProgress();leaveRoom();setScreen("deck");}
-            else if(screen==="play"){setScreen("deck");}
-            else {if(togetherMode){setTogetherMode(false);setScreen("together");}else{setScreen("home");}}
+            // Progress is saved automatically, so leaving play returns home.
+            if(screen==="connected-play"){saveTogetherProgress();leaveRoom();setTogetherMode(false);}
+            setScreen("home");
           }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A08868" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
               <path d="M19 12H5M12 5l-7 7 7 7"/>
@@ -1714,6 +1789,21 @@ export default function App() {
         <div style={{position:"fixed",inset:0,background:"rgba(44,35,24,0.6)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:100,padding:24}}>
           <div style={{background:"#FBF5EC",borderRadius:20,padding:"32px 32px",width:"100%",maxWidth:340,maxHeight:"85vh",overflowY:"auto",textAlign:"center"}}>
             <TextureButton variant="ghost" style={{width:"100%",padding:"14px 32px",marginBottom:12}} onClick={replayTutorial}>How to play</TextureButton>
+            {/* Saving happens automatically; this names the current game so it
+                can be told apart from others later. */}
+            {(screen==="play"||screen==="connected-play")&&(
+              <TextureButton variant="ghost" style={{width:"100%",padding:"14px 32px",marginBottom:12}} onClick={()=>{
+                setShowInfo(false);
+                setNamingSaveId(activeSaveId);
+                setNameInput("");
+                setNamePromptOpen(true);
+              }}>Save game</TextureButton>
+            )}
+            {hasAnySaves&&(
+              <TextureButton variant="ghost" style={{width:"100%",padding:"14px 32px",marginBottom:12}} onClick={()=>{setShowInfo(false);setShowSavedGames(true);}}>
+                Restore saved game
+              </TextureButton>
+            )}
             {/* Play Together is a mode, not a first-run decision, so it lives
                 here rather than on the front door. Available from any screen --
                 unnamed progress is protected by the overwrite prompt. */}
@@ -1855,6 +1945,32 @@ export default function App() {
                 );
               })()}
               <TextureButton variant="ghost" style={{width:"100%",padding:"13px 32px"}} onClick={()=>setShowAdjust(false)}>Done</TextureButton>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── IN-CONTEXT TUTORIAL ── */}
+      {coach&&(()=>{
+        const COPY = {
+          tap:    {title:"Tap the card",        body:"Reveal the question. Take turns answering, or answer together.", pos:"middle"},
+          swipe:  {title:"Swipe when you're done", body:"Swipe left or right and the next question is revealed for you.", pos:"bottom"},
+          adjust: {title:"Adjust the deck",     body:"Change topics or turn up the heat any time. Open it and see what's in there.", pos:"bottom"},
+          park:   {title:"Not ready for one?",  body:"Tap Park to set a card aside without losing it. Bring it back whenever you like.", pos:"top"},
+          menu:   {title:"Everything else",     body:"Save your game, change relationship or replay this guide from the menu.", pos:"top"},
+        };
+        const c = COPY[coach];
+        if(!c) return null;
+        const anchor = c.pos==="top" ? {top:"16vh"} : c.pos==="bottom" ? {bottom:"14vh"} : {top:"50%",transform:"translateY(-50%)"};
+        return (
+          <div style={{position:"fixed",inset:0,zIndex:130,pointerEvents:"none",display:"flex",justifyContent:"center"}}>
+            <div style={{position:"absolute",...anchor,width:"min(84vw, 320px)",background:"#3C2010",borderRadius:16,padding:"18px 20px",textAlign:"center",pointerEvents:"auto",boxShadow:"-4px 12px 40px rgba(54,28,8,0.34)"}}>
+              <p style={{...GF_TITLE,fontSize:19,color:"#F5EDD9",marginBottom:6}}>{c.title}</p>
+              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12.5,color:"#D4B882",lineHeight:1.6,marginBottom:14}}>{c.body}</p>
+              <button onClick={()=>{audio.click();markCoachSeen(coach);}} style={{
+                background:"transparent",border:"1.5px solid #8B6445",borderRadius:100,padding:"9px 26px",cursor:"pointer",
+                fontFamily:"'DM Sans',sans-serif",fontSize:11,fontWeight:500,letterSpacing:"0.12em",textTransform:"uppercase",color:"#F5EDD9",
+              }}>Got it</button>
             </div>
           </div>
         );
@@ -2074,11 +2190,12 @@ export default function App() {
         // rather than a settings form.
         const frame = (heading, sub, body, back) => (
           <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",width:"100%",maxWidth:460,minHeight:"100vh",boxSizing:"border-box",padding:"24px"}}>
-            <div style={{position:"relative",width:"min(88vw, 340px)",background:"#F5EDE0",border:"1.5px solid #E8DDD0",borderRadius:20,padding:"38px 26px",textAlign:"center",boxShadow:"-4px 12px 40px rgba(54,28,8,0.16), -2px 4px 12px rgba(54,28,8,0.10)"}}>
+            {/* Same footprint as a playing card so setup feels like the game */}
+            <div style={{position:"relative",width:"100%",maxWidth:340,height:"55vh",maxHeight:460,background:"#F5EDE0",border:"1.5px solid #E8DDD0",borderRadius:20,padding:"28px 24px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",boxShadow:"-4px 12px 40px rgba(54,28,8,0.16), -2px 4px 12px rgba(54,28,8,0.10)"}}>
               <div style={{position:"absolute",inset:10,border:"1px solid rgba(180,160,140,0.25)",borderRadius:12,pointerEvents:"none"}}/>
               <p style={{...GF_TITLE,fontSize:26,color:"#2C1808",lineHeight:1.3,marginBottom:sub?8:26,position:"relative"}}>{heading}</p>
               {sub&&<p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#A08868",lineHeight:1.6,marginBottom:26,position:"relative"}}>{sub}</p>}
-              <div style={{position:"relative",display:"flex",flexDirection:"column",gap:12}}>{body}</div>
+              <div style={{position:"relative",display:"flex",flexDirection:"column",gap:12,width:"100%"}}>{body}</div>
             </div>
             {back&&(
               <button onClick={back} style={{background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#B8A888",marginTop:20,letterSpacing:"0.04em"}}>← Back</button>
@@ -2111,6 +2228,8 @@ export default function App() {
           <>
             <TextureButton variant="ghost" style={{width:"100%",padding:"15px 24px"}} onClick={()=>{setTogetherMode(false);startStage(relationshipType);}}>Together</TextureButton>
             <TextureButton variant="ghost" style={{width:"100%",padding:"15px 24px"}} onClick={()=>{
+              // Room config comes from the stage already chosen, so there is no
+              // separate deck-building step before creating a room.
               const cats=catsForStage(relationshipType);
               setActiveCats(cats); setSpicyLevel(0);
               setTogetherMode(true); setTogetherSeedSeen([]);
@@ -2129,10 +2248,10 @@ export default function App() {
             <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:14,color:"#7A5840",lineHeight:1.75,marginBottom:TUTORIAL_STEPS[tutStep].dare?16:32}}>{TUTORIAL_STEPS[tutStep].body}</p>
             {TUTORIAL_STEPS[tutStep].dare&&<p style={{...GF_TITLE,fontSize:20,color:"#3C2010",marginBottom:32}}>{TUTORIAL_STEPS[tutStep].dare}</p>}
             <div style={{display:"flex",gap:6,justifyContent:"center",marginBottom:28}}>
-              {TUTORIAL_STEPS.map((_,i)=>{const stepColors=["#D4C4B0","#C4A882","#B8956A","#A07850","#8B6445","#3C2410"];return<div key={i} className="tut-dot" style={{width:i===tutStep?20:6,background:i<=tutStep?stepColors[i]:"#E8DDD0"}}/>;})}</div>
+              {TUTORIAL_STEPS.map((_,i)=>{const stepColors=["#D4C4B0","#C9B49C","#C4A882","#B8956A","#A07850","#8B6445","#6B4A30","#3C2410"];return<div key={i} className="tut-dot" style={{width:i===tutStep?20:6,background:i<=tutStep?stepColors[i]:"#E8DDD0"}}/>;})}</div>
             <TextureButton style={{width:"100%"}} onClick={()=>{
               if(tutStep<TUTORIAL_STEPS.length-1){setTutStep(t=>t+1);}
-              else{setHasSeenTutorial(true);if(tutorialFrom==="info"){setScreen("home");}else{initPlay();}}
+              else{setHasSeenTutorial(true);setScreen(tutorialReturn);}
             }}>
               {tutStep<TUTORIAL_STEPS.length-1?"Next →":"Begin"}
             </TextureButton>
@@ -2142,82 +2261,6 @@ export default function App() {
       )}
 
       {/* ── DECK BUILDER ── */}
-      {screen==="deck"&&(
-        <div style={{display:"flex",flexDirection:"column",alignItems:"center",padding:"0 20px 80px",width:"100%",maxWidth:460}}>
-          {/* Spacer to clear the fixed back arrow / ⓘ */}
-          <div style={{width:"100%",height:36,flexShrink:0}}/>
-          {/* Heading with generous space */}
-          <div style={{width:"100%",textAlign:"center",paddingTop:32,paddingBottom:32}}>
-            <p style={{...GF_TITLE,fontSize:30,color:"#3C2010",lineHeight:1.3,marginBottom:10}}>Where are you in your relationship?</p>
-            <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#A08868"}}>We'll suggest the right questions</p>
-          </div>
-          {/* Continue a saved game -- only when saves exist */}
-          {hasAnySaves && (
-            <button onClick={()=>setShowSavedGames(true)} style={{
-              display:"flex",alignItems:"center",justifyContent:"center",gap:10,width:"100%",
-              background:"#FBF5EC",border:"1.5px solid #DDD0BC",borderRadius:14,padding:"14px 20px",
-              cursor:"pointer",marginBottom:28,
-            }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B6445" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-                <polyline points="17 21 17 13 7 13 7 21"/>
-                <polyline points="7 3 7 8 15 8"/>
-              </svg>
-              <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,fontWeight:500,color:"#5A4030",letterSpacing:"0.03em"}}>Continue a saved game</span>
-            </button>
-          )}
-          <div style={{display:"flex",gap:10,width:"100%",marginBottom:32}}>
-            {RELATIONSHIP_TYPES.map(rel=>(
-              <RelTile key={rel.id} rel={rel} isActive={relationshipType===rel.id} onClick={()=>{if(relationshipType===rel.id){setRelationshipType(null);setActiveCats([]);setSpicyLevel(0);}else{const validCats=CATEGORY_ORDER.filter(cat=>ALL_QUESTIONS.some(q=>{const si=STAGE_ORDER.indexOf(rel.id);const mi=STAGE_ORDER.indexOf(q.stageMin);const mx=q.stageMax?STAGE_ORDER.indexOf(q.stageMax):3;return q.category===cat&&si>=mi&&si<=mx;}));setRelationshipType(rel.id);setActiveCats(validCats);setSpicyLevel(0);}}}/>
-            ))}
-          </div>
-          {relationshipType && (currentStage?.spicyMax||0) > 0 && (
-            <div style={{marginBottom:28,display:"flex",justifyContent:"center"}}>
-              <SpicyToggle level={spicyLevel} onCycle={()=>{const max=RELATIONSHIP_TYPES.find(r=>r.id===relationshipType)?.spicyMax||0;setSpicyLevel(l=>(l>=max?0:l+1));}} stageId={relationshipType}/>
-            </div>
-          )}
-          <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#6B4A30",textAlign:"center",marginBottom:16,letterSpacing:"0.02em"}}>
-            {relationshipType?"Fine tune your deck":"Or choose categories manually"}
-          </p>
-          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8,marginBottom:36}}>
-            {Array.from({length:Math.ceil(CATEGORY_ORDER.length/3)}).map((_,rowIdx)=>(
-              <div key={rowIdx} style={{display:"flex",gap:8,justifyContent:"center"}}>
-                {CATEGORY_ORDER.slice(rowIdx*3,(rowIdx+1)*3).map(cat=>(
-                  <TexturePill key={cat} cat={cat} isOn={activeCats.includes(cat)} disabled={!availableCats.includes(cat)} onClick={()=>toggleCat(cat)}/>
-                ))}
-              </div>
-            ))}
-          </div>
-          <div style={{width:"100%",background:"#FBF5EC",border:"1px solid #DDD0BC",borderRadius:16,padding:"18px 22px",marginBottom:16,display:"flex",alignItems:"center",justifyContent:"space-between",boxShadow:"inset 0 1px 4px rgba(54,28,8,0.08), -1px 2px 8px rgba(54,28,8,0.06)"}}>
-            <div>
-              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:15,fontWeight:500,color:"#3C2010",marginBottom:4,letterSpacing:"0.02em"}}>Your deck</p>
-              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#7A5840"}}>{activeCats.length===0?"Choose a stage or topics":`${activeCats.length} ${activeCats.length===1?"topic":"topics"} selected`}</p>
-            </div>
-            <div style={{display:"flex"}}>
-              {activeCats.slice(0,4).map((cat,i)=><div key={cat} style={{width:26,height:34,borderRadius:4,background:CATEGORIES[cat]?.pillBg||"#8B6445",border:"2px solid #F0EAE0",marginLeft:i>0?-8:0,boxShadow:"-1px 2px 6px rgba(54,28,8,0.18)"}}/>)}
-              {activeCats.length>4&&<div style={{width:26,height:34,borderRadius:4,background:"#C0A888",border:"2px solid #F0EAE0",marginLeft:-8,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"-1px 2px 6px rgba(54,28,8,0.18)"}}><span style={{fontSize:9,color:"white",fontFamily:"'DM Sans',sans-serif",fontWeight:500}}>+{activeCats.length-4}</span></div>}
-            </div>
-          </div>
-          <TextureButton disabled={pool.length===0} onClick={async()=>{
-            if(togetherMode){
-              // Building deck for Play Together -- create room with this config.
-              // Seed seen-history from the continued save (empty for a fresh game).
-              const seedSet=new Set(togetherSeedSeen);
-              const first=pickNextUnseen(pool,seedSet,"");
-              const second=pickNextUnseen(pool,seedSet,first?.question||"");
-              await createRoom({stage:relationshipType,spicyLevel,activeCats,currentQuestion:first,nextQuestion:second,seenQuestions:togetherSeedSeen,hostName:playerName.trim()});
-              setCurrent(first);setNextCard(second);
-              setScreen("together");
-            } else if(!hasSeenTutorial){
-              setTutStep(0);setTutorialFrom("deck");setScreen("tutorial");
-            } else {
-              startFromDeck();
-            }
-          }}>
-            {togetherMode ? "Create room" : "Play"}
-          </TextureButton>
-        </div>
-      )}
 
       {/* ── PLAY ── */}
       {screen==="play"&&(
@@ -2347,18 +2390,31 @@ export default function App() {
           </div>
           {/* Deck controls live below the card so they never compete with it */}
           {!deckExhausted&&(
-            <button onClick={()=>{audio.click();setShowAdjust(true);}} style={{
-              flexShrink:0,marginTop:10,background:"transparent",border:"1.5px solid #C4A882",borderRadius:100,
-              padding:"11px 26px",cursor:"pointer",display:"flex",alignItems:"center",gap:8,
-            }}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8B6445" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/>
-                <line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/>
-                <line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/>
-                <line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>
-              </svg>
-              <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,fontWeight:500,letterSpacing:"0.12em",textTransform:"uppercase",color:"#8B6445"}}>Adjust the deck</span>
-            </button>
+            <div style={{flexShrink:0,marginTop:10,display:"flex",alignItems:"center",gap:8}}>
+              {lastCard&&(
+                <button onClick={undoCard} aria-label="Undo" style={{
+                  background:"transparent",border:"1.5px solid #C4A882",borderRadius:100,
+                  padding:"11px 16px",cursor:"pointer",display:"flex",alignItems:"center",gap:6,
+                }}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8B6445" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 4 3 10 9 10"/>
+                  </svg>
+                  <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,fontWeight:500,letterSpacing:"0.12em",textTransform:"uppercase",color:"#8B6445"}}>Undo</span>
+                </button>
+              )}
+              <button onClick={()=>{audio.click();setShowAdjust(true);}} style={{
+                background:"transparent",border:"1.5px solid #C4A882",borderRadius:100,
+                padding:"11px 26px",cursor:"pointer",display:"flex",alignItems:"center",gap:8,
+              }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8B6445" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/>
+                  <line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/>
+                  <line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/>
+                  <line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>
+                </svg>
+                <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,fontWeight:500,letterSpacing:"0.12em",textTransform:"uppercase",color:"#8B6445"}}>Adjust the deck</span>
+              </button>
+            </div>
           )}
         </div>
       )}
@@ -2384,11 +2440,21 @@ export default function App() {
           )}
           {!roomCode && (
             <div style={{width:"100%",display:"flex",flexDirection:"column",gap:12}}>
-              <TextureButton style={{width:"100%"}} onClick={()=>{
+              <TextureButton style={{width:"100%"}} onClick={async()=>{
                 if(!playerName.trim())return;
-                setTogetherSeedSeen([]);
-                setTogetherMode(true);
-                setScreen("deck");
+                // Build the room straight from the stage chosen in the entry
+                // flow. Categories and heat are adjusted in-game, same as solo.
+                const cats = activeCats.length ? activeCats : catsForStage(relationshipType);
+                const p = buildPool(cats, relationshipType, spicyLevel);
+                const seedSet = new Set(togetherSeedSeen);
+                const light = p.filter(q=>q.category==="Light & Fun" && !seedSet.has(q.question));
+                const first = light.length
+                  ? light[Math.floor(Math.random()*light.length)]
+                  : pickNextUnseen(p, seedSet, "");
+                const second = pickNextUnseen(p, seedSet, first?.question||"");
+                await createRoom({stage:relationshipType,spicyLevel,activeCats:cats,currentQuestion:first,nextQuestion:second,seenQuestions:togetherSeedSeen,hostName:playerName.trim()});
+                setActiveCats(cats);
+                setCurrent(first); setNextCard(second);
               }}>
                 Create a room
               </TextureButton>
@@ -2463,6 +2529,21 @@ export default function App() {
                 if(roomState?.currentQuestion){setCurrent(roomState.currentQuestion);setNextCard(roomState.nextQuestion);}
                 setScreen("connected-play");
               }}>Start playing</TextureButton>
+              {/* Only the host chooses, and only when there is genuinely a
+                  choice to make. With one saved game the seed-on-connect merge
+                  already carries that history in silently. */}
+              {(()=>{
+                if(!isHost) return null;
+                const partnerId = roomState?.guestId;
+                if(!partnerId) return null;
+                const mine = Object.values(saves).filter(s=>s && s.partnerId===partnerId && (s.seen?.length||s.totalPlayed));
+                if(mine.length<2) return null;
+                return (
+                  <TextureButton variant="ghost" style={{width:"100%",padding:"13px 32px",marginTop:12}} onClick={()=>setShowSavedGames(true)}>
+                    Restore a saved game
+                  </TextureButton>
+                );
+              })()}
             </div>
           )}
           <button onClick={()=>{leaveRoom();setTogetherMode(false);setScreen("home");}} style={{background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#B8A888",marginTop:24}}>← Back</button>
@@ -2495,6 +2576,7 @@ export default function App() {
             const syncedBorder=syncedCatData?.cardBorder||"#E8DDD0";
             const advanceRoom=async()=>{
               audio.resume();audio.swipe();
+              if(syncedQ) setLastCard(syncedQ); // one step back
               const pool=buildPool(roomState?.activeCats||activeCats,roomState?.stage??relationshipType,roomState?.spicyLevel??spicyLevel);
               const cq=syncedQ?.question;
               const newSeen=[...(roomState?.seenQuestions||[]),cq].filter(Boolean);
@@ -2615,18 +2697,31 @@ export default function App() {
                     );
                   })()}
                 </div>
-                <button onClick={()=>{audio.click();setShowAdjust(true);}} style={{
-                  flexShrink:0,marginTop:10,background:"transparent",border:"1.5px solid #C4A882",borderRadius:100,
-                  padding:"11px 26px",cursor:"pointer",display:"flex",alignItems:"center",gap:8,alignSelf:"center",
-                }}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8B6445" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/>
-                    <line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/>
-                    <line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/>
-                    <line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>
-                  </svg>
-                  <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,fontWeight:500,letterSpacing:"0.12em",textTransform:"uppercase",color:"#8B6445"}}>Adjust the deck</span>
-                </button>
+                <div style={{flexShrink:0,marginTop:10,display:"flex",alignItems:"center",gap:8,alignSelf:"center"}}>
+                  {lastCard&&(
+                    <button onClick={undoCard} aria-label="Undo" style={{
+                      background:"transparent",border:"1.5px solid #C4A882",borderRadius:100,
+                      padding:"11px 16px",cursor:"pointer",display:"flex",alignItems:"center",gap:6,
+                    }}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8B6445" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 4 3 10 9 10"/>
+                      </svg>
+                      <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,fontWeight:500,letterSpacing:"0.12em",textTransform:"uppercase",color:"#8B6445"}}>Undo</span>
+                    </button>
+                  )}
+                  <button onClick={()=>{audio.click();setShowAdjust(true);}} style={{
+                    background:"transparent",border:"1.5px solid #C4A882",borderRadius:100,
+                    padding:"11px 26px",cursor:"pointer",display:"flex",alignItems:"center",gap:8,
+                  }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8B6445" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/>
+                      <line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/>
+                      <line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/>
+                      <line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>
+                    </svg>
+                    <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,fontWeight:500,letterSpacing:"0.12em",textTransform:"uppercase",color:"#8B6445"}}>Adjust the deck</span>
+                  </button>
+                </div>
               </>
             );
           })()}
