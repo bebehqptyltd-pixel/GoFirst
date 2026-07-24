@@ -109,10 +109,33 @@ function makeSaveId(){return "save_"+Math.random().toString(36).slice(2,9);}
 function CardBack() {
   return (
     <div style={{width:"100%",height:"100%",borderRadius:20,overflow:"hidden",boxShadow:"-4px 12px 40px rgba(54,28,8,0.22), -2px 6px 16px rgba(54,28,8,0.14), -1px 2px 4px rgba(54,28,8,0.08)"}}>
-      <img src="https://i.imgur.com/RFAJysA.png" alt="" draggable="false" style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} />
+      <img src="/card-back.png" alt="" draggable="false" style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} />
     </div>
   );
 }
+
+// The textured paper front. Carries its own inner rule, so nothing is drawn
+// over the top of it.
+function CardFront() {
+  return (
+    <img src="/card-front.png" alt="" draggable="false" style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",borderRadius:20,display:"block",pointerEvents:"none"}} />
+  );
+}
+
+// Pressed bronze. The gradient is clipped to the glyphs, with sub-pixel
+// shadow and highlight so the letters read as stamped into the paper rather
+// than sitting on it. Offsets stay under 1px: at 1px they separate into a
+// second visible glyph and the text reads doubled.
+const BRONZE_TEXT = {
+  backgroundImage:"linear-gradient(174deg,#4A3014 0%,#7A5228 30%,#A87F49 48%,#66431E 66%,#4A3014 100%)",
+  backgroundSize:"100% 100%",
+  backgroundRepeat:"no-repeat",
+  WebkitBackgroundClip:"text",
+  backgroundClip:"text",
+  WebkitTextFillColor:"transparent",
+  color:"#4A3014", // shows through if the clip is unsupported
+  filter:"drop-shadow(0 0.5px 0.4px rgba(255,251,240,0.55)) drop-shadow(0 -0.5px 0.4px rgba(78,52,24,0.30))",
+};
 
 function FlameIcon({ size=13, color="#B84A1A" }) {
   return (
@@ -1752,6 +1775,17 @@ export default function App() {
         .btn-back-arrow{background:none;border:none;cursor:pointer;padding:6px;display:flex;align-items:center;justify-content:center;opacity:0.6;transition:opacity 0.2s;}
         .btn-back-arrow:hover{opacity:1;}
         .tut-dot{height:6px;border-radius:3px;transition:all 0.3s;}
+        /* If background-clip:text is unavailable the gradient would paint as a
+           solid block over the card. Fall back to flat bronze instead. */
+        @supports not ((-webkit-background-clip: text) or (background-clip: text)) {
+          .bronze-text{
+            background-image:none !important;
+            -webkit-text-fill-color:#5E3E1C !important;
+            color:#5E3E1C !important;
+            filter:none !important;
+            text-shadow:0 0.5px 0.4px rgba(255,251,240,0.6), 0 -0.5px 0.4px rgba(78,52,24,0.32) !important;
+          }
+        }
       `}</style>
 
       {/* ── PERSISTENT MENU BUTTON ── */}
@@ -2191,8 +2225,8 @@ export default function App() {
         const frame = (heading, sub, body, back) => (
           <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",width:"100%",maxWidth:460,minHeight:"100vh",boxSizing:"border-box",padding:"24px"}}>
             {/* Same footprint as a playing card so setup feels like the game */}
-            <div style={{position:"relative",width:"100%",maxWidth:340,height:"55vh",maxHeight:460,background:"#F5EDE0",border:"1.5px solid #E8DDD0",borderRadius:20,padding:"28px 24px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",boxShadow:"-4px 12px 40px rgba(54,28,8,0.16), -2px 4px 12px rgba(54,28,8,0.10)"}}>
-              <div style={{position:"absolute",inset:10,border:"1px solid rgba(180,160,140,0.25)",borderRadius:12,pointerEvents:"none"}}/>
+            <div style={{position:"relative",width:"100%",maxWidth:340,height:"55vh",maxHeight:460,borderRadius:20,padding:"28px 24px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",boxShadow:"-4px 12px 40px rgba(54,28,8,0.16), -2px 4px 12px rgba(54,28,8,0.10)",overflow:"hidden"}}>
+              <CardFront/>
               <p style={{...GF_TITLE,fontSize:26,color:"#2C1808",lineHeight:1.3,marginBottom:sub?8:26,position:"relative"}}>{heading}</p>
               {sub&&<p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#A08868",lineHeight:1.6,marginBottom:26,position:"relative"}}>{sub}</p>}
               <div style={{position:"relative",display:"flex",flexDirection:"column",gap:12,width:"100%"}}>{body}</div>
@@ -2282,9 +2316,9 @@ export default function App() {
               const nextId = STAGE_ORDER[idx+1];
               const nextStage = RELATIONSHIP_TYPES.find(r=>r.id===nextId);
               const wrap = (children)=>(
-                <div style={{position:"absolute",inset:0,zIndex:2,background:"#F5EDE0",border:"1.5px solid #E8DDD0",borderRadius:20,padding:"28px 24px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",overflowY:"auto",boxShadow:"-4px 12px 40px rgba(54,28,8,0.16)"}}>
-                  <div style={{position:"absolute",inset:10,border:"1px solid rgba(180,160,140,0.25)",borderRadius:12,pointerEvents:"none"}}/>
-                  {children}
+                <div style={{position:"absolute",inset:0,zIndex:2,borderRadius:20,padding:"28px 24px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",overflowY:"auto",boxShadow:"-4px 12px 40px rgba(54,28,8,0.16)",overflow:"hidden"}}>
+                  <CardFront/>
+                  <div style={{position:"relative",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",width:"100%"}}>{children}</div>
                 </div>
               );
               const heading=(t)=><p style={{...GF_TITLE,fontSize:25,color:"#3C2010",lineHeight:1.3,marginBottom:12}}>{t}</p>;
@@ -2350,11 +2384,11 @@ export default function App() {
                 </div>
                 <div style={{position:"absolute",inset:0,opacity:flipped?1:0,transform:flipped?"scale(1)":"scale(0.94)",
                   transition:isDragging?"none":"opacity 0.22s ease 0.08s, transform 0.22s ease 0.08s",
-                  background:cardBg,border:`1.5px solid ${cardBorder}`,borderRadius:20,padding:"24px 22px",
+                  borderRadius:20,padding:"24px 22px",
                   display:"flex",flexDirection:"column",justifyContent:"space-between",
-                  boxShadow:"-4px 12px 40px rgba(54,28,8,0.16), -2px 4px 12px rgba(54,28,8,0.10)",pointerEvents:flipped?"auto":"none"}}>
-                  <div style={{position:"absolute",inset:10,border:"1px solid rgba(180,160,140,0.25)",borderRadius:12,pointerEvents:"none"}}/>
-                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                  boxShadow:"-4px 12px 40px rgba(54,28,8,0.16), -2px 4px 12px rgba(54,28,8,0.10)",pointerEvents:flipped?"auto":"none",overflow:"hidden"}}>
+                  <CardFront/>
+                  <div style={{position:"relative",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
                     <div style={{display:"flex",alignItems:"center",gap:8}}>
                       <div style={{width:5,height:5,borderRadius:"50%",background:"#3C2410",flexShrink:0}}/>
                       <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:9,letterSpacing:"0.18em",textTransform:"uppercase",color:"#3C2410",opacity:0.6}}>{current.category}</p>
@@ -2367,11 +2401,11 @@ export default function App() {
                       </button>
                     </div>
                   </div>
-                  <p style={{...GF_TITLE,fontSize:20,lineHeight:1.6,color:"#2C1808",flex:1,display:"flex",alignItems:"center",paddingTop:10,textAlign:"left"}}>
+                  <p className="bronze-text" style={{...GF_TITLE,...BRONZE_TEXT,fontSize:20,lineHeight:1.6,flex:1,display:"flex",alignItems:"center",paddingTop:10,textAlign:"left",position:"relative"}}>
                     {displayQuestion}
                   </p>
                   {showPerspectiveToggle&&(
-                    <div style={{display:"flex",justifyContent:"flex-end",paddingTop:8}}>
+                    <div style={{position:"relative",display:"flex",justifyContent:"flex-end",paddingTop:8}}>
                       <button onClick={(e)=>{e.stopPropagation();setPerspectiveFlipped(v=>!v);}} style={{background:perspectiveFlipped?"#3C2410":"transparent",border:"1px solid #C4A882",borderRadius:100,padding:"4px 14px",cursor:"pointer",display:"flex",alignItems:"center",gap:5,transition:"all 0.2s"}}>
                         <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:10,letterSpacing:"0.12em",textTransform:"uppercase",color:perspectiveFlipped?"#F5EDD9":"#8B6445",fontWeight:500}}>Switch</span>
                       </button>
@@ -2620,9 +2654,9 @@ export default function App() {
                 inner=<>{headingC("Ready to go deeper?")}{bodyC(`You've explored every ${cStageLabel} question. Continue your journey with ${nextStage.label}.`)}<TextureButton style={primaryStyleC} onClick={()=>changeRelationship(nextId)}>Move to {nextStage.label}</TextureButton>{connexionBtnC}{resetLinkC("Reset questions", replayRoom)}</>;
               }
               return(
-                <div style={{position:"relative",width:"100%",maxWidth:340,minHeight:"55vh",maxHeight:460,flexShrink:0,marginBottom:8,background:"#F5EDE0",border:"1.5px solid #E8DDD0",borderRadius:20,padding:"28px 24px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",overflowY:"auto",boxShadow:"-4px 12px 40px rgba(54,28,8,0.16)"}}>
-                  <div style={{position:"absolute",inset:10,border:"1px solid rgba(180,160,140,0.25)",borderRadius:12,pointerEvents:"none"}}/>
-                  {inner}
+                <div style={{position:"relative",width:"100%",maxWidth:340,minHeight:"55vh",maxHeight:460,flexShrink:0,marginBottom:8,borderRadius:20,padding:"28px 24px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",overflowY:"auto",boxShadow:"-4px 12px 40px rgba(54,28,8,0.16)",overflow:"hidden"}}>
+                  <CardFront/>
+                  <div style={{position:"relative",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",width:"100%"}}>{inner}</div>
                 </div>
               );
             }
@@ -2649,12 +2683,12 @@ export default function App() {
                     </div>
                     <div style={{position:"absolute",inset:0,opacity:syncedFlipped?1:0,transform:syncedFlipped?"scale(1)":"scale(0.94)",
                       transition:isDragging?"none":"opacity 0.22s ease 0.08s, transform 0.22s ease 0.08s",
-                      background:syncedBg,border:`1.5px solid ${syncedBorder}`,borderRadius:20,padding:"24px 22px",
+                      borderRadius:20,padding:"24px 22px",
                       display:"flex",flexDirection:"column",justifyContent:"space-between",
                       boxShadow:"-4px 12px 40px rgba(54,28,8,0.16), -2px 4px 12px rgba(54,28,8,0.10)",
-                      pointerEvents:syncedFlipped?"auto":"none",cursor:syncedFlipped?"grab":"default"}}>
-                      <div style={{position:"absolute",inset:10,border:"1px solid rgba(180,160,140,0.25)",borderRadius:12,pointerEvents:"none"}}/>
-                      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                      pointerEvents:syncedFlipped?"auto":"none",cursor:syncedFlipped?"grab":"default",overflow:"hidden"}}>
+                      <CardFront/>
+                      <div style={{position:"relative",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
                         <div style={{display:"flex",alignItems:"center",gap:8}}>
                           <div style={{width:5,height:5,borderRadius:"50%",background:"#3C2410",flexShrink:0}}/>
                           <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:9,letterSpacing:"0.18em",textTransform:"uppercase",color:"#3C2410",opacity:0.6}}>{syncedQ?.category}</p>
@@ -2667,11 +2701,11 @@ export default function App() {
                           </button>
                         </div>
                       </div>
-                      <p style={{...GF_TITLE,fontSize:20,lineHeight:1.6,color:"#2C1808",flex:1,display:"flex",alignItems:"center",paddingTop:10,textAlign:"left"}}>
+                      <p className="bronze-text" style={{...GF_TITLE,...BRONZE_TEXT,fontSize:20,lineHeight:1.6,flex:1,display:"flex",alignItems:"center",paddingTop:10,textAlign:"left",position:"relative"}}>
                         {syncedDisplay}
                       </p>
                       {syncedQ?.canFlip&&(
-                        <div style={{display:"flex",justifyContent:"flex-end",paddingTop:8}}>
+                        <div style={{position:"relative",display:"flex",justifyContent:"flex-end",paddingTop:8}}>
                           <button onClick={async(e)=>{e.stopPropagation();await syncAction({perspectiveFlipped:!syncedPerspective});}} style={{background:syncedPerspective?"#3C2410":"transparent",border:"1px solid #C4A882",borderRadius:100,padding:"4px 14px",cursor:"pointer",transition:"all 0.2s"}}>
                             <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:10,letterSpacing:"0.12em",textTransform:"uppercase",color:syncedPerspective?"#F5EDD9":"#8B6445",fontWeight:500}}>Switch</span>
                           </button>
