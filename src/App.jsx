@@ -1168,8 +1168,11 @@ export default function App() {
   const parkBtnRef = useRef(null);
   const menuBtnRef = useRef(null);
   const switchBtnRef = useRef(null);
+  const questionRef = useRef(null); // to place the Adjust caption below the text
   // Recomputed when the step changes so the ring reads the target's live box.
   const [ringBox, setRingBox] = useState(null);
+  // Bottom edge of the question text, for the dynamic Adjust caption position.
+  const [questionBottom, setQuestionBottom] = useState(null);
 
   // Reset all local play state when entering a new room or game
   const resetPlayState = useCallback(() => {
@@ -1810,6 +1813,9 @@ export default function App() {
     measure();
     // Re-measure once after paint in case layout shifts on reveal.
     const t = setTimeout(measure, 60);
+    // Capture where the question text ends, for the dynamic Adjust caption.
+    const qEl = questionRef.current;
+    if(qEl){ setQuestionBottom(qEl.getBoundingClientRect().bottom); }
     return ()=>clearTimeout(t);
   },[coachIdx,anyPanelOpen,flipped,current]);
 
@@ -2054,27 +2060,38 @@ export default function App() {
       {coachIdx>=0 && COACH_SEQUENCE[coachIdx] && !anyPanelOpen && ringBox && (()=>{
         const step = COACH_SEQUENCE[coachIdx];
         const isSwipe = step.action==="swipe";
-        // Caption goes above the ring if the ring is low on screen, below if high.
-        const ringLow = ringBox.cy > window.innerHeight*0.5;
-        // Info steps (Park) advance on a tap anywhere. Action steps advance by
-        // doing the real thing, so their layer stays click-through.
         const tapToAdvance = step.action==="advance";
+        const vh = window.innerHeight;
+        // Caption placement per step, following the marked-up map:
+        //  tap/swipe  - below the card, above the status line
+        //  park       - top of screen, above the card
+        //  menu       - just under the menu icon, right side
+        //  adjust     - dynamic: just below where the question text ends
+        let capTop;
+        if(step.anchor==="card"){ capTop = Math.min(ringBox.cy+150, vh-140); }
+        else if(step.anchor==="park"){ capTop = "calc(env(safe-area-inset-top) + 58px)"; }
+        else if(step.anchor==="menu"){ capTop = "calc(env(safe-area-inset-top) + 60px)"; }
+        else if(step.anchor==="adjust"){ capTop = (questionBottom!=null? questionBottom+24 : vh*0.55); }
+        else { capTop = vh*0.5; }
+        const capAlign = step.anchor==="menu" ? "flex-end" : "center";
         return (
           <div
             onClick={tapToAdvance?advanceCoach:undefined}
             style={{position:"fixed",inset:0,zIndex:130,pointerEvents:tapToAdvance?"auto":"none"}}
           >
-            {/* Ring on the measured control. Pulse for taps, a left-right glide
-                for the swipe step so the gesture reads correctly. */}
+            {/* Full light scrim: dims the screen just enough to lift the caption
+                and make the ring pop, without a box behind the text. */}
+            <div style={{position:"absolute",inset:0,background:"rgba(44,28,8,0.10)",pointerEvents:"none"}}/>
+            {/* Ring on the measured control. Pulse for taps, glide for swipe. */}
             <div style={{position:"absolute",left:ringBox.cx,top:ringBox.cy,width:isSwipe?60:56,height:isSwipe?60:56,marginLeft:isSwipe?-30:-28,marginTop:isSwipe?-30:-28,pointerEvents:"none"}}>
               <div style={{width:"100%",height:"100%",borderRadius:"50%",border:"2px dashed #8B6445",animation:isSwipe?"coachglide 1.7s ease-in-out infinite":"coachpulse 1.6s ease-in-out infinite"}}/>
             </div>
-            {/* Single caption, faint scrim behind just the text for legibility */}
-            <div style={{position:"absolute",left:0,right:0,top:ringLow?undefined:Math.min(ringBox.cy+52,window.innerHeight-150),bottom:ringLow?Math.max(window.innerHeight-ringBox.cy+52,150):undefined,display:"flex",justifyContent:"center",padding:"0 28px",pointerEvents:"none"}}>
-              <div style={{maxWidth:300,textAlign:"center",background:"rgba(251,245,236,0.82)",borderRadius:16,padding:"14px 20px",boxShadow:"0 2px 20px rgba(54,28,8,0.10)"}}>
-                <p style={{...GF_TITLE,fontSize:20,color:"#3C2010",marginBottom:4}}>{step.title}</p>
-                <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13.5,color:"#7A5840",lineHeight:1.55}}>{step.body}</p>
-                {tapToAdvance && <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#B8A888",letterSpacing:"0.08em",marginTop:10}}>Tap anywhere to continue</p>}
+            {/* Caption, plain text on the scrim, no box */}
+            <div style={{position:"absolute",left:0,right:0,top:capTop,display:"flex",justifyContent:capAlign,padding:"0 28px",pointerEvents:"none"}}>
+              <div style={{maxWidth:300,textAlign:capAlign==="flex-end"?"right":"center"}}>
+                <p style={{...GF_TITLE,fontSize:21,color:"#3C2010",marginBottom:4,textShadow:"0 1px 8px rgba(245,237,224,0.9)"}}>{step.title}</p>
+                <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:14,color:"#5A4030",lineHeight:1.55,textShadow:"0 1px 6px rgba(245,237,224,0.9)"}}>{step.body}</p>
+                {tapToAdvance && <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#9A8868",letterSpacing:"0.08em",marginTop:10}}>Tap anywhere to continue</p>}
               </div>
             </div>
           </div>
@@ -2084,11 +2101,12 @@ export default function App() {
       {/* Switch hint: fires on the first flippable card, points at Switch */}
       {showSwitchCoach && !anyPanelOpen && (
         <div onClick={dismissSwitchCoach} style={{position:"fixed",inset:0,zIndex:130,pointerEvents:"auto"}}>
+          <div style={{position:"absolute",inset:0,background:"rgba(44,28,8,0.10)",pointerEvents:"none"}}/>
           <div style={{position:"absolute",left:0,right:0,bottom:"26vh",display:"flex",justifyContent:"center",padding:"0 28px",pointerEvents:"none"}}>
-            <div style={{maxWidth:300,textAlign:"center",background:"rgba(251,245,236,0.82)",borderRadius:16,padding:"14px 20px",boxShadow:"0 2px 20px rgba(54,28,8,0.10)"}}>
-              <p style={{...GF_TITLE,fontSize:20,color:"#3C2010",marginBottom:4}}>Switch it around</p>
-              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13.5,color:"#7A5840",lineHeight:1.55}}>Tap Switch to ask the question the other way, and answer for each other.</p>
-              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#B8A888",letterSpacing:"0.08em",marginTop:10}}>Tap anywhere to continue</p>
+            <div style={{maxWidth:300,textAlign:"center"}}>
+              <p style={{...GF_TITLE,fontSize:21,color:"#3C2010",marginBottom:4,textShadow:"0 1px 8px rgba(245,237,224,0.9)"}}>Switch it around</p>
+              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:14,color:"#5A4030",lineHeight:1.55,textShadow:"0 1px 6px rgba(245,237,224,0.9)"}}>Tap Switch to ask the question the other way, and answer for each other.</p>
+              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#9A8868",letterSpacing:"0.08em",marginTop:10}}>Tap anywhere to continue</p>
             </div>
           </div>
         </div>
@@ -2480,7 +2498,7 @@ export default function App() {
                       </button>
                     </div>
                   </div>
-                  <p className="bronze-text" style={{...GF_TITLE,...BRONZE_TEXT,fontSize:20,lineHeight:1.6,flex:1,display:"flex",alignItems:"center",paddingTop:10,textAlign:"left",position:"relative"}}>
+                  <p ref={questionRef} className="bronze-text" style={{...GF_TITLE,...BRONZE_TEXT,fontSize:20,lineHeight:1.6,flex:1,display:"flex",alignItems:"center",paddingTop:10,textAlign:"left",position:"relative"}}>
                     {displayQuestion}
                   </p>
                   {showPerspectiveToggle&&(
