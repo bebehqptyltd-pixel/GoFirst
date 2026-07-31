@@ -875,15 +875,20 @@ const RELATIONSHIP_TYPES = [
   {id:"committed",     label:"Long-term connection",   description:"2 yr+",      cats:["Emotional Intimacy","Life & Values","Late Night","Nostalgia","Honest Impressions","Attraction & Chemistry"], spicyMax:3},
 ];
 
-const TUTORIAL_STEPS = [
-  {title:"Welcome to Go First", body:"A card game for people brave enough to say the things typically left unsaid. There are no wrong answers.", dare:null},
-  {title:"Tap to reveal",       body:"Your first card starts face down. Tap it to reveal the question. Take turns answering, or answer together.", dare:null},
-  {title:"Swipe to move on",    body:"Done with a question? Swipe left or right and the next question is revealed for you. Once you swipe, that card is done.", dare:null},
-  {title:"Undo a swipe",        body:"Swiped before you were ready? Undo appears below the card and brings the last one straight back. It works once per card.", dare:null},
-  {title:"Park it for later",   body:"Not feeling a question right now? Tap Park to set it aside without losing it. You can hold up to five, and bring any of them back from Adjust the deck whenever you like.", dare:null},
-  {title:"Switch it around",    body:"Some cards can be switched. Tap Switch on the card face to turn the question back the other way and answer for each other.", dare:null},
-  {title:"Adjust the deck",     body:"Sitting under every card. Turn topics on or off, and turn up the heat when you are ready. Your parked cards live here too.", dare:null},
-  {title:"The menu",            body:"Save your game, restore an earlier one, change your relationship stage or play long distance. Everything else lives behind the menu button.", dare:"Who will go first?"},
+// The guided walkthrough, in order. Each step anchors a pulsing ring to a real
+// control. "action" is what tapping the ring does:
+//   reveal  - taps the card to reveal it (first card only)
+//   adjust  - opens the Adjust the deck sheet
+//   advance - just moves to the next step (Park: player presses Park themselves)
+//   menu    - opens the menu
+//   swipe   - the step ends when the player swipes the card away
+// anchor picks which control the ring sits over.
+const COACH_SEQUENCE = [
+  {id:"tap",    anchor:"card",   action:"reveal",  title:"Tap to reveal",        body:"Tap the card to reveal the question."},
+  {id:"adjust", anchor:"adjust", action:"adjust",  title:"Adjust the deck",      body:"Change the mood by adjusting the deck as you play."},
+  {id:"park",   anchor:"park",   action:"advance", title:"Not ready to answer?", body:"Park a card for later and bring it back when you're ready."},
+  {id:"menu",   anchor:"menu",   action:"menu",    title:"The menu",             body:"Save your game and find everything else here."},
+  {id:"swipe",  anchor:"card",   action:"swipe",   title:"Swipe to move on",     body:"Swipe to reveal the next question. Now you're ready to play."},
 ];
 
 function flipQuestion(q){
@@ -1060,31 +1065,10 @@ function SpicyToggle({ level, onCycle, stageId }) {
   );
 }
 
-function TutIcon({step}){
-  const p={stroke:"#7A4A24",strokeWidth:"1.5",strokeLinecap:"round",strokeLinejoin:"round",fill:"none"};
-  // 0 Welcome, 1 Tap, 2 Swipe, 3 Undo, 4 Park, 5 Switch, 6 Adjust, 7 Menu
-  if(step===0)return<svg width="44" height="44" viewBox="0 0 44 44" fill="none"><rect x="6" y="8" width="24" height="30" rx="3" {...p}/><rect x="12" y="4" width="24" height="30" rx="3" {...p}/><line x1="18" y1="17" x2="28" y2="17" {...p}/><line x1="18" y1="22" x2="24" y2="22" {...p}/></svg>;
-  if(step===1)return<svg width="44" height="44" viewBox="0 0 44 44" fill="none"><rect x="10" y="4" width="24" height="32" rx="3" {...p}/><path d="M22 14 L22 24 M17 20 L22 25 L27 20" {...p}/></svg>;
-  // Swipe: card flanked by left/right arrows
-  if(step===2)return<svg width="44" height="44" viewBox="0 0 44 44" fill="none"><rect x="12" y="6" width="20" height="28" rx="3" {...p}/><path d="M4 20 L2 20 M6 16 L2 20 L6 24" {...p}/><path d="M40 20 L42 20 M38 16 L42 20 L38 24" {...p}/></svg>;
-  // Undo: circular arrow back, matching the in-play Undo button
-  if(step===3)return<svg width="44" height="44" viewBox="0 0 44 44" fill="none"><path d="M8 22a14 14 0 1 0 4.7-10.4" {...p}/><polyline points="8 8 8 17 17 17" {...p}/></svg>;
-  // Park: bookmark, matching the in-play PARK button
-  if(step===4)return<svg width="44" height="44" viewBox="0 0 44 44" fill="none"><path d="M14 7 h16 v29 l-8 -7 l-8 7 z" {...p}/></svg>;
-  // Switch: horizontal spinning arrows
-  if(step===5)return<svg width="44" height="44" viewBox="0 0 44 44" fill="none"><path d="M13 19 Q22 10 31 18" {...p}/><path d="M31 18 L27 15 M31 18 L27 21" {...p}/><path d="M13 26 Q22 34 31 26" {...p}/><path d="M13 26 L17 23 M13 26 L17 29" {...p}/></svg>;
-  // Adjust: sliders, matching the in-play Adjust the deck button
-  if(step===6)return<svg width="44" height="44" viewBox="0 0 44 44" fill="none"><line x1="11" y1="36" x2="11" y2="25" {...p}/><line x1="11" y1="19" x2="11" y2="8" {...p}/><line x1="22" y1="36" x2="22" y2="22" {...p}/><line x1="22" y1="16" x2="22" y2="8" {...p}/><line x1="33" y1="36" x2="33" y2="29" {...p}/><line x1="33" y1="23" x2="33" y2="8" {...p}/><line x1="6" y1="25" x2="16" y2="25" {...p}/><line x1="17" y1="16" x2="27" y2="16" {...p}/><line x1="28" y1="29" x2="38" y2="29" {...p}/></svg>;
-  // Menu: three lines, matching the header button
-  if(step===7)return<svg width="44" height="44" viewBox="0 0 44 44" fill="none"><line x1="9" y1="14" x2="35" y2="14" {...p}/><line x1="9" y1="22" x2="35" y2="22" {...p}/><line x1="9" y1="30" x2="35" y2="30" {...p}/></svg>;
-  return null;
-}
 
 export default function App() {
   const mem = loadMemory();
   const [screen, setScreen] = useState("home");
-  const [tutStep, setTutStep] = useState(0);
-  const [tutorialReturn, setTutorialReturn] = useState("home"); // where "How to play" was opened from
   const [hasSeenTutorial, setHasSeenTutorial] = useState(mem.hasSeenTutorial||false);
   // Categories start OFF so the pills visibly read as selectable rather than
   // as static labels. Selecting a stage tile turns on that stage's categories,
@@ -1105,23 +1089,43 @@ export default function App() {
   // Single-step undo. Holds the card that was just swiped away so an
   // accidental swipe can be taken back once. Cleared after use.
   const [lastCard, setLastCard] = useState(null);
-  // In-context tutorial. Each hint fires once, at the moment its control first
-  // matters, rather than as a wall of instructions before play starts.
-  const COACH_KEY = "gofirst_coach_v1";
-  const [coachSeen, setCoachSeen] = useState(()=>{
-    try{ return new Set(JSON.parse(localStorage.getItem(COACH_KEY)||"[]")); }catch{ return new Set(); }
+  // Guided walkthrough. One ordered sequence of coach marks. Each is a pulsing
+  // bronze ring over a real control with a caption beside it, no panel, no hand.
+  // Steps that have somewhere to go perform the real action (open Adjust, open
+  // the menu, swipe). Park just advances; the player presses Park themselves to
+  // actually park. Learned once at the start of a game, replayable from the menu.
+  const COACH_KEY = "gofirst_coach_v2";
+  const [coachDone, setCoachDone] = useState(()=>{
+    try{ return localStorage.getItem(COACH_KEY)==="1"; }catch{ return false; }
   });
-  const [coach, setCoach] = useState(null); // id of the hint showing now
-  const markCoachSeen = useCallback((id)=>{
-    setCoachSeen(prev=>{
-      const next=new Set(prev); next.add(id);
-      try{ localStorage.setItem(COACH_KEY, JSON.stringify([...next])); }catch{}
+  // Index into the walkthrough. -1 means not running.
+  const [coachIdx, setCoachIdx] = useState(-1);
+  // The Switch hint is separate: it fires the first time a flippable card
+  // appears in normal play, which can be any distance in.
+  const [switchCoachDone, setSwitchCoachDone] = useState(()=>{
+    try{ return localStorage.getItem("gofirst_coach_switch_v1")==="1"; }catch{ return false; }
+  });
+  const [showSwitchCoach, setShowSwitchCoach] = useState(false);
+  const finishCoach = useCallback(()=>{
+    setCoachIdx(-1);
+    setCoachDone(true);
+    try{ localStorage.setItem(COACH_KEY,"1"); }catch{}
+  },[]);
+  const advanceCoach = useCallback(()=>{
+    setCoachIdx(i=>{
+      const next=i+1;
+      if(next>=COACH_SEQUENCE.length){
+        setCoachDone(true);
+        try{ localStorage.setItem(COACH_KEY,"1"); }catch{}
+        return -1;
+      }
       return next;
     });
-    setCoach(null);
   },[]);
-  const fireCoach = useCallback((id)=>{
-    setCoachSeen(prev=>{ if(!prev.has(id)) setCoach(c=>c||id); return prev; });
+  const dismissSwitchCoach = useCallback(()=>{
+    setShowSwitchCoach(false);
+    setSwitchCoachDone(true);
+    try{ localStorage.setItem("gofirst_coach_switch_v1","1"); }catch{}
   },[]);
   const [showAdjust, setShowAdjust] = useState(false); // deck controls sheet
   // Entry flow: one decision per screen, each styled as a card.
@@ -1541,6 +1545,8 @@ export default function App() {
 
   const advance = useCallback(()=>{
     if(!current)return;
+    // The final walkthrough step ends on the swipe that carries you into play.
+    if(coachIdx>=0 && COACH_SEQUENCE[coachIdx]?.action==="swipe") finishCoach();
     const cq=current.question;
     setLastCard(current); // one step back, for an accidental swipe
     markSeen(cq);
@@ -1559,7 +1565,7 @@ export default function App() {
     if(queue!==stageQueue) setStageQueue(queue);
     // The swipe IS the transition -- the next card arrives already revealed.
     setCurrent(nextCard);setNextCard(pick);setFlipped(true);setCount(c=>c+1);setDragX(0);setGone(false);setIsDragging(false);hasDragged.current=false;setPerspectiveFlipped(false);
-  },[nextCard,current,activeCats,seenQuestions,markSeen,relationshipType,spicyLevel,parkedLater,parkedForStage,stageQueue]);
+  },[nextCard,current,activeCats,seenQuestions,markSeen,relationshipType,spicyLevel,parkedLater,parkedForStage,stageQueue,coachIdx,finishCoach]);
 
   // Park the current card without burning it as seen.
   //  mode "later" -> comes back at the end of this deck
@@ -1682,10 +1688,14 @@ export default function App() {
   };
   // Resolve the overwrite prompt according to whatever opened it.
   const resolveOverwrite=()=>{ if(overwriteIntent==="together"){ doGoTogether(); } else { doResetFresh(); } };
-  const handleCardTap=()=>{if(!flipped&&!hasDragged.current){audio.resume();audio.flip();setFlipped(true);}};
+  const handleCardTap=()=>{if(!flipped&&!hasDragged.current){audio.resume();audio.flip();setFlipped(true);if(coachIdx===0&&COACH_SEQUENCE[0].action==="reveal")advanceCoach();}};
   const onPointerDown=(e)=>{if(!flipped)return;dragStartX.current=e.touches?e.touches[0].clientX:e.clientX;hasDragged.current=false;setIsDragging(true);};
   const onPointerMove=(e)=>{if(!isDragging||dragStartX.current===null)return;const x=(e.touches?e.touches[0].clientX:e.clientX)-dragStartX.current;if(Math.abs(x)>4)hasDragged.current=true;setDragX(x);};
-  const onPointerUp=()=>{if(!isDragging)return;setIsDragging(false);if(Math.abs(dragX)>80){audio.resume();audio.swipe();setGoneDir(dragX>0?1:-1);setGone(true);setTimeout(advance,300);}else{setDragX(0);setTimeout(()=>{hasDragged.current=false;},50);}dragStartX.current=null;};
+  const onPointerUp=()=>{if(!isDragging)return;setIsDragging(false);
+    // During the walkthrough, only allow the swipe once the sequence reaches the
+    // swipe step. Earlier steps snap the card back so the player follows in order.
+    const coachBlocksSwipe = coachIdx>=0 && COACH_SEQUENCE[coachIdx]?.action!=="swipe";
+    if(!coachBlocksSwipe && Math.abs(dragX)>80){audio.resume();audio.swipe();setGoneDir(dragX>0?1:-1);setGone(true);setTimeout(advance,300);}else{setDragX(0);setTimeout(()=>{hasDragged.current=false;},50);}dragStartX.current=null;};
   // Deck builder only. Zero categories is a legitimate starting state here:
   // the Play button disables until something is chosen. The Adjust sheet keeps
   // its own minimum-one guard so a deck in progress can never be emptied.
@@ -1740,26 +1750,51 @@ export default function App() {
     setLastCard(null);
   },[lastCard,current,screen,roomCode,roomState,syncAction]);
 
-  // Tutorial triggers, keyed to what the player is doing rather than to a
-  // fixed script. Each fires once and never returns.
-  const HEAVY_CATS = ["Honest Impressions","Life & Values","Nostalgia","Emotional Intimacy","Late Night"];
+  // Start the walkthrough on the first game a player ever opens. It begins on
+  // the face-down first card and runs in order. Replaying from the menu is
+  // handled separately (that path can skip the reveal step).
   useEffect(()=>{
+    if(coachDone) return;
+    if(coachIdx!==-1) return;
+    if(screen!=="play"&&screen!=="connected-play") return;
+    if(showAdjust||showPark||showInfo||showSavedGames||parkFull) return;
+    const q = screen==="connected-play" ? (roomState?.currentQuestion||current) : current;
+    if(!q) return;
+    // Begin at step 0 only while the very first card is still face down.
+    const isFlipped = screen==="connected-play" ? (roomState?.flipped||false) : flipped;
+    if(count<=1 && !isFlipped){ setCoachIdx(0); }
+  },[coachDone,coachIdx,screen,flipped,current,roomState,count,showAdjust,showPark,showInfo,showSavedGames,parkFull]);
+
+  // The Switch hint waits for the first flippable card to appear in real play,
+  // then points at the Switch control. Independent of the main walkthrough.
+  useEffect(()=>{
+    if(switchCoachDone) return;
+    if(coachIdx!==-1) return; // don't collide with the walkthrough
     if(screen!=="play"&&screen!=="connected-play") return;
     if(showAdjust||showPark||showInfo||showSavedGames||parkFull) return;
     const q = screen==="connected-play" ? (roomState?.currentQuestion||current) : current;
     const isFlipped = screen==="connected-play" ? (roomState?.flipped||false) : flipped;
-    if(!q) return;
-    if(!isFlipped){ if(count<=1) fireCoach("tap"); return; }
-    if(count<=1){ fireCoach("swipe"); return; }
-    if(count===2){ fireCoach("adjust"); return; }
-    // Park is explained on the first genuinely heavy card, or by card 5 if the
-    // deck has stayed light. That is the moment it becomes useful.
-    if(HEAVY_CATS.includes(q.category)||count>=5){ fireCoach("park"); }
-    if(count>=8){ fireCoach("menu"); }
-  },[screen,count,flipped,current,roomState,showAdjust,showPark,showInfo,showSavedGames,parkFull,fireCoach]);
+    if(q && q.canFlip && isFlipped){ setShowSwitchCoach(true); }
+  },[switchCoachDone,coachIdx,screen,current,roomState,flipped,showAdjust,showPark,showInfo,showSavedGames,parkFull]);
+
+  // When a walkthrough step points at Adjust or the menu, opening that panel
+  // is what advances the step. Watching the flags catches every way in.
+  useEffect(()=>{
+    if(coachIdx<0) return;
+    const step=COACH_SEQUENCE[coachIdx];
+    if(step.action==="adjust" && showAdjust) advanceCoach();
+    if(step.action==="menu" && showInfo) advanceCoach();
+  },[showAdjust,showInfo,coachIdx,advanceCoach]);
 
   const openInfo = () => setShowInfo(true);
-  const replayTutorial = () => { setShowInfo(false); setTutStep(0); setTutorialReturn(screen==="tutorial"?"home":screen); setScreen("tutorial"); };
+  // Replay the walkthrough from the menu. If a card is already revealed (any
+  // point mid-game), skip the reveal step and start at Adjust. A face-down
+  // first card starts from the top.
+  const replayTutorial = () => {
+    setShowInfo(false);
+    const isFlipped = screen==="connected-play" ? (roomState?.flipped||false) : flipped;
+    setCoachIdx(isFlipped ? 1 : 0);
+  };
 
   return (
     <div style={{minHeight:"100vh",background:"#F0EAE0",display:"flex",flexDirection:"column",alignItems:"center"}}>
@@ -1774,6 +1809,7 @@ export default function App() {
         .btn-icon:hover{opacity:1;}
         .btn-back-arrow{background:none;border:none;cursor:pointer;padding:6px;display:flex;align-items:center;justify-content:center;opacity:0.6;transition:opacity 0.2s;}
         .btn-back-arrow:hover{opacity:1;}
+        @keyframes coachpulse{0%,100%{transform:scale(1);opacity:0.9;}50%{transform:scale(1.18);opacity:0.5;}}
         .tut-dot{height:6px;border-radius:3px;transition:all 0.3s;}
         /* If background-clip:text is unavailable the gradient would paint as a
            solid block over the card. Fall back to flat bronze instead. */
@@ -1984,31 +2020,48 @@ export default function App() {
         );
       })()}
 
-      {/* ── IN-CONTEXT TUTORIAL ── */}
-      {coach&&(()=>{
-        const COPY = {
-          tap:    {title:"Tap the card",        body:"Reveal the question. Take turns answering, or answer together.", pos:"middle"},
-          swipe:  {title:"Swipe when you're done", body:"Swipe left or right and the next question is revealed for you.", pos:"bottom"},
-          adjust: {title:"Adjust the deck",     body:"Change topics or turn up the heat any time. Open it and see what's in there.", pos:"bottom"},
-          park:   {title:"Not ready for one?",  body:"Tap Park to set a card aside without losing it. Bring it back whenever you like.", pos:"top"},
-          menu:   {title:"Everything else",     body:"Save your game, change relationship or replay this guide from the menu.", pos:"top"},
+      {/* ── GUIDED WALKTHROUGH ── */}
+      {coachIdx>=0 && COACH_SEQUENCE[coachIdx] && (()=>{
+        const step = COACH_SEQUENCE[coachIdx];
+        // Where the ring and caption sit, by anchor. Values are viewport-relative
+        // so the ring lands on the real control without measuring the DOM.
+        const anchors = {
+          card:   {ring:{top:"38vh",left:"50%"},           cap:{top:"52vh"},        capAlign:"center"},
+          adjust: {ring:{bottom:"calc(env(safe-area-inset-bottom) + 26px)",right:"22%"}, cap:{bottom:"calc(env(safe-area-inset-bottom) + 78px)"}, capAlign:"center"},
+          park:   {ring:{top:"calc(env(safe-area-inset-top) + 88px)",right:"12%"},  cap:{top:"calc(env(safe-area-inset-top) + 128px)"}, capAlign:"center"},
+          menu:   {ring:{top:"calc(env(safe-area-inset-top) + 16px)",right:"18px"}, cap:{top:"calc(env(safe-area-inset-top) + 62px)"},  capAlign:"right"},
         };
-        const c = COPY[coach];
-        if(!c) return null;
-        const anchor = c.pos==="top" ? {top:"16vh"} : c.pos==="bottom" ? {bottom:"14vh"} : {top:"50%",transform:"translateY(-50%)"};
+        const a = anchors[step.anchor] || anchors.card;
         return (
-          <div style={{position:"fixed",inset:0,zIndex:130,pointerEvents:"none",display:"flex",justifyContent:"center"}}>
-            <div style={{position:"absolute",...anchor,width:"min(84vw, 320px)",background:"#3C2010",borderRadius:16,padding:"18px 20px",textAlign:"center",pointerEvents:"auto",boxShadow:"-4px 12px 40px rgba(54,28,8,0.34)"}}>
-              <p style={{...GF_TITLE,fontSize:19,color:"#F5EDD9",marginBottom:6}}>{c.title}</p>
-              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:12.5,color:"#D4B882",lineHeight:1.6,marginBottom:14}}>{c.body}</p>
-              <button onClick={()=>{audio.click();markCoachSeen(coach);}} style={{
-                background:"transparent",border:"1.5px solid #8B6445",borderRadius:100,padding:"9px 26px",cursor:"pointer",
-                fontFamily:"'DM Sans',sans-serif",fontSize:11,fontWeight:500,letterSpacing:"0.12em",textTransform:"uppercase",color:"#F5EDD9",
-              }}>Got it</button>
+          <div style={{position:"fixed",inset:0,zIndex:130,pointerEvents:"none"}}>
+            {/* Pulsing bronze ring on the target control. Outer div positions,
+                inner div pulses, so the two transforms don't fight. */}
+            <div style={{position:"absolute",...a.ring,transform:a.ring.left==="50%"?"translate(-50%,-50%)":"translateY(-50%)",width:56,height:56,pointerEvents:"none"}}>
+              <div style={{width:"100%",height:"100%",borderRadius:"50%",border:"2px dashed #8B6445",animation:"coachpulse 1.6s ease-in-out infinite"}}/>
+            </div>
+            {/* Caption on the paper, ink, no panel */}
+            <div style={{position:"absolute",...a.cap,left:0,right:0,padding:"0 32px",textAlign:a.capAlign,pointerEvents:"none"}}>
+              <p style={{...GF_TITLE,fontSize:20,color:"#3C2010",marginBottom:4}}>{step.title}</p>
+              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13.5,color:"#7A5840",lineHeight:1.55,maxWidth:280,marginLeft:a.capAlign==="center"?"auto":0,marginRight:a.capAlign==="center"?"auto":0}}>{step.body}</p>
+              {step.action==="advance" && (
+                <button onClick={advanceCoach} style={{marginTop:14,background:"transparent",border:"1.5px solid #C4A882",borderRadius:100,padding:"9px 26px",cursor:"pointer",pointerEvents:"auto",fontFamily:"'DM Sans',sans-serif",fontSize:11,fontWeight:500,letterSpacing:"0.12em",textTransform:"uppercase",color:"#8B6445"}}>Next</button>
+              )}
             </div>
           </div>
         );
       })()}
+
+      {/* Switch hint: fires on the first flippable card in normal play */}
+      {showSwitchCoach && (
+        <div style={{position:"fixed",inset:0,zIndex:130,pointerEvents:"none"}}>
+          <div style={{position:"absolute",bottom:"32vh",right:"20%",width:48,height:48,marginTop:-24,borderRadius:"50%",border:"2px dashed #8B6445",animation:"coachpulse 1.6s ease-in-out infinite"}}/>
+          <div style={{position:"absolute",bottom:"24vh",left:0,right:0,padding:"0 32px",textAlign:"center"}}>
+            <p style={{...GF_TITLE,fontSize:20,color:"#3C2010",marginBottom:4}}>Switch it around</p>
+            <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13.5,color:"#7A5840",lineHeight:1.55,maxWidth:280,margin:"0 auto"}}>Tap Switch to ask the question the other way, and answer for each other.</p>
+            <button onClick={dismissSwitchCoach} style={{marginTop:14,background:"transparent",border:"1.5px solid #C4A882",borderRadius:100,padding:"9px 26px",cursor:"pointer",pointerEvents:"auto",fontFamily:"'DM Sans',sans-serif",fontSize:11,fontWeight:500,letterSpacing:"0.12em",textTransform:"uppercase",color:"#8B6445"}}>Got it</button>
+          </div>
+        </div>
+      )}
 
       {/* ── PARK AT CAPACITY ── */}
       {parkFull&&(
@@ -2197,12 +2250,21 @@ export default function App() {
       )}
 
       {/* ── HOME ── */}
-      {screen==="home"&&(
+      {screen==="home"&&(()=>{
+        // How many resumable saves exist decides the home options.
+        const resumable = Object.values(saves).filter(s=>s && (s.seen?.length || s.totalPlayed));
+        const startNew = ()=>{ setEntryStep("who"); setScreen("entry"); };
+        const openSaved = ()=>{
+          // One save resumes straight away; more than one shows the list.
+          if(resumable.length===1){ restoreSave(resumable[0].id); }
+          else { setShowSavedGames(true); }
+        };
+        return (
         <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",width:"100%",maxWidth:460,minHeight:"100vh",boxSizing:"border-box",paddingLeft:24,paddingRight:24,paddingTop:"calc(env(safe-area-inset-top) + 24px)",paddingBottom:"calc(env(safe-area-inset-bottom) + 24px)"}}>
-          {/* The card back carries the title and tagline, so the screen doesn't
-              repeat them. The card stays tappable for anyone who reaches for
-              it, but Play is the explicit affordance. */}
-          <div onClick={()=>{audio.click();setEntryStep("who");setScreen("entry");}} style={{position:"relative",width:"min(86vw, 320px)",aspectRatio:"252 / 353",alignSelf:"center",cursor:"pointer"}}>
+          {/* The card back carries the title and tagline. With no saves, the
+              card and button go straight into a new game. With saves, the
+              player chooses New Game or Saved Game first. */}
+          <div onClick={()=>{audio.click(); resumable.length? null : startNew();}} style={{position:"relative",width:"min(86vw, 320px)",aspectRatio:"252 / 353",alignSelf:"center",cursor:resumable.length?"default":"pointer"}}>
             {[
               {rot:"-7deg", top:"5.7%",  left:"-2.4%", op:0.3, w:"92.9%", h:"92.9%"},
               {rot:"4deg",  top:"2.8%",  left:"0.8%",  op:0.6, w:"96.8%", h:"96.9%"},
@@ -2214,9 +2276,17 @@ export default function App() {
             ))}
           </div>
           <div style={{height:48}}/>
-          <TextureButton onClick={()=>{setEntryStep("who");setScreen("entry");}}>Play</TextureButton>
+          {resumable.length>0 ? (
+            <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:12,width:"100%",maxWidth:300}}>
+              <TextureButton style={{width:"100%"}} onClick={startNew}>New game</TextureButton>
+              <TextureButton variant="ghost" style={{width:"100%",padding:"14px 32px"}} onClick={openSaved}>Saved game</TextureButton>
+            </div>
+          ) : (
+            <TextureButton onClick={startNew}>Play</TextureButton>
+          )}
         </div>
-      )}
+        );
+      })()}
 
       {/* ── ENTRY FLOW ── */}
       {screen==="entry"&&(()=>{
@@ -2274,28 +2344,6 @@ export default function App() {
       })()}
 
       {/* ── TUTORIAL ── */}
-      {screen==="tutorial"&&(
-        <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:"100vh",padding:"24px 28px",width:"100%",maxWidth:420}}>
-          <div style={{background:"#FBF5EC",border:"1.5px solid #DDD0BC",borderRadius:20,padding:"44px 32px",width:"100%",textAlign:"center",boxShadow:"-3px 10px 36px rgba(54,28,8,0.12), -1px 3px 8px rgba(54,28,8,0.08)"}}>
-            <div style={{marginBottom:24,display:"flex",justifyContent:"center"}}><TutIcon step={tutStep}/></div>
-            <h2 style={{...GF_TITLE,fontSize:24,color:"#3C2010",marginBottom:14,lineHeight:1.3}}>{TUTORIAL_STEPS[tutStep].title}</h2>
-            <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:14,color:"#7A5840",lineHeight:1.75,marginBottom:TUTORIAL_STEPS[tutStep].dare?16:32}}>{TUTORIAL_STEPS[tutStep].body}</p>
-            {TUTORIAL_STEPS[tutStep].dare&&<p style={{...GF_TITLE,fontSize:20,color:"#3C2010",marginBottom:32}}>{TUTORIAL_STEPS[tutStep].dare}</p>}
-            <div style={{display:"flex",gap:6,justifyContent:"center",marginBottom:28}}>
-              {TUTORIAL_STEPS.map((_,i)=>{const stepColors=["#D4C4B0","#C9B49C","#C4A882","#B8956A","#A07850","#8B6445","#6B4A30","#3C2410"];return<div key={i} className="tut-dot" style={{width:i===tutStep?20:6,background:i<=tutStep?stepColors[i]:"#E8DDD0"}}/>;})}</div>
-            <TextureButton style={{width:"100%"}} onClick={()=>{
-              if(tutStep<TUTORIAL_STEPS.length-1){setTutStep(t=>t+1);}
-              else{setHasSeenTutorial(true);setScreen(tutorialReturn);}
-            }}>
-              {tutStep<TUTORIAL_STEPS.length-1?"Next →":"Begin"}
-            </TextureButton>
-            {tutStep>0&&<button onClick={()=>setTutStep(t=>t-1)} style={{background:"none",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#B8A888",marginTop:14,display:"block",width:"100%"}}>← Back</button>}
-          </div>
-        </div>
-      )}
-
-      {/* ── DECK BUILDER ── */}
-
       {/* ── PLAY ── */}
       {screen==="play"&&(
         <div style={{display:"flex",flexDirection:"column",alignItems:"center",width:"100%",maxWidth:460,height:"100vh",maxHeight:"100vh",boxSizing:"border-box",paddingLeft:12,paddingRight:12,paddingTop:"calc(env(safe-area-inset-top) + 8px)",paddingBottom:"calc(env(safe-area-inset-bottom) + 10px)"}}>
