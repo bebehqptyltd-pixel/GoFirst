@@ -1161,6 +1161,15 @@ export default function App() {
   const [muted, setMuted] = useState(() => audio.isMuted());
   const dragStartX = useRef(null);
   const hasDragged = useRef(false);
+  // Anchors for the walkthrough rings. Each points at the real control so the
+  // ring lands on it rather than at a guessed viewport coordinate.
+  const cardRef = useRef(null);
+  const adjustBtnRef = useRef(null);
+  const parkBtnRef = useRef(null);
+  const menuBtnRef = useRef(null);
+  const switchBtnRef = useRef(null);
+  // Recomputed when the step changes so the ring reads the target's live box.
+  const [ringBox, setRingBox] = useState(null);
 
   // Reset all local play state when entering a new room or game
   const resetPlayState = useCallback(() => {
@@ -1299,13 +1308,8 @@ export default function App() {
     const second = pickNextUnseen(p, seenSet, first?.question||"");
     setCurrent(first); setNextCard(second);
     resetPlayState(); setCount(1); setDeckExhausted(!first); setScreen("play");
-    // First time restoring an unnamed game (Last game or a Play Together
-    // save) -- offer to name it
-    if(id===LAST_GAME_ID || s.isUnnamed){
-      setNamingSaveId(id);
-      setNameInput("");
-      setNamePromptOpen(true);
-    }
+    // Resuming a saved game drops you straight into play. Naming stays
+    // available from the menu's Save game, so it never interrupts a resume.
   },[saves,activeCats,relationshipType,resetPlayState,togetherMode,roomCode,roomState,syncAction]);
 
   // Delete a saved game
@@ -1786,6 +1790,29 @@ export default function App() {
     if(step.action==="menu" && showInfo) advanceCoach();
   },[showAdjust,showInfo,coachIdx,advanceCoach]);
 
+  // A panel being open suppresses the walkthrough entirely: no ring, no
+  // caption. The next step only appears once the panel closes, so a prompt
+  // never overlays an open sheet.
+  const anyPanelOpen = showAdjust||showInfo||showPark||showSavedGames||parkFull||namePromptOpen;
+
+  // Measure the current step's target so the ring sits on the real control.
+  // Runs when the step changes or a panel closes, and never while one is open.
+  useEffect(()=>{
+    if(coachIdx<0 || anyPanelOpen){ setRingBox(null); return; }
+    const step = COACH_SEQUENCE[coachIdx];
+    const refMap = { card:cardRef, adjust:adjustBtnRef, park:parkBtnRef, menu:menuBtnRef };
+    const el = refMap[step.anchor]?.current;
+    if(!el){ setRingBox(null); return; }
+    const measure = ()=>{
+      const r = el.getBoundingClientRect();
+      setRingBox({ cx:r.left+r.width/2, cy:r.top+r.height/2 });
+    };
+    measure();
+    // Re-measure once after paint in case layout shifts on reveal.
+    const t = setTimeout(measure, 60);
+    return ()=>clearTimeout(t);
+  },[coachIdx,anyPanelOpen,flipped,current]);
+
   const openInfo = () => setShowInfo(true);
   // Replay the walkthrough from the menu. If a card is already revealed (any
   // point mid-game), skip the reveal step and start at Adjust. A face-down
@@ -1810,6 +1837,9 @@ export default function App() {
         .btn-back-arrow{background:none;border:none;cursor:pointer;padding:6px;display:flex;align-items:center;justify-content:center;opacity:0.6;transition:opacity 0.2s;}
         .btn-back-arrow:hover{opacity:1;}
         @keyframes coachpulse{0%,100%{transform:scale(1);opacity:0.9;}50%{transform:scale(1.18);opacity:0.5;}}
+        /* Portrait only. The real orientation lock is set in the native wrap's
+           config; on the web the app simply assumes portrait. */
+        @keyframes coachglide{0%,100%{transform:translateX(-22px);opacity:0.55;}50%{transform:translateX(22px);opacity:0.95;}}
         .tut-dot{height:6px;border-radius:3px;transition:all 0.3s;}
         /* If background-clip:text is unavailable the gradient would paint as a
            solid block over the card. Fall back to flat bronze instead. */
@@ -1829,7 +1859,7 @@ export default function App() {
           a menu icon there competes with the single decision on screen. */}
       {!showInfo && !showReset && screen!=="home" && screen!=="entry" && (
         <div style={{position:"fixed",top:"calc(env(safe-area-inset-top) + 12px)",right:14,zIndex:50,pointerEvents:"auto"}}>
-          <button className="btn-icon" onClick={openInfo}>
+          <button ref={menuBtnRef} className="btn-icon" onClick={openInfo}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A08868" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
               <line x1="3" y1="7" x2="21" y2="7"/>
               <line x1="3" y1="12" x2="21" y2="12"/>
@@ -2021,44 +2051,45 @@ export default function App() {
       })()}
 
       {/* ── GUIDED WALKTHROUGH ── */}
-      {coachIdx>=0 && COACH_SEQUENCE[coachIdx] && (()=>{
+      {coachIdx>=0 && COACH_SEQUENCE[coachIdx] && !anyPanelOpen && ringBox && (()=>{
         const step = COACH_SEQUENCE[coachIdx];
-        // Where the ring and caption sit, by anchor. Values are viewport-relative
-        // so the ring lands on the real control without measuring the DOM.
-        const anchors = {
-          card:   {ring:{top:"38vh",left:"50%"},           cap:{top:"52vh"},        capAlign:"center"},
-          adjust: {ring:{bottom:"calc(env(safe-area-inset-bottom) + 26px)",right:"22%"}, cap:{bottom:"calc(env(safe-area-inset-bottom) + 78px)"}, capAlign:"center"},
-          park:   {ring:{top:"calc(env(safe-area-inset-top) + 88px)",right:"12%"},  cap:{top:"calc(env(safe-area-inset-top) + 128px)"}, capAlign:"center"},
-          menu:   {ring:{top:"calc(env(safe-area-inset-top) + 16px)",right:"18px"}, cap:{top:"calc(env(safe-area-inset-top) + 62px)"},  capAlign:"right"},
-        };
-        const a = anchors[step.anchor] || anchors.card;
+        const isSwipe = step.action==="swipe";
+        // Caption goes above the ring if the ring is low on screen, below if high.
+        const ringLow = ringBox.cy > window.innerHeight*0.5;
+        // Info steps (Park) advance on a tap anywhere. Action steps advance by
+        // doing the real thing, so their layer stays click-through.
+        const tapToAdvance = step.action==="advance";
         return (
-          <div style={{position:"fixed",inset:0,zIndex:130,pointerEvents:"none"}}>
-            {/* Pulsing bronze ring on the target control. Outer div positions,
-                inner div pulses, so the two transforms don't fight. */}
-            <div style={{position:"absolute",...a.ring,transform:a.ring.left==="50%"?"translate(-50%,-50%)":"translateY(-50%)",width:56,height:56,pointerEvents:"none"}}>
-              <div style={{width:"100%",height:"100%",borderRadius:"50%",border:"2px dashed #8B6445",animation:"coachpulse 1.6s ease-in-out infinite"}}/>
+          <div
+            onClick={tapToAdvance?advanceCoach:undefined}
+            style={{position:"fixed",inset:0,zIndex:130,pointerEvents:tapToAdvance?"auto":"none"}}
+          >
+            {/* Ring on the measured control. Pulse for taps, a left-right glide
+                for the swipe step so the gesture reads correctly. */}
+            <div style={{position:"absolute",left:ringBox.cx,top:ringBox.cy,width:isSwipe?60:56,height:isSwipe?60:56,marginLeft:isSwipe?-30:-28,marginTop:isSwipe?-30:-28,pointerEvents:"none"}}>
+              <div style={{width:"100%",height:"100%",borderRadius:"50%",border:"2px dashed #8B6445",animation:isSwipe?"coachglide 1.7s ease-in-out infinite":"coachpulse 1.6s ease-in-out infinite"}}/>
             </div>
-            {/* Caption on the paper, ink, no panel */}
-            <div style={{position:"absolute",...a.cap,left:0,right:0,padding:"0 32px",textAlign:a.capAlign,pointerEvents:"none"}}>
-              <p style={{...GF_TITLE,fontSize:20,color:"#3C2010",marginBottom:4}}>{step.title}</p>
-              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13.5,color:"#7A5840",lineHeight:1.55,maxWidth:280,marginLeft:a.capAlign==="center"?"auto":0,marginRight:a.capAlign==="center"?"auto":0}}>{step.body}</p>
-              {step.action==="advance" && (
-                <button onClick={advanceCoach} style={{marginTop:14,background:"transparent",border:"1.5px solid #C4A882",borderRadius:100,padding:"9px 26px",cursor:"pointer",pointerEvents:"auto",fontFamily:"'DM Sans',sans-serif",fontSize:11,fontWeight:500,letterSpacing:"0.12em",textTransform:"uppercase",color:"#8B6445"}}>Next</button>
-              )}
+            {/* Single caption, faint scrim behind just the text for legibility */}
+            <div style={{position:"absolute",left:0,right:0,top:ringLow?undefined:Math.min(ringBox.cy+52,window.innerHeight-150),bottom:ringLow?Math.max(window.innerHeight-ringBox.cy+52,150):undefined,display:"flex",justifyContent:"center",padding:"0 28px",pointerEvents:"none"}}>
+              <div style={{maxWidth:300,textAlign:"center",background:"rgba(251,245,236,0.82)",borderRadius:16,padding:"14px 20px",boxShadow:"0 2px 20px rgba(54,28,8,0.10)"}}>
+                <p style={{...GF_TITLE,fontSize:20,color:"#3C2010",marginBottom:4}}>{step.title}</p>
+                <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13.5,color:"#7A5840",lineHeight:1.55}}>{step.body}</p>
+                {tapToAdvance && <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#B8A888",letterSpacing:"0.08em",marginTop:10}}>Tap anywhere to continue</p>}
+              </div>
             </div>
           </div>
         );
       })()}
 
-      {/* Switch hint: fires on the first flippable card in normal play */}
-      {showSwitchCoach && (
-        <div style={{position:"fixed",inset:0,zIndex:130,pointerEvents:"none"}}>
-          <div style={{position:"absolute",bottom:"32vh",right:"20%",width:48,height:48,marginTop:-24,borderRadius:"50%",border:"2px dashed #8B6445",animation:"coachpulse 1.6s ease-in-out infinite"}}/>
-          <div style={{position:"absolute",bottom:"24vh",left:0,right:0,padding:"0 32px",textAlign:"center"}}>
-            <p style={{...GF_TITLE,fontSize:20,color:"#3C2010",marginBottom:4}}>Switch it around</p>
-            <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13.5,color:"#7A5840",lineHeight:1.55,maxWidth:280,margin:"0 auto"}}>Tap Switch to ask the question the other way, and answer for each other.</p>
-            <button onClick={dismissSwitchCoach} style={{marginTop:14,background:"transparent",border:"1.5px solid #C4A882",borderRadius:100,padding:"9px 26px",cursor:"pointer",pointerEvents:"auto",fontFamily:"'DM Sans',sans-serif",fontSize:11,fontWeight:500,letterSpacing:"0.12em",textTransform:"uppercase",color:"#8B6445"}}>Got it</button>
+      {/* Switch hint: fires on the first flippable card, points at Switch */}
+      {showSwitchCoach && !anyPanelOpen && (
+        <div onClick={dismissSwitchCoach} style={{position:"fixed",inset:0,zIndex:130,pointerEvents:"auto"}}>
+          <div style={{position:"absolute",left:0,right:0,bottom:"26vh",display:"flex",justifyContent:"center",padding:"0 28px",pointerEvents:"none"}}>
+            <div style={{maxWidth:300,textAlign:"center",background:"rgba(251,245,236,0.82)",borderRadius:16,padding:"14px 20px",boxShadow:"0 2px 20px rgba(54,28,8,0.10)"}}>
+              <p style={{...GF_TITLE,fontSize:20,color:"#3C2010",marginBottom:4}}>Switch it around</p>
+              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13.5,color:"#7A5840",lineHeight:1.55}}>Tap Switch to ask the question the other way, and answer for each other.</p>
+              <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#B8A888",letterSpacing:"0.08em",marginTop:10}}>Tap anywhere to continue</p>
+            </div>
           </div>
         </div>
       )}
@@ -2418,7 +2449,7 @@ export default function App() {
               </>);
             })()}
             {current&&!deckExhausted&&(
-              <div key={current.question} style={{position:"absolute",inset:0,zIndex:2,
+              <div ref={cardRef} key={current.question} style={{position:"absolute",inset:0,zIndex:2,
                 transform:gone?`translateX(${goneDir*110}vw) rotate(${goneDir*18}deg)`:`translateX(${dragX}px) rotate(${dragX*0.025}deg)`,
                 transition:isDragging?"none":gone?"transform 0.28s ease-in":"transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94)",
                 cursor:flipped?"grab":"pointer",touchAction:"pan-y",
@@ -2443,7 +2474,7 @@ export default function App() {
                     </div>
                     <div style={{display:"flex",alignItems:"center",gap:8}}>
                       <SpicyBadge level={current.spicy}/>
-                      <button onClick={(e)=>{e.stopPropagation();audio.click();setShowPark(true);}} style={{background:"transparent",border:"1px solid #C4A882",borderRadius:100,padding:"4px 12px",cursor:"pointer",display:"flex",alignItems:"center",gap:5,transition:"all 0.2s"}}>
+                      <button ref={parkBtnRef} onClick={(e)=>{e.stopPropagation();audio.click();setShowPark(true);}} style={{background:"transparent",border:"1px solid #C4A882",borderRadius:100,padding:"4px 12px",cursor:"pointer",display:"flex",alignItems:"center",gap:5,transition:"all 0.2s"}}>
                         <svg width="9" height="11" viewBox="0 0 9 11" fill="none" style={{flexShrink:0}}><path d="M1 1.5h7v8L4.5 7 1 9.5v-8z" stroke="#8B6445" strokeWidth="1.1" strokeLinejoin="round"/></svg>
                         <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:10,letterSpacing:"0.12em",textTransform:"uppercase",color:"#8B6445",fontWeight:500}}>Park</span>
                       </button>
@@ -2484,7 +2515,7 @@ export default function App() {
                   <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,fontWeight:500,letterSpacing:"0.12em",textTransform:"uppercase",color:"#8B6445"}}>Undo</span>
                 </button>
               )}
-              <button onClick={()=>{audio.click();setShowAdjust(true);}} style={{
+              <button ref={adjustBtnRef} onClick={()=>{audio.click();setShowAdjust(true);}} style={{
                 background:"transparent",border:"1.5px solid #C4A882",borderRadius:100,
                 padding:"11px 26px",cursor:"pointer",display:"flex",alignItems:"center",gap:8,
               }}>
